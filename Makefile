@@ -4,7 +4,9 @@ CC=g++
 
 INCLUDES = -Itools/
 
-CFLAGS=  -O3 $(DEBUG) -std=c++0x
+
+
+CFLAGS=  -O2 $(DEBUG) -std=c++0x
 
 MAIN =main
 
@@ -14,16 +16,16 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 EXECUTABLE=bin/mcGUI
 
-GLIBS= -lglut -lGL -lGLEW  -lsfml-graphics -lsfml-window -lsfml-system 
+GLIBS= $(LIBRARIES) -lglut -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
 
 
 all: mc 
 
 mc: $(OBJECTS) 
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) src/tiny_obj_loader.cc.o
+	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) tools/tiny_obj_loader.cc.o
 
 .cpp.o: 
-	$(CC) $(CFLAGS) $(INCLUDES) -c $< $(GLIBS) -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 
 clean: 

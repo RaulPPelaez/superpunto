@@ -18,7 +18,7 @@
 #define SQUARE(x) ((x)*(x))
 
 
-#define TARGET_FPS 60
+#define TARGET_FPS 30
 
 #define FWIDTH  500
 #define FHEIGHT   500
@@ -26,7 +26,7 @@
 #define DEGREE_TO_RAD (PI/180.0f)
 
 
-#define CAMSPEED 0.5f
+#define CAMSPEED 0.6f
 #define MOUSE_SENS 0.25f
 #define CAM_ANG_SPEED 2
 
