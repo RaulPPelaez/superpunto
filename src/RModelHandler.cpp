@@ -43,7 +43,10 @@ int RModelHandler::add_model(const char* fileName){
   cout<<err<<endl;
   Nvertex[i_model] = shapes[0].mesh.indices.size();
   printf("New model loaded: %d vertex, %d index, %d normals, %d texcoord\n"
-  ,shapes[0].mesh.positions.size()/3, shapes[0].mesh.indices.size(),shapes[0].mesh.normals.size()/3,shapes[0].mesh.texcoords.size()/2); 
+	,(int)shapes[0].mesh.positions.size()/3, (int)shapes[0].mesh.indices.size(),
+	 (int)shapes[0].mesh.normals.size()/3,(int)shapes[0].mesh.texcoords.size()/2); 
+  
+  
   vbos.push_back(new GLuint[4]);
   glGenBuffers(4, vbos[i_model]);
 
