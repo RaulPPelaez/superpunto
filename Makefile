@@ -1,10 +1,6 @@
 CC=g++
 
-DEBUG=-g
-
-
-
-#INCLUDES= -IC:/SFML-2.1/include  -IC:/glew-1.11.0/include
+#DEBUG=-g
 
 INCLUDES = -Itools/
 
@@ -18,7 +14,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 EXECUTABLE=bin/mcGUI
 
-GLIBS=   -lGLU -lglut -lGL -lGLEW  -lsfml-graphics -lsfml-window -lsfml-system 
+GLIBS= -lglut -lGL -lGLEW  -lsfml-graphics -lsfml-window -lsfml-system 
 
 
 all: mc 
