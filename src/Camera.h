@@ -3,7 +3,7 @@
 
 #include "defines.h"
 
-#include <SFML/OpenGL.hpp>
+#include <GL/gl.h>
 #include <SFML/Window.hpp>
 
 #include <glm/glm.hpp>

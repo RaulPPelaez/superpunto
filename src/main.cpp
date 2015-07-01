@@ -12,14 +12,15 @@
 #include "utils.h"
 
 #include <GL/glew.h>
-#include <SFML/OpenGL.hpp>
-using namespace sf;
+#include <GL/gl.h>
+#include <GL/glut.h>
+#include <GL/glext.h>
 #include <SFML/Graphics.hpp>
+using namespace sf;
 
 #include <stdlib.h>
 
-#include <GL/glut.h>
-#include <GL/glext.h>
+
 #include"glib.h"
 #include "RModelHandler.h"
 #include "Camera.h"

@@ -6,6 +6,8 @@ DEBUG=-g
 
 #INCLUDES= -IC:/SFML-2.1/include  -IC:/glew-1.11.0/include
 
+INCLUDES = -Itools/
+
 CFLAGS=  -O3 -march=corei7 -mavx2 $(DEBUG) -std=c++11
 
 MAIN =main
