@@ -8,7 +8,7 @@ DEBUG=-g
 
 INCLUDES = -Itools/
 
-CFLAGS=  -O3 -march=corei7 -mavx2 $(DEBUG) -std=c++11
+CFLAGS=  -O3 $(DEBUG) -std=c++11
 
 MAIN =main
 
