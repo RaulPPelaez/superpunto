@@ -22,7 +22,7 @@ void Camera::update(){
 	  printf("front: %.3f, %.3f, %.3f  \n\n", front.x, front.y, front.z);
   }
   if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) process_mouse();
-    
+  else this->updateCameraVectors();
 }
 
 void FreeCamera::process_mouse(){

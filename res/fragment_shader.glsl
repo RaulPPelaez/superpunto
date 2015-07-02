@@ -1,4 +1,4 @@
-#version 420
+#version 330
 
 
 //in vec3 outcolor;
@@ -83,10 +83,10 @@ vec4 computePointLight(vec3 Normal)
 
 void main() {
 
-   vec4 TotalLight;// = computeLight(light, Directional_light, Normal);
+  // vec4 TotalLight = computeLight(light, Directional_light, Normal);
    
    
-   TotalLight = computePointLight(Normal); 
+  vec4 TotalLight = computePointLight(Normal); 
     
    outColor = vec4(Color,1) * TotalLight;
 } 

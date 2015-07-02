@@ -3,7 +3,8 @@
 
 
 FileConfig get_config(const char *fileName){
-   FileConfig fc;
+  printf("Getting file config...\n");
+  FileConfig fc;
   std::ifstream in(fileName);
   int nframes = 1, nrows = 0;
   std::string line;
@@ -24,14 +25,14 @@ FileConfig get_config(const char *fileName){
     N++;
     getline (in, line);
   }
-  if(N>maxN){maxN = N; N=0;}
+  if(N>maxN){maxN = N;}
   Natframes.push_back(N);
   fc.nrows = nrows;
   fc.nframes = nframes;
   fc.maxN = maxN;
   fc.N = Natframes;
   
-  printf("%d rows\n%d frames in file\n%d superpuntos\n", nrows, nframes, maxN);
+  printf("\t%d rows, taking as XYZRC\n\t%d frames\n\t%d superpuntos\n", nrows, nframes, maxN);
   
   return fc;  
 }

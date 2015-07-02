@@ -105,6 +105,7 @@ class RGL{
     std::vector<vector<float>> positions, colors,scales;
     GLuint instancing_vbos[3];
     int current_step;    
+    bool play_movie;
 	    
 };
 
@@ -121,10 +122,12 @@ void RGL::initialize(){
     
   glEnable(GL_DEPTH_TEST);
 
-  proj = glm::perspective(45.0f, 1.0f, 0.01f, 1000.0f);
+  proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
   //lookAt(cam.pos, cam.get_view(), cam.up); 
   lightpos = -2;
+  play_movie = false;
   
+  printf("DONE!\nDrawing...\n");
 
 }
 
@@ -152,18 +155,19 @@ void RGL::upload_MVP(){
 void RGL::handle_event(sf::Event event){
  if (event.type == Event::KeyPressed){
    if(event.key.code == sf::Keyboard::Up){
-	lightpos += 0.2;
-	printf("%f \n", lightpos);
+	lightpos += 0.5;
    }
    if(event.key.code == sf::Keyboard::Down){
-	lightpos -= 0.2;
-		printf("%f \n", lightpos);
+	lightpos -= 0.5;
    }
    if(event.key.code == sf::Keyboard::Space){
       upload_step();
    }
    if(event.key.code == sf::Keyboard::R){
       current_step= Rmax(current_step-2,0);upload_step();
+   }
+   if(event.key.code == sf::Keyboard::M){
+      play_movie = !play_movie;
    }
    
  }
@@ -191,16 +195,15 @@ model = glm::mat4();
 	
 void RGL::update(){
 	this->cam.update(); 
-	//upload_step();
+	if(play_movie)upload_step();
 
 }
 
 void RGL::loadData(){
   
-  
   ifstream in(fileName.c_str());
   FileConfig fc = get_config(fileName.c_str());
-  
+    
   std::string line;  
   
   int c;
@@ -214,14 +217,16 @@ void RGL::loadData(){
   scales[0].resize(fc.N[0],1);
   colors[0].resize(3*fc.N[0],1);    
   
-  int frame = 0;
   getline(in,line);
   if(line.substr(0,1) == "#") getline(in,line);
   std::stringstream is(line);
+  
   double temp[fc.nrows];
   vector<int> ctemp(fc.N[0],0);
-  
+  int frame = 0;
   int N = -1;
+  printf("\rLoading data... %d%%   ", 0);
+  fflush(stdout);
   while(!in.eof()){
    if(line.substr(0,1)!="#") N++;
    else{
@@ -232,6 +237,8 @@ void RGL::loadData(){
      //colors[frame].resize(3*fc.N[frame],1);    
      ctemp.resize(fc.N[frame],1);
      getline(in,line);
+     printf("\rLoading data... %d%%   ", (int)(100.0f*(float)frame/(float)fc.nframes +0.5f));
+     fflush(stdout);
      continue;
    }
    is.clear();
@@ -241,11 +248,11 @@ void RGL::loadData(){
    fori(0,3)positions[frame][3*N+i] = temp[i];
    
    scales[frame][N] = temp[3];
-   ctemp[N] = temp[4]*12853;
+   ctemp[N] = temp[4]*39275;
    
    getline(in,line);
   }
-  
+  printf("\rLoading data... 100 %%   \nDONE!\n\nSetting up graphic enviroment...");
   colors[frame] = parse_colors(ctemp);
 
   
@@ -343,6 +350,6 @@ int main(int argc, char** argv){
   fileName = std::string(argv[1]);
   App app(argc,argv);
   app.Run();
-  
+  printf("Properly exiting...DONE!\nHasta la vista!\n");
  return 0;
 }
