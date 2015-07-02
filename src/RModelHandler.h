@@ -1,7 +1,7 @@
-#include "glib.h"
-
 #ifndef _RMODELHANDLER_H_
 #define _RMODELHANDLER_H_ 
+
+#include "glib.h"
 
 
 class RSkyBox{
@@ -25,7 +25,7 @@ public:
    RModelHandler(){}
   ~RModelHandler(){
     fori(0,N_models){
-      glDeleteBuffers(4, vbos[i]);
+      glDeleteBuffers(3, vbos[i]);
       glDeleteVertexArrays(1, &vaos[i]);
     }
     fori(0,textures.size()){

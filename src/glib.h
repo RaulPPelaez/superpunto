@@ -18,7 +18,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "tiny_obj_loader.h"
 
 
 using namespace std;
@@ -34,6 +33,7 @@ void fillRect(float x1, float y1, float x2, float y2);
 
 GLuint createShader(GLenum type, const GLchar* src);
 GLuint generate_vbo_cube();
+void generate_sphere_vbos(GLuint &posVBO, GLuint &indicesVBO);
 
 static char* textFileRead(const char *fileName);
 

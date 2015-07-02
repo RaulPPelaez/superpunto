@@ -31,42 +31,12 @@ int RModelHandler::add_model(const char* fileName){
   instancing_vbos.resize(N_models,0);
   Ninstances.resize(N_models,0);
   Nvertex.resize(N_models);
-  //glGenBuffers(1, &positions_vbo);
-  //glBindBuffer(GL_ARRAY_BUFFER, positions_vbo);
-  //glBufferData(GL_ARRAY_BUFFER, N*N*sizeof(glm::vec4), 0, GL_DYNAMIC_DRAW);
+
   
-  //std::string inputfile = "sphere3.obj";
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
+  vbos.push_back(new GLuint[2]);
 
-  std::string err = tinyobj::LoadObj(shapes, materials, fileName /*inputfile.c_str()*/);
-  cout<<err<<endl;
-  Nvertex[i_model] = shapes[0].mesh.indices.size();
-  printf("New model loaded: %d vertex, %d index, %d normals, %d texcoord\n"
-	,(int)shapes[0].mesh.positions.size()/3, (int)shapes[0].mesh.indices.size(),
-	 (int)shapes[0].mesh.normals.size()/3,(int)shapes[0].mesh.texcoords.size()/2); 
-  
-  
-  vbos.push_back(new GLuint[4]);
-  glGenBuffers(4, vbos[i_model]);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[i_model][0]);
-  glBufferData(GL_ARRAY_BUFFER, shapes[0].mesh.positions.size()*sizeof(float), shapes[0].mesh.positions.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[i_model][1]);
-  glBufferData(GL_ARRAY_BUFFER, shapes[0].mesh.normals.size()*sizeof(float), shapes[0].mesh.normals.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[i_model][2]);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, shapes[0].mesh.indices.size()*sizeof(unsigned int), shapes[0].mesh.indices.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[i_model][3]);
-  glBufferData(GL_ARRAY_BUFFER, shapes[0].mesh.texcoords.size()*sizeof(float), shapes[0].mesh.texcoords.data(), GL_STATIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  
+  generate_sphere_vbos(vbos[i_model][0],vbos[i_model][1]);
+  Nvertex[i_model] = 240; //Number of indexes of the sphere.
 
   GLuint vao;
   glGenVertexArrays(1, &vao);
@@ -95,22 +65,10 @@ void RModelHandler::create_program(){
 void RModelHandler::set_attributes(GLuint *vbo){
   glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
   pr.set_attrib("in_vertex", 3, 3*sizeof(GLfloat), 0);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-  pr.set_attrib("normal", 3, 3*sizeof(GLfloat), 0);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-  pr.set_attrib("texcoord", 2, 2*sizeof(GLfloat), 0); 
 }
 void RModelHandler::set_attributes_instanced(GLuint i){
   glBindBuffer(GL_ARRAY_BUFFER, vbos[i][0]);
   pr.set_attrib_instanced("in_vertex", 3, 3*sizeof(GLfloat), 0);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[i][1]);
-  pr.set_attrib_instanced("normal", 3, 3*sizeof(GLfloat), 0);
-
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[i][3]);
-  pr.set_attrib_instanced("texcoord", 2, 2*sizeof(GLfloat), 0); 
 }
 
 void RModelHandler::set_instancing(const GLchar *attrib, GLuint i, GLuint vbo, GLuint N, GLuint size, GLuint stride){
@@ -163,7 +121,7 @@ void RModelHandler::draw_model(GLuint i){
     //textures[i].Bind();
     //printf("%d\n",*textures[i].id());
     glBindVertexArray(vaos[i]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[i][2]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[i][1]);
     
     if(instancing_vbos[i]!=0){
       //glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[i]);

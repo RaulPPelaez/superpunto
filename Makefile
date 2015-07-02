@@ -22,7 +22,7 @@ GLIBS= $(LIBRARIES) -lglut -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-syst
 all: mc 
 
 mc: $(OBJECTS) 
-	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) tools/tiny_obj_loader.cc.o
+	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS)
 
 .cpp.o: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
