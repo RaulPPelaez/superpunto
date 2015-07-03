@@ -20,13 +20,21 @@ inputfile should have the following structure:
 >X2 ...
 
 >.
+
 >.
+
 >.
+
 >\#
+
 >X1 Y1 Z1 r1 c1
+
 >.
+
 >.
+
 >.
+
 >\#
 
 r1 is the size of the superpunto.
