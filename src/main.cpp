@@ -90,6 +90,7 @@ class RGL{
 
     void loadIdentity();
     void upload_MVP();
+    bool play_movie;
   private:	
     //GLuint positions_vbo;
     void loadData();
@@ -104,7 +105,6 @@ class RGL{
     std::vector<vector<float>> positions, colors,scales;
     GLuint instancing_vbos[3];
     int current_step;    
-    bool play_movie;
 	    
 };
 
@@ -291,13 +291,17 @@ class App{
   public:
     App(int argc, char** argv);
     void Run();
- 
+    void Exit();
+    void screenshot();
   private:
     void draw();
     void handle_events();
     RWindow window;	
     RGL glcontext;
-
+    int shot_counter;
+    bool record;
+    unsigned int frame_counter;
+    std::vector<sf::Image> GIF;
 };
 
 App::App(int argc, char** argv){
@@ -316,6 +320,9 @@ App::App(int argc, char** argv){
   glcontext.initialize();
   
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
+  shot_counter=0;
+  record = false;
+  frame_counter = 0;
 
 }
 void App::handle_events(){
@@ -329,6 +336,15 @@ void App::handle_events(){
     }
     if (event.type == Event::KeyPressed){
       if (event.key.code == Keyboard::Escape)window.close();
+      if (event.key.code == Keyboard::L){
+	  record = !record;
+	  glcontext.play_movie = true;
+      }
+      if (event.key.code == Keyboard::C){
+	  record = !record;
+	  glcontext.play_movie = true;
+      }
+      
     }
   }   
 }
@@ -343,6 +359,9 @@ void App::draw(){
     window.update_fps();
     handle_events();
     
+    frame_counter++;
+    if(record)if(frame_counter%5==0) this->screenshot();
+    
     glcontext.update();
     glcontext.draw();
     
@@ -350,10 +369,39 @@ void App::draw(){
   }
 }
 
+void App::screenshot(){
+  sf::Image s = window.capture();
+ // std::stringstream is;
+  //is<<"shot_"<<shot_counter<<".png";
+  //s.saveToFile(is.str().c_str());
+  GIF.push_back(s);
+  shot_counter++;
+  cout<<"Screenshot "<<shot_counter-1<<" saved!"<<endl;
+}
+
+void App::Exit(){
+  if(shot_counter>1){
+    //cout<<"Converting to .gif...";
+    //fflush(stdout);
+    fori(0,GIF.size()){
+      printf("\rSaving...%d%%   ", (int)(100.0f*float(i)/(float)GIF.size() +0.5));
+      fflush(stdout);
+      std::stringstream is;
+      is<<"shot_"<<i<<".png";
+      GIF[i].saveToFile(is.str().c_str());
+      
+    }
+    printf("\nConverting to .gif...");
+    fflush(stdout);
+    int trash = system("convert -delay 10 -loop 0 $(ls -v shot_*) movie.gif");
+    cout<<"DONE!"<<endl;
+  }
+}
 int main(int argc, char** argv){
   fileName = std::string(argv[1]);
   App app(argc,argv);
   app.Run();
+  app.Exit();
   printf("Properly exiting...DONE!\nHasta la vista!\n");
  return 0;
 }

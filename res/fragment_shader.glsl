@@ -88,7 +88,7 @@ void main() {
    
  // vec4 TotalLight = computePointLight(Normal); 
     
-   outColor = vec4(Color,1);// * computePointLight(Normal);
+   outColor = vec4(Color,1)* computePointLight(Normal);
 } 
   
 

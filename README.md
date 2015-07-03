@@ -63,6 +63,11 @@ You can go through time using:
 1. Space/R to go to the next/previous frame
 2. Press M to autoplay the frames at 30 FPS
 
+You can take screenshots and record some frames in a gif using:
+
+1. Press L to take a screenshot every frame, these will be converted to gif at exit. You can move around while recording
+2. Press C to take a single screenshot.
+
 
 
 
