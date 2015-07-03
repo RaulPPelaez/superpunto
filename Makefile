@@ -1,12 +1,12 @@
 CC=g++
 
-#DEBUG=-g
+DEBUG=-DNDEBUG
 
 INCLUDES = -Itools/
 
 
 
-CFLAGS=  -O2 $(DEBUG) -std=c++0x
+CFLAGS=  -Ofast $(DEBUG)  -march=native    -std=c++0x
 
 MAIN =main
 
@@ -14,7 +14,7 @@ SOURCES= src/$(MAIN).cpp src/glib.cpp src/RModelHandler.cpp src/Camera.cpp src/u
 OBJECTS = $(SOURCES:.cpp=.o)
 
 
-EXECUTABLE=bin/mcGUI
+EXECUTABLE=bin/spunto
 
 GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
 

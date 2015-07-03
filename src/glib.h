@@ -2,16 +2,14 @@
 #define GLIB_H
 
 #include "defines.h"
-#include <GL/glew.h>
 #include<stdio.h>
 #include<stdlib.h>
 #include<iostream>
 #include<fstream>
 #include<sstream>
 
-
-#include <SFML/OpenGL.hpp>
-#include <SFML/Window.hpp>
+#include <GL/glew.h>
+#include <GL/gl.h>
 #include <SFML/Graphics.hpp>
 
 #include <glm/glm.hpp>

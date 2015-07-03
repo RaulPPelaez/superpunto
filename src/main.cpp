@@ -71,7 +71,7 @@ class RWindow: public sf::RenderWindow{
  
 class RGL{
   public:
-    RGL(){}
+    RGL():cam(){}
     ~RGL(){
       glDeleteBuffers(3,instancing_vbos);
     }
@@ -123,8 +123,13 @@ void RGL::initialize(){
 
   proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
   //lookAt(cam.pos, cam.get_view(), cam.up); 
-  lightpos = -2;
+  lightpos = 0;
   play_movie = false;
+  drawables.get_pr()->use();
+  glUniform3f(glGetUniformLocation(drawables.get_pr()->id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
+  glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), 0, 0, lightpos);
+	
+
   
   printf("DONE!\nDrawing...\n");
 
@@ -296,10 +301,10 @@ class App{
 };
 
 App::App(int argc, char** argv){
- glewExperimental = GL_TRUE;
+ //glewExperimental = GL_TRUE;
  glewInit();
   ContextSettings context(24, 8, 2, 0, 30);
-  window.create(VideoMode(FWIDTH,FHEIGHT), "GL test",Style::Default, context);
+  window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
   window.setPosition(Vector2i(0,0));
   
   window.setActive(true);
@@ -330,7 +335,7 @@ void App::handle_events(){
 void App::Run(){
  
   while(window.isOpen()){ 
-  draw();
+    draw();
   }
 }
 void App::draw(){

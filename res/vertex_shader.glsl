@@ -7,11 +7,10 @@ layout(location=4) in vec3 color; //cube vertex position
 layout(location=5) in float scale; //cube vertex position
 
 
-
-
-
 uniform mat4 model;
 uniform mat4 MVP;
+
+//uniform float gscale;
 
 //out vec3 outcolor;
 out vec3 Normal;

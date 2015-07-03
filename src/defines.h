@@ -18,7 +18,7 @@
 #define SQUARE(x) ((x)*(x))
 
 
-#define TARGET_FPS 30
+#define TARGET_FPS 100000
 
 #define FWIDTH  500
 #define FHEIGHT   500

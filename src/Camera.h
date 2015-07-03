@@ -13,27 +13,31 @@
 
 
 
-class Camera{
+class FreeCamera{
   public:
-   Camera(){
-	  this-> pos = glm::vec3(0, 10, -10                                                                         ); 
+   FreeCamera(){
+	  this-> pos = glm::vec3(0, 10, -10); 
 	  this->right = glm::vec3(-1,0,0);
-	  this->up = glm::vec3(0,-1/sqrt(2),-1/sqrt(2));
+	  this->up = glm::vec3(0,-1.0/sqrt(2.0),-1.0/sqrt(2.0));
 	  this->front =(glm::cross(right,up));
 	  
 	  zero_mpos = sf::Vector2i(FWIDTH/2, FHEIGHT/2);
+	    sf::Mouse::setPosition(zero_mpos);				
+
 	  yaw = 0;
 	  pitch = 0;
+	  roll=0;
 	  this->mult = 1;
+	  this->updateCameraVectors();
 	}
 
     glm::vec3 get_view(){return pos+front;}
-	glm::mat4 lookAt(){return this->view = glm::lookAt(pos, pos+front, up);}
+    glm::mat4 lookAt(){return this->view = glm::lookAt(pos, pos+front, up);}
 
     void update();
-    virtual void process_mouse() = 0;
+    void process_mouse();
 
-    virtual void updateCameraVectors() = 0;
+    void updateCameraVectors();
 
     sf::Vector2i zero_mpos;
     sf::Vector2i mpos;
@@ -44,16 +48,18 @@ class Camera{
     
     float mult;
 };
-
+/*
 class FreeCamera: public Camera{
   public:
-    FreeCamera(){this->mult = 1;}
+    FreeCamera():Camera(){this->mult = 1;}
 
     virtual void process_mouse();
     virtual void updateCameraVectors();
 
  };
+ */
  
+ /*
  class FPSCamera: public Camera{
   public:
     FPSCamera(){
@@ -65,7 +71,7 @@ class FreeCamera: public Camera{
     virtual void updateCameraVectors();
 
  };
-
+*/
 
 
 

@@ -2,7 +2,7 @@
 
 	
 
-void Camera::update(){
+void FreeCamera::update(){
   if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) this->pos += this->right*CAMSPEED*mult;
   if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) this->pos -= this->right*CAMSPEED*mult;
   if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) this->pos += this->front*CAMSPEED*mult;
@@ -66,7 +66,7 @@ void FreeCamera::updateCameraVectors(){
 	
 	
 	
-
+/*
 void FPSCamera::process_mouse(){
   mpos = sf::Mouse::getPosition();
   //if( (mpos.x == zero_mpos.x) && (mpos.y == zero_mpos.y) ) return;
@@ -87,7 +87,7 @@ void FPSCamera::process_mouse(){
 }
 void FPSCamera::updateCameraVectors(){
   
- 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+ front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(front);
@@ -95,5 +95,5 @@ void FPSCamera::updateCameraVectors(){
   
 }
 	
-	
+*/
 	
