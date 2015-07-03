@@ -13,7 +13,6 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <GL/glut.h>
 #include <GL/glext.h>
 #include <SFML/Graphics.hpp>
 using namespace sf;

@@ -7,14 +7,6 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model){
   
   this->create_program();
 
-
-  //this->add_model("sphere3.obj");
-  
-  //textures[0].Load("earth.png");
-  glUniform1i(glGetUniformLocation(pr.id(), "tex"), 1);
-
-  //textures.push_back(texture);
-  
   unimodel = glGetUniformLocation(pr.id(), "model");
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
 
@@ -115,23 +107,17 @@ void RModelHandler::draw_model(GLuint i){
   
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(*MVP) );
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
-  //glUniform1i(glGetUniformLocation(pr.id(), "tex"), textures[i].sampler_id());
 
-      
-    //textures[i].Bind();
-    //printf("%d\n",*textures[i].id());
     glBindVertexArray(vaos[i]);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[i][1]);
     
     if(instancing_vbos[i]!=0){
-      //glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[i]);
       glDrawElementsInstanced( GL_TRIANGLES, Nvertex[i], GL_UNSIGNED_INT, 0, Ninstances[i]);     
     }
     else glDrawElements( GL_TRIANGLES, Nvertex[i], GL_UNSIGNED_INT, 0);
   
     
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  //glBindTexture(GL_TEXTURE_2D, 0);
   glBindVertexArray(0);
   pr.unbind();//glUseProgram(0);
 

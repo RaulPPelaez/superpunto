@@ -16,7 +16,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 EXECUTABLE=bin/mcGUI
 
-GLIBS= $(LIBRARIES) -lglut -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
+GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
 
 
 all: mc 
