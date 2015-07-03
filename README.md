@@ -13,20 +13,22 @@ Known to work in Ubuntu 14. You can install SFML by $ apt-get install libsfml-de
 Use with $ ./superpunto inputfile
 
 inputfile should have the following structure:
->#
+>\#
 >X1 Y1 Z1 r1 c1
 >X2 ...
 >.
 >.
 >.
->#
+>\#
 >X1 Y1 Z1 r1 c1
 >.
 >.
 >.
->#
+>\#
+
 r1 is the size of the superpunto
 c1 is its color.
+
 #COLORS
 The colors are RGB encoded as an int number varying from 0 to 255^3 = 16581375 as c = Decimal(0xRRGGBB)
 
