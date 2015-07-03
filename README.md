@@ -56,6 +56,12 @@ You can move around using:
 2. LSHIFT and Lctrl to go up and down
 3. E and Q to roll
 4. Keep LAlt pressed to look around using the mouse
+5. Move faster/slower using + -
+
+You can go through time using:
+
+1. Space/R to go to the next/previous frame
+2. Press M to autoplay the frames at 30 FPS
 
 
 
