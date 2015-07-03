@@ -50,10 +50,10 @@ i.e full red (255,0,0) would be 0xFF0000=16711680
 
 #CONTROLS
 You can move around using:
-1.WASD for moving in your XY plane
-2.LSHIFT and Lctrl to go up and down
-3.E and Q to roll
-4.Keep LAlt pressed to look around using the mouse
+1. WASD for moving in your XY plane
+2. LSHIFT and Lctrl to go up and down
+3. E and Q to roll
+4. Keep LAlt pressed to look around using the mouse
 
 
 
