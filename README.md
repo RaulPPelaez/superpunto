@@ -13,7 +13,7 @@ Known to work in Ubuntu 14. You can install SFML by $ apt-get install libsfml-de
 Use with $ ./superpunto inputfile
 
 inputfile should have the following structure:
->\#
+>\# Comments are used to separate frames
 
 >X1 Y1 Z1 r1 c1
 
@@ -25,7 +25,7 @@ inputfile should have the following structure:
 
 >.
 
->\#
+>\# frame=2
 
 >X1 Y1 Z1 r1 c1
 
@@ -35,7 +35,7 @@ inputfile should have the following structure:
 
 >.
 
->\#
+>\# frame = 3
 
 r1 is the size of the superpunto.
 
