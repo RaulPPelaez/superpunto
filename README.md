@@ -14,8 +14,11 @@ Use with $ ./superpunto inputfile
 
 inputfile should have the following structure:
 >\#
+
 >X1 Y1 Z1 r1 c1
+
 >X2 ...
+
 >.
 >.
 >.
@@ -26,7 +29,8 @@ inputfile should have the following structure:
 >.
 >\#
 
-r1 is the size of the superpunto
+r1 is the size of the superpunto.
+
 c1 is its color.
 
 #COLORS
