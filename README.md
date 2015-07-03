@@ -4,7 +4,8 @@ SFML/Modern OpenGL clone of mrevenga's punto ( http://punto.sourceforge.net/ )
 #INSTALLATION
 Run the Makefile.
 Dependencies:
-1. SFML-2.0 and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required.
+
+1. SFML-2.0 and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
 2. OpenGL 3.3+
 
 Known to work in Ubuntu 14. You can install SFML by $ apt-get install libsfml-dev
@@ -50,6 +51,7 @@ i.e full red (255,0,0) would be 0xFF0000=16711680
 
 #CONTROLS
 You can move around using:
+
 1. WASD for moving in your XY plane
 2. LSHIFT and Lctrl to go up and down
 3. E and Q to roll
