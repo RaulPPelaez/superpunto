@@ -23,6 +23,7 @@ using namespace sf;
 #include"glib.h"
 #include "RModelHandler.h"
 #include "Camera.h"
+#include "../tools/gif-h/gif.h"
 
 
 #include <glm/glm.hpp>
@@ -302,6 +303,7 @@ class App{
     bool record;
     unsigned int frame_counter;
     std::vector<sf::Image> GIF;
+    GifWriter GIF2;
 };
 
 App::App(int argc, char** argv){
@@ -323,6 +325,7 @@ App::App(int argc, char** argv){
   shot_counter=0;
   record = false;
   frame_counter = 0;
+  
 
 }
 void App::handle_events(){
@@ -360,7 +363,7 @@ void App::draw(){
     handle_events();
     
     frame_counter++;
-    if(record)if(frame_counter%5==0) this->screenshot();
+    if(record)if(frame_counter%2==0) this->screenshot();
     
     glcontext.update();
     glcontext.draw();
@@ -371,10 +374,13 @@ void App::draw(){
 
 void App::screenshot(){
   sf::Image s = window.capture();
+  if(shot_counter==0)  GifBegin(&GIF2, "movieesp.gif",s.getSize().x, s.getSize().y, 1);
  // std::stringstream is;
   //is<<"shot_"<<shot_counter<<".png";
   //s.saveToFile(is.str().c_str());
-  GIF.push_back(s);
+  
+  GifWriteFrame( &GIF2, s.getPixelsPtr(), s.getSize().x, s.getSize().y, 1);
+ // GIF.push_back(s);
   shot_counter++;
   cout<<"Screenshot "<<shot_counter-1<<" saved!"<<endl;
 }
@@ -383,17 +389,19 @@ void App::Exit(){
   if(shot_counter>1){
     //cout<<"Converting to .gif...";
     //fflush(stdout);
+    /*
     fori(0,GIF.size()){
       printf("\rSaving...%d%%   ", (int)(100.0f*float(i)/(float)GIF.size() +0.5));
       fflush(stdout);
       std::stringstream is;
       is<<"shot_"<<i<<".png";
-      GIF[i].saveToFile(is.str().c_str());
-      
+      GIF[i].saveToFile(is.str().c_str()); 
     }
+    */
     printf("\nConverting to .gif...");
     fflush(stdout);
-    int trash = system("convert -delay 10 -loop 0 $(ls -v shot_*) movie.gif");
+    GifEnd(&GIF2);
+    //int trash = system("convert -delay 10 -loop 0 $(ls -v shot_*) movie.gif");
     cout<<"DONE!"<<endl;
   }
 }

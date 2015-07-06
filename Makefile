@@ -6,7 +6,7 @@ INCLUDES = -Itools/
 
 
 
-CFLAGS=  -Ofast $(DEBUG)  -march=native    -std=c++0x
+CFLAGS=  -Ofast $(DEBUG)  -march=native  -std=c++0x
 
 MAIN =main
 
