@@ -10,7 +10,6 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model){
   unimodel = glGetUniformLocation(pr.id(), "model");
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
 
-  this->config_light();
   glUseProgram(0);
   
 }
@@ -87,7 +86,7 @@ void RModelHandler::config_light(){
   glUniform1f(glGetUniformLocation(pr.id(),"MatSpecularIntensity"), 1.1f);
   glUniform1i(glGetUniformLocation(pr.id(),"SpecularPower"), 32);
 
-  glUniform3f(glGetUniformLocation(pr.id(),"point_light.Position"), 0, 0, 0);
+  //glUniform3f(glGetUniformLocation(pr.id(),"point_light.Position"), 0, 0, 0);
 
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Constant"), 1.0f);
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Linear"), 0.000000001f);

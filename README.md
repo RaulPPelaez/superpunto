@@ -9,7 +9,7 @@ Dependencies:
 2. OpenGL 3.3+
 
 Known to work in Ubuntu 14. You can install SFML by $ apt-get install libsfml-dev
-
+Precompiled sfml libs can be found under tools.
 #USAGE
 Use with $ ./superpunto inputfile
 

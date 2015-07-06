@@ -1,8 +1,6 @@
 #version 330
 
 
-//in vec3 outcolor;
-
 in vec3 Normal;
 in vec3 WorldPos;
 in vec3 Color;
@@ -37,7 +35,7 @@ uniform vec3 EyeWorldPos;
 
 uniform float MatSpecularIntensity; //Specular
 uniform int SpecularPower;
-uniform vec3 Directional_light; //Directional light
+//uniform vec3 Directional_light; //Directional light
 
 
 
@@ -72,23 +70,27 @@ vec4 computePointLight(vec3 Normal)
     LightDirection = normalize(LightDirection);
 
     vec4 Color = computeLight(point_light.Base, LightDirection, Normal);
+    /*
     float Attenuation = point_light.Atten.Constant +
                         point_light.Atten.Linear * Distance +
                         point_light.Atten.Exp * Distance * Distance;
-
-    return Color / (0.5*Attenuation);
+    */
+    return Color;
 } 
 
 
 
 void main() {
-
   // vec4 TotalLight = computeLight(light, Directional_light, Normal);
    
-   
  // vec4 TotalLight = computePointLight(Normal); 
-    
-   outColor = vec4(Color,1)* computePointLight(Normal);
+ /*
+  point_light.Position = vec3(0,0,-10);
+  point_light.Base.Color=vec3( 1,1,1);
+  point_light.Base.Diffuse= 1.0f;
+  point_light.Base.Ambient= 0.25f;
+  */
+  outColor = vec4(Color,1) * computePointLight(Normal);
 } 
   
 

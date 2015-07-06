@@ -4,22 +4,6 @@
 #include "glib.h"
 
 
-class RSkyBox{
-	public:
-		RSkyBox(){}
-		~RSkyBox(){
-			fori(1,6)glDeleteTextures(1,tex[i].id());
-		}
-	
-	private:
-	std::vector<RTexture> tex;
-	
-};
-
-
-
-
-
 class RModelHandler{
 public:
    RModelHandler(){}
@@ -41,9 +25,9 @@ public:
   void draw_model(GLuint i);
   
   RShaderProgram * get_pr(){ return &(this->pr);}
-  
-private:
   void config_light();
+
+private:
   void create_program();
   void set_attributes(GLuint *vbo);
 

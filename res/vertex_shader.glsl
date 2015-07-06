@@ -18,11 +18,9 @@ out vec3 Color;
 out vec3 WorldPos;
 
 void main () {
-  //outcolor = vec3(0,0,0);
   Color = color;
   gl_Position = MVP*(vec4(scale*in_vertex.xyz+pos.xyz,1.0));
-  Normal = (model*vec4(in_vertex,0.0)).xyz;
-  //outcolor = Normal;
+  Normal = (model*vec4(scale*in_vertex,0.0)).xyz;
   WorldPos = (model*vec4(scale*in_vertex.xyz+pos.xyz,1.0)).xyz;
   
 }

@@ -124,13 +124,8 @@ void RGL::initialize(){
 
   proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
   //lookAt(cam.pos, cam.get_view(), cam.up); 
-  lightpos = 0;
+  lightpos = -10;
   play_movie = false;
-  drawables.get_pr()->use();
-  glUniform3f(glGetUniformLocation(drawables.get_pr()->id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
-  glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), 0, 0, lightpos);
-	
-
   
   printf("DONE!\nDrawing...\n");
 
@@ -142,8 +137,9 @@ void RGL::draw(){
     
     this->view = cam.lookAt();
     drawables.get_pr()->use();
+    drawables.config_light();
     glUniform3f(glGetUniformLocation(drawables.get_pr()->id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
-    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), 0, 0, lightpos);
+    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), 0.0f, 0.0f, lightpos);
 	
     loadIdentity();
     upload_MVP();
@@ -311,7 +307,7 @@ App::App(int argc, char** argv){
  glewInit();
   ContextSettings context(24, 8, 2, 0, 30);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
-  window.setPosition(Vector2i(0,0));
+  //window.setPosition(Vector2i(0,0));
   
   window.setActive(true);
   
@@ -360,26 +356,23 @@ void App::Run(){
 void App::draw(){
   if(window.ready_to_draw()){
     window.update_fps();
-    handle_events();
-    
-    frame_counter++;
-    if(record)if(frame_counter%2==0) this->screenshot();
-    
     glcontext.update();
     glcontext.draw();
-    
+    frame_counter++;
+    if(record)if(frame_counter%2==0) this->screenshot();
     window.display();
+    handle_events();
   }
 }
 
 void App::screenshot(){
   sf::Image s = window.capture();
-  if(shot_counter==0)  GifBegin(&GIF2, "movieesp.gif",s.getSize().x, s.getSize().y, 1);
+  if(shot_counter==0)  GifBegin(&GIF2, "movie.gif",s.getSize().x, s.getSize().y, 1);
  // std::stringstream is;
   //is<<"shot_"<<shot_counter<<".png";
   //s.saveToFile(is.str().c_str());
   
-  GifWriteFrame( &GIF2, s.getPixelsPtr(), s.getSize().x, s.getSize().y, 1);
+  GifWriteFrame(&GIF2, s.getPixelsPtr(), s.getSize().x, s.getSize().y, 1);
  // GIF.push_back(s);
   shot_counter++;
   cout<<"Screenshot "<<shot_counter-1<<" saved!"<<endl;
