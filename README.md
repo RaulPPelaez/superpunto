@@ -42,6 +42,8 @@ r1 is the size of the superpunto.
 
 c1 is its color.
 
+If you generate a movie, use gif2mp4 to convert it to mp4.
+
 #COLORS
 The colors are RGB encoded as an int number varying from 0 to 255^3 = 16581375 as c = Decimal(0xRRGGBB)
 

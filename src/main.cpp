@@ -317,7 +317,7 @@ App::App(int argc, char** argv){
   
   if(TARGET_FPS==60) window.setVerticalSyncEnabled(true);
 
-  glClearColor(.5, .5, .5, 1.0f);   
+  glClearColor(0, 0, 0, 1.0f);   
  
   glcontext.initialize();
   
