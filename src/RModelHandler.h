@@ -17,7 +17,7 @@ public:
     }
   }
   void initialize(glm::mat4 *MVP, glm::mat4 *model);
-  int add_model(const char* fileName);
+  int add_models();
   void set_model_texture(GLuint i, RTexture tex){ textures[i] = tex;}
   void set_instancing(const GLchar *attrib, GLuint i, GLuint vbo, GLuint N, GLuint size, GLuint stride);
   void set_attributes_instanced(GLuint i);

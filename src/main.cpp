@@ -99,8 +99,12 @@ class RGL{
     glm::mat4 proj, model, view, MVP;
     FreeCamera cam;
 	    
-    GLfloat lightpos;
+    glm::vec3 lightpos;
+    glm::vec3 modle_angles;
+    
+    
     float frames;
+    
     int Nframes;
     RModelHandler drawables;
     std::vector<vector<float>> positions, colors,scales;
@@ -115,7 +119,7 @@ void RGL::initialize(){
 
  drawables.initialize(&MVP, &model);
   
- drawables.add_model("../res/sphere2.obj");  
+ drawables.add_models();  
  
  loadData();
  
@@ -124,9 +128,9 @@ void RGL::initialize(){
 
   proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
   //lookAt(cam.pos, cam.get_view(), cam.up); 
-  lightpos = -10;
+  lightpos = glm::vec3(0,0,-1);
   play_movie = false;
-  
+  loadIdentity();
   printf("DONE!\nDrawing...\n");
 
 }
@@ -139,11 +143,11 @@ void RGL::draw(){
     drawables.get_pr()->use();
     drawables.config_light();
     glUniform3f(glGetUniformLocation(drawables.get_pr()->id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
-    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), 0.0f, 0.0f, lightpos);
+    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), lightpos.x, lightpos.y, lightpos.z);
 	
-    loadIdentity();
     upload_MVP();
     drawables.draw_model(0);
+    
 
     
 }
@@ -155,22 +159,21 @@ void RGL::upload_MVP(){
 }
 void RGL::handle_event(sf::Event event){
  if (event.type == Event::KeyPressed){
-   if(event.key.code == sf::Keyboard::Up){
-	lightpos += 0.5;
-   }
-   if(event.key.code == sf::Keyboard::Down){
-	lightpos -= 0.5;
-   }
-   if(event.key.code == sf::Keyboard::Space){
-      upload_step();
-   }
-   if(event.key.code == sf::Keyboard::R){
-      current_step= Rmax(current_step-2,0);upload_step();
-   }
-   if(event.key.code == sf::Keyboard::M){
-      play_movie = !play_movie;
-   }
+   IF_KEY(Up, lightpos.z += 0.5;)   
+   IF_KEY(Down, lightpos.z -= 0.5;)
+   IF_KEY(Space, upload_step();)
    
+   IF_KEY(R, current_step= Rmax(current_step-2,0);upload_step();)
+
+   IF_KEY(M, play_movie = !play_movie;)
+
+   IF_KEY(Num4, rotate(0.1f,1,0,0);)
+   IF_KEY(Num5, rotate(0.1f,0,1,0);)
+   IF_KEY(Num6, rotate(0.1f,0,0,1);)
+   
+   IF_KEY(Num1, rotate(-0.1f,1,0,0);)
+   IF_KEY(Num2, rotate(-0.1f,0,1,0);)
+   IF_KEY(Num3, rotate(-0.1f,0,0,1);)
  }
   
 }
@@ -290,12 +293,13 @@ class App{
     void Run();
     void Exit();
     void screenshot();
+    void record_frame();
   private:
     void draw();
     void handle_events();
     RWindow window;	
     RGL glcontext;
-    int shot_counter;
+    unsigned int shot_counter, frame_shot_counter;
     bool record;
     unsigned int frame_counter;
     std::vector<sf::Image> GIF;
@@ -318,7 +322,7 @@ App::App(int argc, char** argv){
   glcontext.initialize();
   
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
-  shot_counter=0;
+  shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
   
@@ -334,16 +338,10 @@ void App::handle_events(){
 	  glViewport(0.0, 0.0, w, w);
     }
     if (event.type == Event::KeyPressed){
-      if (event.key.code == Keyboard::Escape)window.close();
-      if (event.key.code == Keyboard::L){
-	  record = !record;
-	  glcontext.play_movie = true;
-      }
-      if (event.key.code == Keyboard::C){
-	  record = !record;
-	  glcontext.play_movie = true;
-      }
-      
+      IF_KEY(Escape, window.close();)
+      IF_KEY(L, record = !record; glcontext.play_movie = true;)
+      IF_KEY(C, screenshot();)
+       
     }
   }   
 }
@@ -359,42 +357,35 @@ void App::draw(){
     glcontext.update();
     glcontext.draw();
     frame_counter++;
-    if(record)if(frame_counter%2==0) this->screenshot();
+    if(record)if(frame_counter%2==0) this->record_frame();
     window.display();
     handle_events();
   }
 }
 
+void App::record_frame(){
+  sf::Image s = window.capture();
+  if(frame_shot_counter==0)  GifBegin(&GIF2, "movie.gif",s.getSize().x, s.getSize().y, 1);
+  GifWriteFrame(&GIF2, s.getPixelsPtr(), s.getSize().x, s.getSize().y, 1);
+  frame_shot_counter++;
+  cout<<"Frame "<<frame_shot_counter-1<<" added to the gif!"<<endl;
+}
+
+
 void App::screenshot(){
   sf::Image s = window.capture();
-  if(shot_counter==0)  GifBegin(&GIF2, "movie.gif",s.getSize().x, s.getSize().y, 1);
- // std::stringstream is;
-  //is<<"shot_"<<shot_counter<<".png";
-  //s.saveToFile(is.str().c_str());
-  
-  GifWriteFrame(&GIF2, s.getPixelsPtr(), s.getSize().x, s.getSize().y, 1);
- // GIF.push_back(s);
+  std::stringstream is;
+  is<<"shot_"<<shot_counter<<".png";
+  s.saveToFile(is.str().c_str());
   shot_counter++;
   cout<<"Screenshot "<<shot_counter-1<<" saved!"<<endl;
 }
 
 void App::Exit(){
-  if(shot_counter>1){
-    //cout<<"Converting to .gif...";
-    //fflush(stdout);
-    /*
-    fori(0,GIF.size()){
-      printf("\rSaving...%d%%   ", (int)(100.0f*float(i)/(float)GIF.size() +0.5));
-      fflush(stdout);
-      std::stringstream is;
-      is<<"shot_"<<i<<".png";
-      GIF[i].saveToFile(is.str().c_str()); 
-    }
-    */
-    printf("\nConverting to .gif...");
+  if(frame_shot_counter>1){
+    printf("\n\nConverting to .gif...");
     fflush(stdout);
     GifEnd(&GIF2);
-    //int trash = system("convert -delay 10 -loop 0 $(ls -v shot_*) movie.gif");
     cout<<"DONE!"<<endl;
   }
 }

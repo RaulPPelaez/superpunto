@@ -57,6 +57,7 @@ You can move around using:
 3. E and Q to roll
 4. Keep LAlt pressed to look around using the mouse
 5. Move faster/slower using + -
+6. Numbers 1-6 to rotate the system in the X, Y o Z axis 
 
 You can go through time using:
 

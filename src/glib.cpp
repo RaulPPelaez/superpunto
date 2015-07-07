@@ -70,8 +70,8 @@ void drawRect(float x1, float y1, float x2, float y2){
   glEnd();
 }
 
-GLuint generate_vbo_cube(){
-  GLfloat vertices[] = {
+void generate_vbo_cube(GLuint &posVBO, GLuint &normalsVBO, GLuint &indicesVBO){
+  /*GLfloat vertices[] = {
     // X      Y     Z     R     G     B     U     V
     -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
      0.5f, -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 1.0f, 0.0f,
@@ -126,7 +126,58 @@ GLuint generate_vbo_cube(){
   glGenBuffers (1, &vbo);
   glBindBuffer (GL_ARRAY_BUFFER, vbo);
   glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-  return vbo;
+  */
+  
+  
+  GLfloat v[] = { 
+  -1.0f, -1.0f, 1.0f, 
+  1.0f, -1.0f, 1.0f, 
+  1.0f, 1.0f, 1.0f, 
+  -1.0f, 1.0f, 1.0f, 
+  -1.0f, -1.0f, -1.0f, 
+  1.0f, -1.0f, -1.0f, 
+  1.0f, 1.0f, -1.0f, 
+  -1.0f, 1.0f, -1.0f
+  };
+
+  // Normal Data for the Cube Verticies
+  GLfloat n[] = { 
+   -1.0f, -1.0f, 1.0f, 
+   1.0f, -1.0f, 1.0f, 
+   1.0f, 1.0f, 1.0f, 
+   -1.0f, 1.0f, 1.0f, 
+   -1.0f, -1.0f, -1.0f, 
+   1.0f, -1.0f, -1.0f, 
+   1.0f, 1.0f, -1.0f, 
+   -1.0f, 1.0f, -1.0f
+  };
+
+  // Element Indicies for the Cube
+  GLuint f[] ={ 
+  0, 1, 2, 2, 3, 0, 
+  3, 2, 6, 6, 7, 3, 
+  7, 6, 5, 5, 4, 7, 
+  4, 0, 3, 3, 7, 4, 
+  0, 1, 5, 5, 4, 0,
+  1, 5, 6, 6, 2, 1 
+  };
+  
+  
+  glGenBuffers(1, &posVBO);
+  glGenBuffers(1, &indicesVBO);
+  glGenBuffers(1, &normalsVBO);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, posVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_STATIC_DRAW);
+    
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, normalsVBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(n), n, GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indicesVBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(f), f, GL_STATIC_DRAW);
+  
+  glBindBuffer(GL_ARRAY_BUFFER,0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 

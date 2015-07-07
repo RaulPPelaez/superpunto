@@ -30,5 +30,7 @@
 #define MOUSE_SENS 0.25f
 #define CAM_ANG_SPEED 2
 
+#define IF_KEY(KEY, foo)  if(event.key.code == sf::Keyboard::KEY){foo}
+
 
 #endif

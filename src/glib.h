@@ -30,7 +30,7 @@ void fillRect(float x1, float y1, float x2, float y2);
 
 
 GLuint createShader(GLenum type, const GLchar* src);
-GLuint generate_vbo_cube();
+void generate_vbo_cube(GLuint &posVBO, GLuint &normalsVBO, GLuint &indicesVBO);
 void generate_sphere_vbos(GLuint &posVBO, GLuint &indicesVBO);
 
 static char* textFileRead(const char *fileName);

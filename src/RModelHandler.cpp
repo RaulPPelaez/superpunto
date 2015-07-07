@@ -14,7 +14,7 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model){
   
 }
 
-int RModelHandler::add_model(const char* fileName){
+int RModelHandler::add_models(){
   if(!pr.is_in_use()) pr.use();
   this->N_models++;
   unsigned int i_model = N_models-1;
