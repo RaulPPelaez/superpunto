@@ -23,7 +23,7 @@ using namespace sf;
 #include"glib.h"
 #include "RModelHandler.h"
 #include "Camera.h"
-#include "gif-h/gif.h"
+#include "gif.h"
 
 
 #include <glm/glm.hpp>
