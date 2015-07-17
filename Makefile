@@ -19,8 +19,10 @@ EXECUTABLE=bin/spunto
 GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
 
 
-all: mc 
+all: mkbin mc 
 
+mkbin:
+	mkdir -p bin
 mc: $(OBJECTS) 
 	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS)
 
