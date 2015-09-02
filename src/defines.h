@@ -7,6 +7,7 @@
 #define forl(x,y) for(int l=x; l<y;l++)
 
 #define RANDESP ((double)rand()/(double)RAND_MAX)
+#define RANDESP2 (2*((double)rand()/(double)RAND_MAX) - 1)
 #define FLIPACOIN (RANDESP>0.5)
 
 #define PI2 3.1415*2.0
@@ -20,10 +21,11 @@
 
 #define TARGET_FPS 30
 
-#define FWIDTH  500
-#define FHEIGHT   500
+#define FWIDTH  800
+#define FHEIGHT 800
 
 #define DEGREE_TO_RAD (PI/180.0f)
+#define RAD_TO_DEGREE (180.0f/PI)
 
 
 #define CAMSPEED 0.6f
@@ -32,5 +34,6 @@
 
 #define IF_KEY(KEY, foo)  if(event.key.code == sf::Keyboard::KEY){foo}
 
+#define GLSL(version, shader)  "#version " #version "\n" #shader
 
 #endif

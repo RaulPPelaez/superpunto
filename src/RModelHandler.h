@@ -8,40 +8,43 @@ class RModelHandler{
 public:
    RModelHandler(){}
   ~RModelHandler(){
-    fori(0,N_models){
-      glDeleteBuffers(3, vbos[i]);
-      glDeleteVertexArrays(1, &vaos[i]);
-    }
-    fori(0,textures.size()){
-      glDeleteTextures(1,textures[i].id()); 
-    }
+    //fori(0,N_models){
+      glDeleteBuffers(2, vbos);
+      glDeleteBuffers(1, &line_vbo);
+      glDeleteVertexArrays(1, &line_vao);
+      glDeleteVertexArrays(1, &vao);
+      //}
+    //fori(0,textures.size()){
+    //  glDeleteTextures(1,textures[i].id()); 
+    //}
   }
   void initialize(glm::mat4 *MVP, glm::mat4 *model);
-  int add_models();
-  void set_model_texture(GLuint i, RTexture tex){ textures[i] = tex;}
-  void set_instancing(const GLchar *attrib, GLuint i, GLuint vbo, GLuint N, GLuint size, GLuint stride);
-  void set_attributes_instanced(GLuint i);
+  //void set_model_texture(GLuint i, RTexture tex){ textures[i] = tex;}
+  void set_instancing(const GLchar *attrib, GLuint vbo, GLuint N, GLuint size, GLuint stride);
+  //void set_attributes_instanced();
   
-  void draw_model(GLuint i);
-  
+  void draw_model();
+  void draw_lines();
   RShaderProgram * get_pr(){ return &(this->pr);}
   void config_light();
-
+  GLuint line_vbo;
+  GLuint Nlines;
 private:
   void create_program();
-  void set_attributes(GLuint *vbo);
+  //void set_attributes(GLuint *vbo);
+  int add_models();
 
   unsigned int N_models;
-  std::vector<GLuint> vaos;
-  std::vector<GLuint*> vbos;
-  std::vector<GLuint> instancing_vbos;
-  std::vector<GLuint> Ninstances;
-  std::vector<GLuint> Nvertex;
-  std::vector<RTexture> textures;
+  GLuint vao, line_vao;
+  GLuint* vbos;
+  GLuint instancing_vbo;
+  GLuint Ninstances;
+  GLuint Nvertex;
+  //std::vector<RTexture> textures;
   //RTexture earth_texture;
-  RShader vs, fs;
-  RShaderProgram pr;
-  GLuint unimodel, uniMVP;
+
+  RShaderProgram pr, line_pr;
+  GLuint unimodel, uniMVP, uniMVP_line;
   glm::mat4 *MVP, *model;
   
 };

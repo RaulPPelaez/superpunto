@@ -15,7 +15,7 @@ struct FileConfig{
 
 FileConfig get_config(const char *fileName);
 
-std::vector<float> parse_colors(const std::vector<int> &colors);
+
 
 
 

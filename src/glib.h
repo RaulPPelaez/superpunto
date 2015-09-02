@@ -32,7 +32,7 @@ void fillRect(float x1, float y1, float x2, float y2);
 GLuint createShader(GLenum type, const GLchar* src);
 void generate_vbo_cube(GLuint &posVBO, GLuint &normalsVBO, GLuint &indicesVBO);
 void generate_sphere_vbos(GLuint &posVBO, GLuint &indicesVBO);
-
+GLfloat* get_wired_cube();
 static char* textFileRead(const char *fileName);
 
 class RShader{
@@ -40,7 +40,9 @@ public:
    RShader(){}
    ~RShader();
    bool load(const char *fileName, GLint type);
+   bool charload(const GLchar *shader, GLint type);
    GLuint id(){ return this->sh;}
+   GLint get_type(){return this->type;}
 private:
    GLuint sh; // ID of shader
    GLint type; // GL_VERTEX_SHADER, GL_FRAGMENT_SHADER...
@@ -52,7 +54,11 @@ public:
    RShaderProgram(){}
    ~RShaderProgram(){glDeleteProgram(pr);}
    void create(){this->pr = glCreateProgram();}
-   void add_shader(RShader* sh){glAttachShader(pr, sh->id());}
+   void add_shader(RShader sh){
+     glAttachShader(pr, sh.id());
+     if(sh.get_type() == GL_VERTEX_SHADER) this->vs = sh;
+     else this->fs = sh;
+   }
    GLuint set_attrib(const GLchar * name, GLint size, GLsizei stride, const GLvoid *pointer){
      GLint attrib = glGetAttribLocation(pr, name);
      glEnableVertexAttribArray(attrib);
@@ -76,6 +82,7 @@ public:
 private:
    GLuint pr; // ID of program
    bool in_use;
+   RShader vs, fs;
 };
 
 

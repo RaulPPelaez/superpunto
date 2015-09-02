@@ -1,16 +1,17 @@
-#version 330
-
-
+#version 130
+/*
 layout(location=0) in vec3 in_vertex; //cube vertex position
 layout(location=3) in vec3 pos; //cube vertex position
 layout(location=4) in vec3 color; //cube vertex position
 layout(location=5) in float scale; //cube vertex position
-
+*/
+in vec3 in_vertex; //vertex position
+in vec3 pos; //Instance position
+in vec3 color; //Instanced color 
+in float scale; //Instanced scale
 
 uniform mat4 model;
 uniform mat4 MVP;
-
-//uniform float gscale;
 
 //out vec3 outcolor;
 out vec3 Normal;

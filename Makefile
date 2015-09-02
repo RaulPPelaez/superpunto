@@ -1,30 +1,33 @@
 CC=g++
 
-DEBUG=-DNDEBUG
+DEBUG=-g
 
-INCLUDES = -Itools/
+INCLUDES = -Itools/ -Isrc/
 
 
 
-CFLAGS=  -Ofast $(DEBUG) -march=native -std=c++0x
+CFLAGS= -O3 $(DEBUG)  -march=native -std=c++0x -funroll-loops
 
 MAIN =main
 
-SOURCES= src/$(MAIN).cpp src/glib.cpp src/RModelHandler.cpp src/Camera.cpp src/utils.cpp
+
+RINCLUDES1 = Camera.cpp RModelHandler.cpp glib.cpp helper.cpp RWindow.cpp RGL.cpp
+RINCLUDES =  $(addprefix src/, $(RINCLUDES1))
+SOURCES= src/$(MAIN).cpp src/utils.cpp $(RINCLUDES)
+
 OBJECTS = $(SOURCES:.cpp=.o)
 
 
-EXECUTABLE=bin/spunto
+EXECUTABLE=bin/mc
 
 GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
+#RLIBS = -lCamera -lglib -lRModelHandler -lhelper -lRWindow
 
 
-all: mkbin mc 
+all: mc 
 
-mkbin:
-	mkdir -p bin
 mc: $(OBJECTS) 
-	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS)
+	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) $(RLIBS)
 
 .cpp.o: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

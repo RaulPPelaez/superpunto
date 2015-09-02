@@ -180,7 +180,25 @@ void generate_vbo_cube(GLuint &posVBO, GLuint &normalsVBO, GLuint &indicesVBO){
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+GLfloat* get_wired_cube(){
 
+  static float box_data[] = {
+    0,0,0, 0,1,0,
+    1,0,0, 1,1,0,
+    1,0,1, 1,1,1,
+    0,0,1, 0,1,1,
+    0,1,0, 0,1,1,
+    1,1,0, 1,1,1,
+    1,0,0, 1,0,1,
+    0,0,0, 0,0,1,
+    0,1,0, 1,1,0,
+    0,1,1, 1,1,1,
+    0,0,1, 1,0,1,
+    0,0,0, 1,0,0
+  };
+
+  return box_data;
+}
 
 bool RShader::load(const char *fileName, GLint type){
   this-> type = type;
@@ -189,6 +207,22 @@ bool RShader::load(const char *fileName, GLint type){
   glShaderSource(sh, 1, &src, nullptr);
   glCompileShader(sh);
   delete[] src;
+  int iCompilationStatus;
+  glGetShaderiv(sh, GL_COMPILE_STATUS, &iCompilationStatus);
+  if(iCompilationStatus == GL_FALSE){
+    std::cout << "Could not compile shader: " << std::endl;
+           char buffer[512];
+        glGetShaderInfoLog(sh, 512, NULL , buffer);
+        std::cout << buffer << std::endl;
+	    return false;}
+  return true;
+}
+bool RShader::charload(const GLchar *shader, GLint type){
+  this-> type = type;
+  sh = glCreateShader(this->type);
+  glShaderSource(sh, 1, &shader, nullptr);
+  glCompileShader(sh);
+  //  delete[] shader;
   int iCompilationStatus;
   glGetShaderiv(sh, GL_COMPILE_STATUS, &iCompilationStatus);
   if(iCompilationStatus == GL_FALSE){

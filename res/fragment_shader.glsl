@@ -1,4 +1,4 @@
-#version 330
+#version 130
 
 
 in vec3 Normal;
@@ -90,7 +90,13 @@ void main() {
   point_light.Base.Diffuse= 1.0f;
   point_light.Base.Ambient= 0.25f;
   */
-  outColor = vec4(Color,1) * computePointLight(Normal);
+  float extras = 1.0;
+  if(gl_FrontFacing){
+    outColor = vec4(Color,1) * computePointLight(Normal)*extras;
+  }
+  else{
+    outColor = vec4(0.5,0.5,0.5,1);
+  }
 } 
   
 

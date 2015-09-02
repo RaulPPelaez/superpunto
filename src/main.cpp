@@ -1,210 +1,61 @@
-#include<iostream>
-#include<stdlib.h>
-#include<stdio.h>
-#include<fstream>
+#include"Experiment.h"
+
 #include<string>
-#include<sstream>
-#include<cmath> 
-
 #include<vector>
-
-#include "defines.h"
-#include "utils.h"
-
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include <defines.h>
+#include<glib.h>
 #include <GL/glext.h>
-#include <SFML/Graphics.hpp>
-using namespace sf;
-
-#include <stdlib.h>
-
-
-#include"glib.h"
-#include "RModelHandler.h"
-#include "Camera.h"
+#include<RModelHandler.h>
+#include<Camera.h>
+#include<RWindow.h>
+#include<RGL.h>
+#include"utils.h"
 #include "gif.h"
 
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 using namespace std;
-
+using namespace sf;
 
 std::string fileName;
+ 
+class RGLContext: public RGL{
+public:
+  ~RGLContext(){    }
 
-class RWindow: public sf::RenderWindow{
-  public:
-    RWindow(){
-     frames=0;
-     FPS=TARGET_FPS;
-    }  
-    void update_fps(){
-      frames++;
-      float time = fps_clock.getElapsedTime().asMicroseconds();
-	if(time>=1e6){
-	  FPS = (float)frames;
-	  frames = 0;
-	  fps_clock.restart();
-	  std::stringstream sstr;
-	  sstr<<" FPS = "<<(int)(FPS+0.5);
-	  this->setTitle(sstr.str());
-	}
-      }	
-    bool ready_to_draw(){
-      float time = draw_clock.getElapsedTime().asMicroseconds();
-      if(time>=(1e6/TARGET_FPS)){
-	draw_clock.restart();
-	   
-	return true;
-      }
-      return false;
-    }
-  private:
-    int frames;
-    float FPS;
-    Clock fps_clock;
-    Clock draw_clock;
+  void update();
+  void draw();
+  void handle_event(sf::Event event);
+  bool play_movie;  
+  std::vector<vector<float>> positions, colors,scales;
+  int Nframes;
+  int current_step;
+private:	
+  void initBuffers();
+  void upload_step();
+    
 };
 
- 
-class RGL{
-  public:
-    RGL():cam(){}
-    ~RGL(){
-      glDeleteBuffers(3,instancing_vbos);
-    }
-    void initialize();
-    void draw();
-	
-    void update();
-    
-    void handle_event(sf::Event event);
-    
-    void rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-    void scale(GLfloat x, GLfloat y, GLfloat z);
-    void translate(GLfloat x, GLfloat y, GLfloat z);
-
-    void lookAt(const glm::vec3 &pos, const glm::vec3 &view, const glm::vec3 &up);
-
-    void loadIdentity();
-    void upload_MVP();
-    bool play_movie;
-  private:	
-    //GLuint positions_vbo;
-    void loadData();
-    void upload_step();
-    glm::mat4 proj, model, view, MVP;
-    FreeCamera cam;
-	    
-    glm::vec3 lightpos;
-    glm::vec3 modle_angles;
-    
-    
-    float frames;
-    
-    int Nframes;
-    RModelHandler drawables;
-    std::vector<vector<float>> positions, colors,scales;
-    GLuint instancing_vbos[3];
-    int current_step;    
-	    
-};
-
-void RGL::initialize(){  
-  srand(time(NULL));
-  frames = 0.0;
-
- drawables.initialize(&MVP, &model);
-  
- drawables.add_models();  
- 
- loadData();
- 
-    
-  glEnable(GL_DEPTH_TEST);
-
-  proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
-  //lookAt(cam.pos, cam.get_view(), cam.up); 
-  lightpos = glm::vec3(0,0,-1);
-  play_movie = false;
-  loadIdentity();
-  printf("DONE!\nDrawing...\n");
-
+void RGLContext::draw(){
+  draw_to_fb();
+  RGL::draw();    
+  post_process();
 }
 
-void RGL::draw(){
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-    this->view = cam.lookAt();
-    drawables.get_pr()->use();
-    drawables.config_light();
-    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
-    glUniform3f(glGetUniformLocation(drawables.get_pr()->id(),"point_light.Position"), lightpos.x, lightpos.y, lightpos.z);
-	
-    upload_MVP();
-    drawables.draw_model(0);
-    
-
-    
+void RGLContext::update(){
+  RGL::update(); 
+  if(play_movie)upload_step();
 }
 
-void RGL::upload_MVP(){
-    MVP = proj*view*model;
-    //glUniformMatrix4fv(uniMVP , 1, GL_FALSE, &MVP[0][0]);
-    //glUniformMatrix4fv(unimodel , 1, GL_FALSE, &model[0][0]);
-}
-void RGL::handle_event(sf::Event event){
+void RGLContext::handle_event(sf::Event event){
+  RGL::handle_event(event);
  if (event.type == Event::KeyPressed){
-   IF_KEY(Up, lightpos.z += 0.5;)   
-   IF_KEY(Down, lightpos.z -= 0.5;)
-   IF_KEY(Space, upload_step();)
-   
    IF_KEY(R, current_step= Rmax(current_step-2,0);upload_step();)
-
    IF_KEY(M, play_movie = !play_movie;)
-
-   IF_KEY(Num4, rotate(0.1f,1,0,0);)
-   IF_KEY(Num5, rotate(0.1f,0,1,0);)
-   IF_KEY(Num6, rotate(0.1f,0,0,1);)
-   
-   IF_KEY(Num1, rotate(-0.1f,1,0,0);)
-   IF_KEY(Num2, rotate(-0.1f,0,1,0);)
-   IF_KEY(Num3, rotate(-0.1f,0,0,1);)
  }
-  
-}
-void RGL::rotate(GLfloat angle, GLfloat x, GLfloat y, GLfloat z){
-    model = glm::rotate(model, angle,  glm::vec3(x, y, z));
-}
-void RGL::scale(GLfloat x, GLfloat y, GLfloat z){
-    model = glm::scale(model, glm::vec3(x, y, z));
-}
-void RGL::translate(GLfloat x, GLfloat y, GLfloat z){
-    model = glm::translate(model, glm::vec3(x, y, z));
 }
 
-void RGL::lookAt(const glm::vec3 &pos, const glm::vec3 &view, const glm::vec3 &up){
-	this->view = glm::lookAt(pos,view,up);
-	//glUniformMatrix4fv(uniview , 1, GL_FALSE, glm::value_ptr(this->view));
-}
-void RGL::loadIdentity(){ 
-model = glm::mat4();
-}
-
-
-	
-void RGL::update(){
-	this->cam.update(); 
-	if(play_movie)upload_step();
-
-}
-
-void RGL::loadData(){
-  
+void RGLContext::initBuffers(){
+play_movie = false;
+ 
   ifstream in(fileName.c_str());
   FileConfig fc = get_config(fileName.c_str());
     
@@ -262,17 +113,17 @@ void RGL::loadData(){
   
   glGenBuffers(3, instancing_vbos);
   
-  drawables.set_instancing("color",0, instancing_vbos[1], 0, 3, 3*sizeof(float));
-  drawables.set_instancing("scale",0, instancing_vbos[2], 0, 1, sizeof(float));
-  drawables.set_instancing("pos",0, instancing_vbos[0], positions[0].size()/3, 3, 3*sizeof(float));
+  drawables.set_instancing("color", instancing_vbos[1], 0, 3, 3*sizeof(float));
+  drawables.set_instancing("scale", instancing_vbos[2], 0, 1, sizeof(float));
+  drawables.set_instancing("pos", instancing_vbos[0], positions[0].size()/3, 3, 3*sizeof(float));
 
   current_step = 0;
   upload_step();
 
 }
 
-void RGL::upload_step(){
-  int frame = current_step;
+void RGLContext::upload_step(){
+ int frame = current_step;
   if(current_step<Nframes-1)current_step++;
 
   glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[2]);
@@ -298,7 +149,10 @@ class App{
     void draw();
     void handle_events();
     RWindow window;	
-    RGL glcontext;
+    RGLContext glcontext;
+    unsigned int updates_per_frame;
+    bool dostep;
+    bool pause;
     unsigned int shot_counter, frame_shot_counter;
     bool record;
     unsigned int frame_counter;
@@ -308,25 +162,32 @@ class App{
 
 App::App(int argc, char** argv){
  //glewExperimental = GL_TRUE;
- glewInit();
-  ContextSettings context(24, 8, 2, 0, 30);
+  cout<<"INIT...";
+  glewInit();
+
+  ContextSettings context(24, 8, 2, 0, 3);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
+  //cout<<"OpenGL Version used "<<window.getSettings().majorVersion<<endl;
   //window.setPosition(Vector2i(0,0));
+  updates_per_frame = 0;
   
   window.setActive(true);
   
   if(TARGET_FPS==60) window.setVerticalSyncEnabled(true);
 
   glClearColor(0, 0, 0, 1.0f);   
- 
-  glcontext.initialize();
+  
   
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
   shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
-  
-
+  glcontext.initialize();
+ 
+ 
+  pause = true;
+  dostep = false;
+  cout<<"DONE!"<<endl;
 }
 void App::handle_events(){
   Event event;
@@ -335,15 +196,16 @@ void App::handle_events(){
     if (event.type == Event::Closed) window.close();
     if (event.type == Event::Resized){
       int w = Rmin(event.size.width, event.size.height);
-	  glViewport(0.0, 0.0, w, w);
+      glViewport(0.0, 0.0, w, w);
     }
     if (event.type == Event::KeyPressed){
       IF_KEY(Escape, window.close();)
+      IF_KEY(N, dostep = true; pause = !pause;)
       IF_KEY(L, record = !record; glcontext.play_movie = true;)
       IF_KEY(C, screenshot();)
-       
     }
-  }   
+  }
+  
 }
 void App::Run(){
  
@@ -362,6 +224,7 @@ void App::draw(){
     handle_events();
   }
 }
+
 
 void App::record_frame(){
   sf::Image s = window.capture();
@@ -382,12 +245,7 @@ void App::screenshot(){
 }
 
 void App::Exit(){
-  if(frame_shot_counter>1){
-    printf("\n\nConverting to .gif...");
-    fflush(stdout);
-    GifEnd(&GIF2);
-    cout<<"DONE!"<<endl;
-  }
+  
 }
 int main(int argc, char** argv){
   fileName = std::string(argv[1]);
