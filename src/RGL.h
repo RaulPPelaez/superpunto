@@ -15,6 +15,7 @@ using namespace sf;
 
 #include<glib.h>
 #include<RModelHandler.h>
+#include<RPostProcessor.h>
 #include<Camera.h>
 
 
@@ -50,7 +51,6 @@ class RGL{
   void draw_to_fb();
   void post_process();
  private:
-  void init_post_processing();
 
  protected:
   virtual void initBuffers()=0;
@@ -63,23 +63,9 @@ class RGL{
   RModelHandler drawables;
   GLuint instancing_vbos[3];
   
-  GLuint fb, rb; //FrameBuffer and RenderBuffer
-  //RShader sc_vs, sc_fs; //screen vs and fs
-  GLuint pp_vao, pp_vbo, pp_tex;
-  RShaderProgram pp_pr; //Program for post_procesing 
-};
-
-class RPostProcessor{
- public:
-  RPostProcessor(){}
-  void init(){
-
-
-  }
-
- private:
-  
-
+  RPostProcessor post_processor;
 
 };
+
+
 #endif
