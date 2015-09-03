@@ -68,7 +68,7 @@ vec4 computePointLight(vec3 Normal)
     vec3 LightDirection = WorldPos - point_light.Position;
     float Distance = distance(WorldPos,point_light.Position);
     LightDirection = normalize(LightDirection);
-
+    
     vec4 Color = computeLight(point_light.Base, LightDirection, Normal);
     /*
     float Attenuation = point_light.Atten.Constant +
@@ -92,7 +92,8 @@ void main() {
   */
   float extras = 1.0;
   if(gl_FrontFacing){
-    outColor = vec4(Color,1) * computePointLight(Normal)*extras;
+    //outColor = vec4(Color,1) * computePointLight(Normal)*extras;
+    outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,1,1), Normal); 
   }
   else{
     outColor = vec4(0.5,0.5,0.5,1);

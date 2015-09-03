@@ -68,4 +68,18 @@ class RGL{
   GLuint pp_vao, pp_vbo, pp_tex;
   RShaderProgram pp_pr; //Program for post_procesing 
 };
+
+class RPostProcessor{
+ public:
+  RPostProcessor(){}
+  void init(){
+
+
+  }
+
+ private:
+  
+
+
+};
 #endif

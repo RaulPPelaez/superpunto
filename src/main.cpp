@@ -1,5 +1,3 @@
-#include"Experiment.h"
-
 #include<string>
 #include<vector>
 #include <defines.h>
@@ -11,6 +9,7 @@
 #include<RGL.h>
 #include"utils.h"
 #include "gif.h"
+#include"helper.h"
 
 using namespace std;
 using namespace sf;
