@@ -16,6 +16,7 @@ using namespace sf;
 #include<glib.h>
 #include<RModelHandler.h>
 #include<RPostProcessor.h>
+#include<RShadowMapper.h>
 #include<Camera.h>
 
 
@@ -64,6 +65,7 @@ class RGL{
   GLuint instancing_vbos[3];
   
   RPostProcessor post_processor;
+  RShadowMapper shadow_mapper;
 
 };
 

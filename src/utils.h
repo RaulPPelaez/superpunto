@@ -15,6 +15,7 @@ struct FileConfig{
 
 FileConfig get_config(const char *fileName);
 
+bool iscomment(std::string line);
 
 
 

@@ -1,4 +1,4 @@
-#version 130
+#version 440
 
 
 in vec3 Normal;

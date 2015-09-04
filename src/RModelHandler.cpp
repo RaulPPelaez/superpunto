@@ -48,7 +48,7 @@ int RModelHandler::add_models(){
 }
 
 void RModelHandler::create_program(){
-  RShader vs, fs, line_vs, line_fs;
+  RShader vs, fs, tcs, tes, line_vs, line_fs;
   const char* VS_SOURCE = GLSL(130,                                                        
 			       in vec3 in_vertex;
 			       uniform mat4 MVP;
@@ -75,6 +75,8 @@ void RModelHandler::create_program(){
   line_pr.unbind();
   vs.load("../res/vertex_shader.glsl",GL_VERTEX_SHADER);
   fs.load("../res/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+  //tcs.load("../res/tcs.glsl", GL_TESS_CONTROL_SHADER);
+  //tes.load("../res/tes.glsl", GL_TESS_EVALUATION_SHADER);
 
   pr.create();
   pr.add_shader(vs);

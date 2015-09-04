@@ -54,6 +54,14 @@ public:
    RShaderProgram(){}
    ~RShaderProgram(){glDeleteProgram(pr);}
    void create(){this->pr = glCreateProgram();}
+   void initialize(RShader vs, RShader fs){
+     create();
+     add_shader(vs);
+     add_shader(fs);
+     link();
+     use();
+
+   }
    void add_shader(RShader sh){
      glAttachShader(pr, sh.id());
      if(sh.get_type() == GL_VERTEX_SHADER) this->vs = sh;
@@ -66,13 +74,16 @@ public:
      return attrib;
    }   
    GLuint set_attrib_instanced(const GLchar * name, GLint size, GLsizei stride, const GLvoid *pointer){
-     GLint attrib = glGetAttribLocation(pr, name);
+     GLuint attrib = glGetAttribLocation(pr, name);
      glEnableVertexAttribArray(attrib);
      glVertexAttribPointer(attrib, size, GL_FLOAT, GL_FALSE, stride, pointer);
      glVertexAttribDivisor( attrib, 1); //is it instanced?
      return attrib;
    }
    
+   GLuint get_attrib_handle(const GLchar * name){
+     return glGetUniformLocation(pr, name);
+   }
 
    void link(){glLinkProgram (pr);}
    void use(){if(!in_use)glUseProgram(pr); in_use = true;}

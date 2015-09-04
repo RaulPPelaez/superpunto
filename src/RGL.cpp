@@ -14,6 +14,9 @@ void RGL::initialize(){
 
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LESS);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
   glEnable(GL_MULTISAMPLE);
 
   proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);

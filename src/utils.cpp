@@ -9,14 +9,14 @@ FileConfig get_config(const char *fileName){
   int nframes = 1, nrows = 0;
   std::string line;
   getline(in,line);
-  if(line.substr(0,1) == "#") getline(in,line);
+  if(iscomment(line)) getline(in,line);
   std::vector<int> Natframes;
   double trash;
   std::stringstream is(line);
   while (is >> trash) nrows++;
   unsigned int N= 0, maxN = 1;
   while(!in.eof()) {
-    if(line.substr(0,1)=="#"){
+    if(iscomment(line)){
       nframes++;
       Natframes.push_back(N);
       if(N>maxN){maxN = N;}
@@ -39,3 +39,9 @@ FileConfig get_config(const char *fileName){
 
 
 
+bool iscomment(std::string line){
+  std::stringstream s(line);
+  char iscomment;
+  s>>iscomment;
+  return iscomment=='#';
+}

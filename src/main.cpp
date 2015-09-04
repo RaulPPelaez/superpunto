@@ -72,7 +72,7 @@ play_movie = false;
   colors[0].resize(3*fc.N[0],1);    
   
   getline(in,line);
-  if(line.substr(0,1) == "#") getline(in,line);
+  if(iscomment(line)) getline(in,line);
   std::stringstream is(line);
   
   double temp[fc.nrows];
@@ -82,7 +82,7 @@ play_movie = false;
   printf("\rLoading data... %d%%   ", 0);
   fflush(stdout);
   while(!in.eof()){
-   if(line.substr(0,1)!="#") N++;
+    if(!iscomment(line)) N++;
    else{
      colors[frame] = parse_colors(ctemp);
      N=-1; frame++; 

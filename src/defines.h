@@ -24,6 +24,9 @@
 #define FWIDTH  800
 #define FHEIGHT 800
 
+#define SHADOWMAP_X 800
+#define SHADOWMAP_Y 800
+
 #define DEGREE_TO_RAD (PI/180.0f)
 #define RAD_TO_DEGREE (180.0f/PI)
 
