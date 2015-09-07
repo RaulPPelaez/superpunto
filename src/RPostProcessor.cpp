@@ -2,7 +2,7 @@
 
 void RPostProcessor::init(){
   RShader vs, fs;
-  const char* VS_SOURCE = GLSL(130,                                                        
+  const char* VS_SOURCE = GLSL(330,                                                        
 			       in vec2 in_vertex;
 			       in vec2 texCoords;
 			       out vec2 TexCoords;
@@ -65,6 +65,7 @@ void RPostProcessor::init(){
     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
   glBindFramebuffer(GL_FRAMEBUFFER, 0);  
   
+  this->enabled = true;
 }
 
 
@@ -79,4 +80,5 @@ void RPostProcessor::post_process(){
   glDrawArrays(GL_TRIANGLES, 0, 6);
   glBindVertexArray(0);
   pp_pr.unbind();
+   glEnable(GL_DEPTH_TEST);
 }

@@ -16,7 +16,6 @@ using namespace sf;
 #include<glib.h>
 #include<RModelHandler.h>
 #include<RPostProcessor.h>
-#include<RShadowMapper.h>
 #include<Camera.h>
 
 
@@ -31,8 +30,10 @@ class RGL{
   ~RGL(){
     glDeleteBuffers(3,instancing_vbos);
   }
-  void initialize();
+  void initialize(){ this->initialize(0); }
+  void initialize(int options);
   void draw();
+  void post_process();
 
   void update();
 
@@ -49,8 +50,6 @@ class RGL{
 
   void setUniform(const char* name, float val);
   
-  void draw_to_fb();
-  void post_process();
  private:
 
  protected:
@@ -63,10 +62,7 @@ class RGL{
   float frames;
   RModelHandler drawables;
   GLuint instancing_vbos[3];
-  
-  RPostProcessor post_processor;
-  RShadowMapper shadow_mapper;
-
+  RPostProcessor post_processor;  
 };
 
 

@@ -1,11 +1,14 @@
-#version 440
+#version 330
 
 
 in vec3 Normal;
 in vec3 WorldPos;
 in vec3 Color;
+//in vec4 ShadowCoord;
 
 out vec4 outColor;
+
+//uniform sampler2DShadow shadowmap;
 
 struct BaseLight //Ambient + Diffuse
 {
@@ -81,22 +84,16 @@ vec4 computePointLight(vec3 Normal)
 
 
 void main() {
-  // vec4 TotalLight = computeLight(light, Directional_light, Normal);
-   
- // vec4 TotalLight = computePointLight(Normal); 
- /*
-  point_light.Position = vec3(0,0,-10);
-  point_light.Base.Color=vec3( 1,1,1);
-  point_light.Base.Diffuse= 1.0f;
-  point_light.Base.Ambient= 0.25f;
-  */
-  float extras = 1.0;
+
+  //  float extras = 1.0;
   if(gl_FrontFacing){
     //outColor = vec4(Color,1) * computePointLight(Normal)*extras;
     outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,1,1), Normal); 
+    //float visibility = texture( shadowmap, vec3(ShadowCoord.xy, (ShadowCoord.z)/ShadowCoord.w) );
+    //outColor = vec4(visibility,visibility,visibility,1);// * vec4(1,1,1,1)+0.3)*vec4(Color,1);
   }
   else{
-    outColor = vec4(0.5,0.5,0.5,1);
+    outColor = vec4(0,0,0,1);
   }
 } 
   

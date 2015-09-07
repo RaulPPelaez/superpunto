@@ -1,7 +1,7 @@
 #include "RModelHandler.h"
 
 
-void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model){
+void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model, int options){
   this-> N_models = 0;
   this-> MVP = MVP;
   this-> model = model;
@@ -14,6 +14,7 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model){
   line_pr.unbind();
   this->add_models();
   
+  if(options & RGL_SHADOWMAPS) shadow_processor.init();
 }
 
 int RModelHandler::add_models(){
@@ -48,7 +49,7 @@ int RModelHandler::add_models(){
 }
 
 void RModelHandler::create_program(){
-  RShader vs, fs, tcs, tes, line_vs, line_fs;
+  RShader vs, fs, line_vs, line_fs;
   const char* VS_SOURCE = GLSL(130,                                                        
 			       in vec3 in_vertex;
 			       uniform mat4 MVP;
@@ -99,18 +100,9 @@ void RModelHandler::set_instancing(const GLchar *attrib, GLuint vbo, GLuint N, G
 }
   
 void RModelHandler::config_light(){
-  /*
-  glUniform3f(glGetUniformLocation(pr.id(), "light.Color"), 1, 1, 1);
-  glUniform1f(glGetUniformLocation(pr.id(),"light.Ambient"), 0.2f);
-  glm::vec3 Direction = glm::normalize(glm::vec3(-1,1,1));
-  glUniform3f(glGetUniformLocation(pr.id(),"Directional_light"), Direction.x, Direction.y, Direction.z);
-  glUniform1f(glGetUniformLocation(pr.id(),"light.Diffuse"), 1.0f);
-  */
   pr.use();
   glUniform1f(glGetUniformLocation(pr.id(),"MatSpecularIntensity"), 1.1f);
   glUniform1i(glGetUniformLocation(pr.id(),"SpecularPower"), 32);
-
-  //glUniform3f(glGetUniformLocation(pr.id(),"point_light.Position"), 0, 0, 0);
 
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Constant"), 1.0f);
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Linear"), 0.000000001f);
@@ -122,24 +114,35 @@ void RModelHandler::config_light(){
   pr.unbind();
 }
   
+void RModelHandler::compute_shadows(){
+  if(!shadow_processor.isEnabled())return;
+  shadow_processor.prepare_to_draw();
+  glBindVertexArray(vao);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[1]);
+
+  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
   
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
+  shadow_processor.flush();
+}  
   
   
 void RModelHandler::draw_model(){
-  //if(i>=N_models) return;
+
   pr.use();
+
+  if(shadow_processor.isEnabled()) shadow_processor.attach_shadowmap(pr.id());
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(*MVP) );
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
+
   glBindVertexArray(vao);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[1]);
-  if(instancing_vbo!=0){
-    glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
-  }
-  else glDrawElements( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0);
-    
+  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
+
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-  pr.unbind();//glUseProgram(0);
+  pr.unbind();
 
 }
 

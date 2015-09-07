@@ -22,6 +22,11 @@ using namespace std;
 
 #include<cmath>
 
+enum ROPTIONS{
+  RGL_POSTPROCESS = 1 << 0,
+  RGL_SHADOWMAPS = 1 << 1
+};
+
 
 void fillCircle(double r, double x, double y);
 void drawCircle(double r, double x, double y);

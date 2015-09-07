@@ -1,11 +1,13 @@
 #include "RGL.h"
 
 
-void RGL::initialize(){
+void RGL::initialize(int options){
   
   frames = 0.0;
 
-  drawables.initialize(&MVP, &model);
+  drawables.initialize(&MVP, &model, options);
+
+  if(options & RGL_POSTPROCESS) post_processor.init();
 
   MVP = glm::mat4();
   model = glm::mat4();
@@ -26,8 +28,6 @@ void RGL::initialize(){
   printf("DONE!\nDrawing...\n");
   drawables.config_light();
   
-  //init_post_processing();
-  post_processor.init();
 }
 
 
@@ -39,11 +39,11 @@ void RGL::setUniform(const char* name, float val){
 
   drawables.get_pr()->unbind();
 }
-void RGL::draw_to_fb(){
-  post_processor.bind();
-}
 
 void RGL::draw(){
+  drawables.compute_shadows();
+  if(post_processor.isEnabled())post_processor.bind();
+  
   glEnable(GL_DEPTH_TEST);  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
@@ -56,10 +56,11 @@ void RGL::draw(){
   upload_MVP();
   drawables.draw_model();
 
+
 }
 
 void RGL::post_process(){
-  post_processor.post_process();
+  if(post_processor.isEnabled())post_processor.post_process();
 }
 
 

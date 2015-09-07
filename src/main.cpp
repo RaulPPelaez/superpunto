@@ -34,7 +34,6 @@ private:
 };
 
 void RGLContext::draw(){
-  draw_to_fb();
   RGL::draw();    
   post_process();
 }
@@ -135,6 +134,7 @@ void RGLContext::upload_step(){
   glBufferData(GL_ARRAY_BUFFER, positions[frame].size()*sizeof(float), positions[frame].data(), GL_DYNAMIC_DRAW);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
+
 }
 
 class App{
@@ -181,7 +181,7 @@ App::App(int argc, char** argv){
   shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
-  glcontext.initialize();
+  glcontext.initialize(RGL_POSTPROCESS);
  
  
   pause = true;

@@ -11,7 +11,7 @@
 
 class RPostProcessor{
  public:
-  RPostProcessor(){}
+  RPostProcessor(){enabled = false;}
   ~RPostProcessor(){
     glDeleteFramebuffers(1, &fb);
     glDeleteRenderbuffers(1, &rb);
@@ -24,12 +24,15 @@ class RPostProcessor{
     glBindFramebuffer(GL_FRAMEBUFFER, fb);
   }
   void post_process();
+  bool isEnabled(){ return this->enabled; }
  private:
   GLuint fb, rb; //FrameBuffer and RenderBuffer
   //RShader sc_vs, sc_fs; //screen vs and fs
   GLuint pp_vao, pp_vbo, pp_tex;
   RShaderProgram pp_pr; //Program for post_procesing 
+  
 
+  bool enabled;
 };
 
 #endif

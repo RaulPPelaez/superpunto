@@ -18,17 +18,23 @@
 
 class RShadowMapper{
  public:
-  RShadowMapper(){}
+  RShadowMapper(){enabled = false;}
   void init();
+  void bind(){pr.use();}
+  void attach_shadowmap(GLuint prr);
+  void prepare_to_draw();
+  void flush();
 
-
+  bool isEnabled(){return this->enabled;}
 
  private:
   GLuint fb, stex;
   RShaderProgram pr;
   GLuint MVP, DepthBias, ShadowMapID;
-  glm::mat4 depthMVP;
+  glm::mat4 depthMVP, depthBiasMVP;
   GLuint depthMVPid;
+
+  bool enabled;
 };
 
 
