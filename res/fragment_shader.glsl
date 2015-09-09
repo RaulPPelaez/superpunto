@@ -88,12 +88,13 @@ void main() {
   //  float extras = 1.0;
   if(gl_FrontFacing){
     //outColor = vec4(Color,1) * computePointLight(Normal)*extras;
-    outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,1,1), Normal); 
+    outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,-1,1), Normal); 
+    outColor.w = 1.0;
     //float visibility = texture( shadowmap, vec3(ShadowCoord.xy, (ShadowCoord.z)/ShadowCoord.w) );
-    //outColor = vec4(visibility,visibility,visibility,1);// * vec4(1,1,1,1)+0.3)*vec4(Color,1);
+    //outColor = (vec4(visibility,visibility,visibility,1)+0.1)*vec4(Color,1);
   }
   else{
-    outColor = vec4(0,0,0,1);
+    outColor = vec4(0,0,1,1);
   }
 } 
   

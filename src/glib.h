@@ -24,7 +24,7 @@ using namespace std;
 
 enum ROPTIONS{
   RGL_POSTPROCESS = 1 << 0,
-  RGL_SHADOWMAPS = 1 << 1
+  RGL_SHADOWMAP = 1 << 1
 };
 
 

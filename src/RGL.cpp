@@ -21,7 +21,7 @@ void RGL::initialize(int options){
   glCullFace(GL_BACK);
   glEnable(GL_MULTISAMPLE);
 
-  proj = glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
+  proj =glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
 
   lightpos = glm::vec3(0,0,-10);
   loadIdentity();

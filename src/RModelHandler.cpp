@@ -13,8 +13,8 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model, int options){
   uniMVP_line = glGetUniformLocation(line_pr.id(), "MVP");
   line_pr.unbind();
   this->add_models();
-  
-  if(options & RGL_SHADOWMAPS) shadow_processor.init();
+  config_light();  
+  if(options & RGL_SHADOWMAP) shadow_processor.init();
 }
 
 int RModelHandler::add_models(){
@@ -61,7 +61,7 @@ void RModelHandler::create_program(){
   const char* FS_SOURCE = GLSL(130,                                                        
 			       out vec4 color;
 			       void main() {                                               
-				 color = vec4(1,0,0,1);
+				 color = vec4(0,0,1,1);
 			       }        
 			       );
   line_vs.charload(VS_SOURCE, GL_VERTEX_SHADER);
@@ -74,8 +74,8 @@ void RModelHandler::create_program(){
   line_pr.link();
   line_pr.use();
   line_pr.unbind();
-  vs.load("../res/vertex_shader.glsl",GL_VERTEX_SHADER);
-  fs.load("../res/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+  vs.load("/home/raul/bin/res/vertex_shader.glsl",GL_VERTEX_SHADER);
+  fs.load("/home/raul/bin/res/fragment_shader.glsl", GL_FRAGMENT_SHADER);
   //tcs.load("../res/tcs.glsl", GL_TESS_CONTROL_SHADER);
   //tes.load("../res/tes.glsl", GL_TESS_EVALUATION_SHADER);
 
@@ -84,19 +84,20 @@ void RModelHandler::create_program(){
   pr.add_shader(fs);
   pr.link();
   pr.use(); 
-  
+  pr.unbind();
+
 }
 
 void RModelHandler::set_instancing(const GLchar *attrib, GLuint vbo, GLuint N, GLuint size, GLuint stride){
   instancing_vbo = vbo;
   Ninstances = N;
-  pr.use();
+  //pr.use();
   glBindVertexArray(vao);
   glBindBuffer(GL_ARRAY_BUFFER,vbo);
   pr.set_attrib_instanced(attrib, size, stride,0);
   glBindBuffer(GL_ARRAY_BUFFER,0);
   glBindVertexArray(0);
-  pr.unbind();
+  //pr.unbind();
 }
   
 void RModelHandler::config_light(){
@@ -129,9 +130,8 @@ void RModelHandler::compute_shadows(){
   
   
 void RModelHandler::draw_model(){
-
   pr.use();
-
+  
   if(shadow_processor.isEnabled()) shadow_processor.attach_shadowmap(pr.id());
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(*MVP) );
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
@@ -151,9 +151,10 @@ void RModelHandler::draw_lines(){
   glUniformMatrix4fv(uniMVP_line, 1, GL_FALSE, glm::value_ptr(*MVP) );
   glBindVertexArray(line_vao);
   //glBindBuffer(GL_ARRAY_BUFFER, line_vbo);
-  
+  glLineWidth(3); 
   glDrawArrays(GL_LINES, 0, 72);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glLineWidth(1);
+  //glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   line_pr.unbind();
   

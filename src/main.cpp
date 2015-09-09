@@ -19,22 +19,25 @@ std::string fileName;
 class RGLContext: public RGL{
 public:
   ~RGLContext(){    }
-
+  
   void update();
   void draw();
   void handle_event(sf::Event event);
+  void set_box(float bsize);  
   bool play_movie;  
   std::vector<vector<float>> positions, colors,scales;
+  std::vector<float> max_dist;
   int Nframes;
   int current_step;
 private:	
   void initBuffers();
   void upload_step();
-    
+
 };
 
 void RGLContext::draw(){
   RGL::draw();    
+  drawables.draw_lines();
   post_process();
 }
 
@@ -48,6 +51,7 @@ void RGLContext::handle_event(sf::Event event){
  if (event.type == Event::KeyPressed){
    IF_KEY(R, current_step= Rmax(current_step-2,0);upload_step();)
    IF_KEY(M, play_movie = !play_movie;)
+     IF_KEY(T, current_step = Nframes-1; upload_step();)
  }
 }
 
@@ -65,11 +69,13 @@ play_movie = false;
   positions.resize(fc.nframes);
   scales.resize(fc.nframes);
   colors.resize(fc.nframes);
-  
+  max_dist.resize(fc.nframes);
+
   positions[0].resize(3*fc.N[0],0);
   scales[0].resize(fc.N[0],1);
   colors[0].resize(3*fc.N[0],1);    
-  
+  max_dist[0] = 0.0;
+
   getline(in,line);
   if(iscomment(line)) getline(in,line);
   std::stringstream is(line);
@@ -85,6 +91,7 @@ play_movie = false;
    else{
      colors[frame] = parse_colors(ctemp);
      N=-1; frame++; 
+     max_dist[frame] = 0.0;
      positions[frame].resize(3*fc.N[frame],0);
      scales[frame].resize(fc.N[frame],1);
      //colors[frame].resize(3*fc.N[frame],1);    
@@ -98,8 +105,10 @@ play_movie = false;
    is.str(line);
    for(int i=0; i<fc.nrows;i++) is>>temp[i];
    
-   fori(0,3)positions[frame][3*N+i] = temp[i];
-   
+   fori(0,3){
+     positions[frame][3*N+i] = temp[i];
+     max_dist[frame] = Rmax(max_dist[frame], temp[i]);
+   }
    scales[frame][N] = temp[3];
    ctemp[N] = temp[4]*39275;
    
@@ -117,8 +126,21 @@ play_movie = false;
 
   current_step = 0;
   upload_step();
-
 }
+
+void RGLContext::set_box(float bsize){
+  GLfloat *temp = get_wired_cube();
+  GLfloat box_data[72];
+  fori(0,72) box_data[i] = temp[i];
+  drawables.Nlines = 12; //2 points/line, 3 coords/point                                              
+  fori(0,72) box_data[i] -= 0.5;
+  fori(0,72) box_data[i] *= bsize;
+
+  glBindBuffer(GL_ARRAY_BUFFER, drawables.line_vbo);
+  glBufferData(GL_ARRAY_BUFFER, 12*2*3*sizeof(float), box_data, GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 
 void RGLContext::upload_step(){
  int frame = current_step;
@@ -134,7 +156,8 @@ void RGLContext::upload_step(){
   glBufferData(GL_ARRAY_BUFFER, positions[frame].size()*sizeof(float), positions[frame].data(), GL_DYNAMIC_DRAW);
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
-
+  
+  set_box(2*max_dist[frame]);
 }
 
 class App{
@@ -174,14 +197,14 @@ App::App(int argc, char** argv){
   
   if(TARGET_FPS==60) window.setVerticalSyncEnabled(true);
 
-  glClearColor(0, 0, 0, 1.0f);   
+  glClearColor(0.5, 0.5, 0.5, 1.0f);   
   
   
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
   shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
-  glcontext.initialize(RGL_POSTPROCESS);
+  glcontext.initialize();
  
  
   pause = true;
@@ -202,6 +225,7 @@ void App::handle_events(){
       IF_KEY(N, dostep = true; pause = !pause;)
       IF_KEY(L, record = !record; glcontext.play_movie = true;)
       IF_KEY(C, screenshot();)
+      IF_KEY(LAlt, sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));)
     }
   }
   
@@ -214,13 +238,14 @@ void App::Run(){
 }
 void App::draw(){
   if(window.ready_to_draw()){
+    handle_events();
     window.update_fps();
     glcontext.update();
     glcontext.draw();
     frame_counter++;
     if(record)if(frame_counter%2==0) this->record_frame();
     window.display();
-    handle_events();
+    
   }
 }
 

@@ -6,7 +6,7 @@ layout (location = 3) in float scale; //Instanced scale
 
 uniform mat4 model;
 uniform mat4 MVP;
-//uniform mat4 depthBiasMVP;
+uniform mat4 depthBiasMVP;
 
 //out vec3 outcolor;
 out vec3 Normal;
