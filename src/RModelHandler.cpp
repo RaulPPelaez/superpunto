@@ -28,11 +28,16 @@ int RModelHandler::add_models(){
 
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
-  pr.set_attrib("in_vertex", 3, 3*sizeof(GLfloat), 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vbos[0]);
+    pr.set_attrib("in_vertex", 3, 3*sizeof(GLfloat), 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[1]);
+  }
   glBindVertexArray(0);
-   
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);   
+
   line_pr.use();
   glGenBuffers(1, &line_vbo);
   glGenVertexArrays(1, &line_vao);
@@ -119,11 +124,7 @@ void RModelHandler::compute_shadows(){
   if(!shadow_processor.isEnabled())return;
   shadow_processor.prepare_to_draw();
   glBindVertexArray(vao);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[1]);
-
   glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
-  
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   shadow_processor.flush();
 }  
@@ -137,13 +138,9 @@ void RModelHandler::draw_model(){
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
 
   glBindVertexArray(vao);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos[1]);
-  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);
   glBindVertexArray(0);
   pr.unbind();
-
 }
 
 void RModelHandler::draw_lines(){
