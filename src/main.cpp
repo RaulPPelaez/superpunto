@@ -24,15 +24,20 @@ public:
   void draw();
   void handle_event(sf::Event event);
   void set_box(float bsize);  
+  std::string current_msg();
+
   bool play_movie;  
   std::vector<vector<float>> positions, colors,scales;
   std::vector<float> max_dist;
+  std::vector<std::string> msgs; //Mesages in the comments #L=x bolablabla
+  std::vector<float> Lbox; //Custom box size in the comments  
   int Nframes;
   int current_step;
 private:	
   void initBuffers();
   void upload_step();
-
+  
+  float parse_comment(std::string line, std::string &msg);
 };
 
 void RGLContext::draw(){
@@ -55,6 +60,28 @@ void RGLContext::handle_event(sf::Event event){
  }
 }
 
+float RGLContext::parse_comment(std::string line, std::string &msg){
+
+  std::string delim = "L=";
+  std::string delim2 = ";";
+  float L = 0.0;
+  size_t pos = 0;
+  std::string token;
+  pos = line.find(delim);
+  if(pos!=std::string::npos){
+    line.erase(0, pos + delim.length());
+    pos = line.find(delim2);
+    token = line.substr(0,pos);
+    L = std::stof(token, NULL);
+    line.erase(0, pos+1);
+
+  }
+  msg = line;
+  return L;
+}
+std::string RGLContext::current_msg(){
+  return msgs[current_step-1];
+}
 void RGLContext::initBuffers(){
 play_movie = false;
  
@@ -70,6 +97,10 @@ play_movie = false;
   scales.resize(fc.nframes);
   colors.resize(fc.nframes);
   max_dist.resize(fc.nframes);
+  msgs.resize(fc.nframes);
+  Lbox.resize(fc.nframes);
+  
+  
 
   positions[0].resize(3*fc.N[0],0);
   scales[0].resize(fc.N[0],1);
@@ -77,7 +108,8 @@ play_movie = false;
   max_dist[0] = 0.0;
 
   getline(in,line);
-  if(iscomment(line)) getline(in,line);
+  if(iscomment(line)){ Lbox[0] = parse_comment(line, msgs[0]); getline(in,line);}
+  else{Lbox[0] = 0.0; msgs[0] = " ";}
   std::stringstream is(line);
   
   double temp[fc.nrows];
@@ -91,6 +123,7 @@ play_movie = false;
    else{
      colors[frame] = parse_colors(ctemp);
      N=-1; frame++; 
+     Lbox[frame] = parse_comment(line, msgs[frame]);
      max_dist[frame] = 0.0;
      positions[frame].resize(3*fc.N[frame],0);
      scales[frame].resize(fc.N[frame],1);
@@ -104,7 +137,8 @@ play_movie = false;
    is.clear();
    is.str(line);
    for(int i=0; i<fc.nrows;i++) is>>temp[i];
-   
+   if(fc.nrows==3){temp[3] = 1; temp[4] = 1;}
+   if(fc.nrows==4){temp[4] = temp[3]; temp[3]=1;}
    fori(0,3){
      positions[frame][3*N+i] = temp[i];
      max_dist[frame] = Rmax(max_dist[frame], temp[i]);
@@ -123,7 +157,13 @@ play_movie = false;
   drawables.set_instancing("color", instancing_vbos[1], 0, 3, 3*sizeof(float));
   drawables.set_instancing("scale", instancing_vbos[2], 0, 1, sizeof(float));
   drawables.set_instancing("pos", instancing_vbos[0], positions[0].size()/3, 3, 3*sizeof(float));
-
+  
+  float max = Rmax(max_dist[0], Lbox[0]);
+  
+  cam.pos.x =0;
+  cam.pos.y +=2*( max+10);
+  cam.pos.z -=2*( max+10);
+  
   current_step = 0;
   upload_step();
 }
@@ -143,8 +183,9 @@ void RGLContext::set_box(float bsize){
 
 
 void RGLContext::upload_step(){
+
  int frame = current_step;
-  if(current_step<Nframes-1)current_step++;
+  if(current_step<Nframes)current_step++;
 
   glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[2]);
   glBufferData(GL_ARRAY_BUFFER, scales[frame].size()*sizeof(float), scales[frame].data(), GL_DYNAMIC_DRAW);
@@ -157,7 +198,9 @@ void RGLContext::upload_step(){
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
   
-  set_box(2*max_dist[frame]);
+  if(Lbox[frame] == 0.0)set_box(2*max_dist[frame]);
+  else{ set_box(2*Lbox[frame]); }
+  
 }
 
 class App{
@@ -180,6 +223,8 @@ class App{
     unsigned int frame_counter;
     std::vector<sf::Image> GIF;
     GifWriter GIF2;
+    sf::Font font;
+    sf::Text text;
 };
 
 App::App(int argc, char** argv){
@@ -209,6 +254,11 @@ App::App(int argc, char** argv){
  
   pause = true;
   dostep = false;
+
+  font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
+  text.setFont(font); 
+
+
   cout<<"DONE!"<<endl;
 }
 void App::handle_events(){
@@ -244,6 +294,9 @@ void App::draw(){
     glcontext.draw();
     frame_counter++;
     if(record)if(frame_counter%2==0) this->record_frame();
+    
+    text.setString(glcontext.current_msg());
+    window.draw(text);
     window.display();
     
   }

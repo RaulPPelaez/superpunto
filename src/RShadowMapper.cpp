@@ -3,10 +3,11 @@
 
 void RShadowMapper::init(){
   glGenFramebuffers(1, &fb);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, fb);
 
   glGenTextures(1, &stex);
   glBindTexture(GL_TEXTURE_2D, stex);
+  /*
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWMAP_X, SHADOWMAP_Y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -17,7 +18,12 @@ void RShadowMapper::init(){
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
+  */
+  glTexStorage2D(GL_TEXTURE_2D, 11, GL_DEPTH_COMPONENT32F,  4096, 4096);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glBindTexture(GL_TEXTURE_2D, 0);
 
 
@@ -85,7 +91,7 @@ void RShadowMapper::init(){
 
 void RShadowMapper::prepare_to_draw(){
 
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, fb);
   glViewport(0,0,SHADOWMAP_X,SHADOWMAP_Y);
   glEnable(GL_DEPTH_TEST);
   glBindTexture(GL_TEXTURE_2D, stex);
@@ -97,7 +103,7 @@ void RShadowMapper::prepare_to_draw(){
 void RShadowMapper::flush(){
 
   pr.unbind();
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
   /*
   float img[SHADOWMAP_X*SHADOWMAP_Y];

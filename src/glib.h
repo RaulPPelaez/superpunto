@@ -76,6 +76,7 @@ public:
      GLint attrib = glGetAttribLocation(pr, name);
      glEnableVertexAttribArray(attrib);
      glVertexAttribPointer(attrib, size, GL_FLOAT, GL_FALSE, stride, pointer);
+
      return attrib;
    }   
    GLuint set_attrib_instanced(const GLchar * name, GLint size, GLsizei stride, const GLvoid *pointer){
@@ -83,6 +84,7 @@ public:
      glEnableVertexAttribArray(attrib);
      glVertexAttribPointer(attrib, size, GL_FLOAT, GL_FALSE, stride, pointer);
      glVertexAttribDivisor( attrib, 1); //is it instanced?
+
      return attrib;
    }
    
