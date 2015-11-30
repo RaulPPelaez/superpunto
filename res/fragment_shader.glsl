@@ -1,14 +1,14 @@
-#version 330
+#version 420
 
 
 in vec3 Normal;
 in vec3 WorldPos;
 in vec3 Color;
-//in vec4 ShadowCoord;
+in vec4 ShadowCoord;
 
 out vec4 outColor;
 
-//uniform sampler2DShadow shadowmap;
+layout (binding = 0) uniform sampler2DShadow shadowmap;
 
 struct BaseLight //Ambient + Diffuse
 {
@@ -86,16 +86,14 @@ vec4 computePointLight(vec3 Normal)
 void main() {
 
   //  float extras = 1.0;
-  if(gl_FrontFacing){
+
     //outColor = vec4(Color,1) * computePointLight(Normal)*extras;
     outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,-1,1), Normal); 
+    //outColor.w = 1.0;
+    //float vs = textureProj( shadowmap, ShadowCoord );
+    //outColor = (vs+0.1)*vec4(Color,1);
     outColor.w = 1.0;
-    //float visibility = texture( shadowmap, vec3(ShadowCoord.xy, (ShadowCoord.z)/ShadowCoord.w) );
-    //outColor = (vec4(visibility,visibility,visibility,1)+0.1)*vec4(Color,1);
-  }
-  else{
-    outColor = vec4(0,0,1,1);
-  }
+
 } 
   
 

@@ -1,6 +1,8 @@
 #include "RModelHandler.h"
 
 
+#include "shaders.h"
+
 void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model, int options){
   this-> N_models = 0;
   this-> MVP = MVP;
@@ -14,7 +16,7 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model, int options){
   line_pr.unbind();
   this->add_models();
   config_light();  
-  if(options & RGL_SHADOWMAP) shadow_processor.init();
+  // if(options & RGL_SHADOWMAP) shadow_processor.init();
 }
 
 int RModelHandler::add_models(){
@@ -55,35 +57,18 @@ int RModelHandler::add_models(){
 
 void RModelHandler::create_program(){
   RShader vs, fs, line_vs, line_fs;
-  const char* VS_SOURCE = GLSL(130,                                                        
-			       in vec3 in_vertex;
-			       uniform mat4 MVP;
-			       void main() {                                               
-				 gl_Position = MVP*(vec4(in_vertex.xyz,1.0));
-			       }        
-			       );
-  
-  const char* FS_SOURCE = GLSL(130,                                                        
-			       out vec4 color;
-			       void main() {                                               
-				 color = vec4(0,0,1,1);
-			       }        
-			       );
-  line_vs.charload(VS_SOURCE, GL_VERTEX_SHADER);
-  line_fs.charload(FS_SOURCE, GL_FRAGMENT_SHADER);
-  //delete[] VS_SOURCE;
-  //  delete[] FS_SOURCE;
+
+  line_vs.charload(LINE_VS_SOURCE, GL_VERTEX_SHADER);
+  line_fs.charload(LINE_FS_SOURCE, GL_FRAGMENT_SHADER);
+
   line_pr.create();
   line_pr.add_shader(line_vs);
   line_pr.add_shader(line_fs);
   line_pr.link();
   line_pr.use();
   line_pr.unbind();
-  vs.load("../res/vertex_shader.glsl",GL_VERTEX_SHADER);
-  fs.load("../res/fragment_shader.glsl", GL_FRAGMENT_SHADER);
-  //tcs.load("../res/tcs.glsl", GL_TESS_CONTROL_SHADER);
-  //tes.load("../res/tes.glsl", GL_TESS_EVALUATION_SHADER);
-
+  vs.charload(VS_SOURCE,GL_VERTEX_SHADER);
+  fs.charload(FS_SOURCE, GL_FRAGMENT_SHADER);
   pr.create();
   pr.add_shader(vs);
   pr.add_shader(fs);
@@ -119,21 +104,21 @@ void RModelHandler::config_light(){
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Base.Ambient"), 0.25f);
   pr.unbind();
 }
-  
+/*
 void RModelHandler::compute_shadows(){
   if(!shadow_processor.isEnabled())return;
-  shadow_processor.prepare_to_draw();
+  shadow_processor.prepare_to_draw(*model);
   glBindVertexArray(vao);
   glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
   glBindVertexArray(0);
   shadow_processor.flush();
 }  
-  
+*/
   
 void RModelHandler::draw_model(){
   pr.use();
   
-  if(shadow_processor.isEnabled()) shadow_processor.attach_shadowmap(pr.id());
+  //if(shadow_processor.isEnabled()) shadow_processor.attach_shadowmap(pr.id());
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(*MVP) );
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
 
@@ -143,15 +128,14 @@ void RModelHandler::draw_model(){
   pr.unbind();
 }
 
+
 void RModelHandler::draw_lines(){
   line_pr.use();
   glUniformMatrix4fv(uniMVP_line, 1, GL_FALSE, glm::value_ptr(*MVP) );
   glBindVertexArray(line_vao);
-  //glBindBuffer(GL_ARRAY_BUFFER, line_vbo);
   glLineWidth(3); 
   glDrawArrays(GL_LINES, 0, 72);
   glLineWidth(1);
-  //glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   line_pr.unbind();
   

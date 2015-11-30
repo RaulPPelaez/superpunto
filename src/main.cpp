@@ -141,10 +141,10 @@ play_movie = false;
    if(fc.nrows==4){temp[4] = temp[3]; temp[3]=1;}
    fori(0,3){
      positions[frame][3*N+i] = temp[i];
-     max_dist[frame] = Rmax(max_dist[frame], temp[i]);
+     max_dist[frame] = Rmax(max_dist[frame], abs(temp[i]));
    }
    scales[frame][N] = temp[3];
-   ctemp[N] = temp[4]*39275;
+   ctemp[N] = (temp[4]+1)*39275;
    
    getline(in,line);
   }
@@ -218,13 +218,14 @@ class App{
     unsigned int updates_per_frame;
     bool dostep;
     bool pause;
-    unsigned int shot_counter, frame_shot_counter;
-    bool record;
+  unsigned int shot_counter, frame_shot_counter, frames_between_screenshots;
+  bool record, record_movie;
     unsigned int frame_counter;
     std::vector<sf::Image> GIF;
     GifWriter GIF2;
     sf::Font font;
     sf::Text text;
+
 };
 
 App::App(int argc, char** argv){
@@ -249,6 +250,7 @@ App::App(int argc, char** argv){
   shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
+  frames_between_screenshots = 1;
   glcontext.initialize();
  
  
@@ -257,6 +259,14 @@ App::App(int argc, char** argv){
 
   font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
   text.setFont(font); 
+
+
+  record_movie = false;
+  fori(0,argc){
+    if(strcmp(argv[i],"-s")==0) record_movie = true;
+    if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i]);
+    
+  }
 
 
   cout<<"DONE!"<<endl;
@@ -281,7 +291,19 @@ void App::handle_events(){
   
 }
 void App::Run(){
+
+  
+  if(record_movie){
+    printf("Recording...\n");
+    record = true;
+    glcontext.play_movie = true;
+    while(glcontext.current_step<glcontext.Nframes){
+      draw();
+    }
+    window.close();
+  }
  
+  
   while(window.isOpen()){ 
     draw();
   }
@@ -293,7 +315,7 @@ void App::draw(){
     glcontext.update();
     glcontext.draw();
     frame_counter++;
-    if(record)if(frame_counter%2==0) this->record_frame();
+    if(record)if(frame_counter%(frames_between_screenshots+1)==0) this->record_frame();
     
     text.setString(glcontext.current_msg());
     window.draw(text);

@@ -12,7 +12,7 @@ uniform mat4 depthBiasMVP;
 out vec3 Normal;
 out vec3 Color;
 out vec3 WorldPos;
-//out vec4 ShadowCoord;
+out vec4 ShadowCoord;
 
 void main () {
   vec4 temp = (vec4(scale*in_vertex.xyz+pos.xyz,1.0));
@@ -20,5 +20,5 @@ void main () {
   gl_Position = MVP*temp;
   Normal = (model*vec4(scale*in_vertex,0.0)).xyz;
   WorldPos = (model*vec4(scale*in_vertex.xyz+pos.xyz,1.0)).xyz;  
-  //ShadowCoord = depthBiasMVP * temp;
+  ShadowCoord = depthBiasMVP * temp;
 }

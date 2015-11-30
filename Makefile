@@ -11,7 +11,7 @@ CFLAGS= -O3 $(DEBUG)  -march=native -std=c++0x -funroll-loops
 MAIN =main
 
 
-RINCLUDES1 = Camera.cpp RModelHandler.cpp glib.cpp helper.cpp RWindow.cpp RGL.cpp RPostProcessor.cpp RShadowMapper.cpp
+RINCLUDES1 = Camera.cpp RModelHandler.cpp glib.cpp helper.cpp RWindow.cpp RGL.cpp RPostProcessor.cpp
 RINCLUDES =  $(addprefix src/, $(RINCLUDES1))
 SOURCES= src/$(MAIN).cpp src/utils.cpp $(RINCLUDES)
 

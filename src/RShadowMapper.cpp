@@ -19,7 +19,7 @@ void RShadowMapper::init(){
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
   */
-  glTexStorage2D(GL_TEXTURE_2D, 11, GL_DEPTH_COMPONENT32F,  4096, 4096);
+  glTexStorage2D(GL_TEXTURE_2D, 11, GL_DEPTH_COMPONENT32F,  SHADOWMAP_X, SHADOWMAP_Y);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
@@ -27,13 +27,10 @@ void RShadowMapper::init(){
   glBindTexture(GL_TEXTURE_2D, 0);
 
 
-  glFramebufferTexture(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, stex, 0);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, stex, 0);
   // glDrawBuffer(GL_NONE); // No color buffer is drawn to
 
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   RShader vs, fs;
   const char *VS_SOURCE = GLSL(330,
@@ -49,9 +46,9 @@ void RShadowMapper::init(){
 			       
 			       );
   const char *FS_SOURCE = GLSL(330,
-			       //layout(location = 0) out float fragmentdepth;
+			       layout(location = 0) out float fragmentdepth;
 			       void main(){
-				 //fragmentdepth =0.1f;// (gl_FragCoord.z);
+				 fragmentdepth = (gl_FragCoord.z);
 			       }
 			       );
 
@@ -63,10 +60,11 @@ void RShadowMapper::init(){
   glm::vec3 lightInvDir = glm::vec3(10,10,10);
 
   // Compute the MVP matrix from the light's point of view
-  glm::mat4 depthProjectionMatrix = glm::ortho<float>(-10,10,-10,10,0.1,1000);//
+  glm::mat4 depthProjectionMatrix = glm::ortho<float>(-1,1,-1,1,0.1,1000);//
   glm::mat4 depthViewMatrix = glm::lookAt(lightInvDir, glm::vec3(0), glm::vec3(0,1,0));
   //glm::mat4 depthModelMatrix = glm::mat4(1.0);
-  depthMVP = depthProjectionMatrix * depthViewMatrix ;
+  depthP = depthProjectionMatrix;
+  depthV =  depthViewMatrix ;
   /*
   depthMVP = glm::mat4(glm::vec4(1.79259,0,0,0),
 		       glm::vec4(0,-1.26755,-0.707108,-0.707107),
@@ -79,24 +77,27 @@ void RShadowMapper::init(){
 		       0.0, 0.0, 0.5, 0.0,
 		       0.5, 0.5, 0.5, 1.0
 		       );
-  depthBiasMVP = biasMatrix*depthMVP;
+
+  depthBiasPV = biasMatrix*depthP*depthV;
 
   depthMVPid = pr.get_attrib_handle("depthMVP");
   
-  glUniformMatrix4fv(depthMVPid, 1, GL_FALSE, &depthMVP[0][0]);
+  glm::mat4 depthPV = depthP*depthV;
+  glUniformMatrix4fv(depthMVPid, 1, GL_FALSE, &depthPV[0][0]);
   pr.unbind();
   this->enabled = true;
 }
 
 
-void RShadowMapper::prepare_to_draw(){
-
+void RShadowMapper::prepare_to_draw(glm::mat4 MVP){
   glBindFramebuffer(GL_FRAMEBUFFER, fb);
   glViewport(0,0,SHADOWMAP_X,SHADOWMAP_Y);
   glEnable(GL_DEPTH_TEST);
-  glBindTexture(GL_TEXTURE_2D, stex);
   glClear(GL_DEPTH_BUFFER_BIT);
   pr.use();
+  model_matrix = MVP;
+  //depthMVP = depthMV*model;
+  glUniformMatrix4fv(depthMVPid, 1, GL_FALSE, &MVP[0][0]);
 
 }
 
@@ -104,31 +105,21 @@ void RShadowMapper::flush(){
 
   pr.unbind();
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  /*
-  float img[SHADOWMAP_X*SHADOWMAP_Y];
-glBindTexture(GL_TEXTURE_2D, stex);
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, GL_FLOAT, img);
-  ofstream out("a.dat");
-  fori(0,SHADOWMAP_X){
-    forj(0, SHADOWMAP_Y){
-      
-      out<<i<<" "<<j<<" "<<img[SHADOWMAP_X*j+i]<<endl;
-
-    }
-    //cout<<endl;
-  }
-  exit(0);
-  //sf::Image im;
-  //im.create(SHADOWMAP_X, SHADOWMAP_Y, img);
-  //im.saveToFile("a.png");
-  */
 }
 
 void RShadowMapper::attach_shadowmap(GLuint prr){
+
+  glm::mat4 biasMatrix(
+		       0.5, 0.0, 0.0, 0.0,
+		       0.0, 0.5, 0.0, 0.0,
+		       0.0, 0.0, 0.5, 0.0,
+		       0.5, 0.5, 0.5, 1.0
+		       );
+  
+  glm::mat4 depthBiasMVP = biasMatrix*depthP*depthV*model_matrix;
   glUniformMatrix4fv(glGetUniformLocation(prr,"depthBiasMVP"), 1, GL_FALSE, &depthBiasMVP[0][0]);
     glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, stex);
-  glUniform1i(glGetUniformLocation(prr,"shadowmap"), 0);
+  //  glUniform1i(glGetUniformLocation(prr,"shadowmap"), 0);
 
 }

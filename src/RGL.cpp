@@ -41,7 +41,7 @@ void RGL::setUniform(const char* name, float val){
 }
 
 void RGL::draw(){
-  drawables.compute_shadows();
+  //  drawables.compute_shadows();
   if(post_processor.isEnabled())post_processor.bind();
   
   glEnable(GL_DEPTH_TEST);  

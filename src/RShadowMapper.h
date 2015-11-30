@@ -22,7 +22,7 @@ class RShadowMapper{
   void init();
   void bind(){pr.use();}
   void attach_shadowmap(GLuint prr);
-  void prepare_to_draw();
+  void prepare_to_draw(glm::mat4 model);
   void flush();
 
   bool isEnabled(){return this->enabled;}
@@ -31,7 +31,7 @@ class RShadowMapper{
   GLuint fb, stex;
   RShaderProgram pr;
   GLuint MVP, DepthBias, ShadowMapID;
-  glm::mat4 depthMVP, depthBiasMVP;
+  glm::mat4 model_matrix, depthP, depthV, depthMVP, depthBiasPV;
   GLuint depthMVPid;
 
   bool enabled;

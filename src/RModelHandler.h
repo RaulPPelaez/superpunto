@@ -2,7 +2,6 @@
 #define _RMODELHANDLER_H_ 
 
 #include "glib.h"
-#include<RShadowMapper.h>
 
 
 
@@ -22,7 +21,7 @@ public:
   void draw_lines();
   RShaderProgram * get_pr(){ return &(this->pr);}
   void config_light();
-  void compute_shadows();
+  //void compute_shadows();
   GLuint line_vbo;
   GLuint Nlines;
 private:
@@ -36,7 +35,7 @@ private:
   GLuint Ninstances;
   GLuint Nvertex;
 
-  RShadowMapper shadow_processor;
+  //  RShadowMapper shadow_processor;
 
   RShaderProgram pr, line_pr;
   GLuint unimodel, uniMVP, uniMVP_line;

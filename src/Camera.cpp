@@ -32,13 +32,15 @@ void FreeCamera::process_mouse(){
   sf::Mouse::setPosition(zero_mpos);				
 
   yaw  = (float)( (zero_mpos.x - mpos.x) ) * MOUSE_SENS;		
-  pitch = -(float)( (zero_mpos.y - mpos.y) ) * MOUSE_SENS;
+  pitch =-(float)( (zero_mpos.y - mpos.y) ) * MOUSE_SENS;
 
   this->updateCameraVectors();	
 }
 void FreeCamera::updateCameraVectors(){
-  
-  
+ 
+  //right = glm::vec3(1,0,0);
+  //up = glm::vec3(0,1,0);
+   //front = glm::vec3(0,0,1);
    
   glm::quat q1 = glm::angleAxis(glm::radians(pitch), right);
   glm::mat4 rot1 = glm::mat4_cast(q1);
@@ -47,7 +49,7 @@ void FreeCamera::updateCameraVectors(){
   
   glm::quat q2 = glm::angleAxis(glm::radians(yaw), up);
   glm::mat4 rot2 = glm::mat4_cast(q2);
-  right = glm::normalize((glm::mat3(rot2*rot1)*right));
+  right = glm::normalize(glm::mat3(rot2)*right);
 	
  
   
