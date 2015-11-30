@@ -230,7 +230,7 @@ class App{
 
 App::App(int argc, char** argv){
   cout<<"INIT...";
-
+  glewExperimental = GL_TRUE;
   record_movie = false;
   float R,G,B;
   R = G = B = 0.5;
@@ -256,7 +256,7 @@ App::App(int argc, char** argv){
 
   ContextSettings context(24, 8, 2, 0, 3);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
-  //cout<<"OpenGL Version used "<<window.getSettings().majorVersion<<endl;
+  cout<<"OpenGL Version used "<<window.getSettings().majorVersion<<endl;
   //window.setPosition(Vector2i(0,0));
   updates_per_frame = 0;
   
@@ -266,24 +266,18 @@ App::App(int argc, char** argv){
 
   glClearColor(R, G, B, 1.0f);   
   
-  
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
   shot_counter = frame_shot_counter = 0;
   record = false;
   frame_counter = 0;
   frames_between_screenshots = 1;
-  glcontext.initialize();
- 
- 
+
+  glcontext.initialize(); 
   pause = true;
   dostep = false;
 
   font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
   text.setFont(font); 
-
-
-
-
   cout<<"DONE!"<<endl;
 }
 void App::handle_events(){
@@ -306,8 +300,6 @@ void App::handle_events(){
   
 }
 void App::Run(){
-
-  
   if(record_movie){
     printf("Recording...\n");
     record = true;
@@ -318,7 +310,6 @@ void App::Run(){
     window.close();
   }
  
-  
   while(window.isOpen()){ 
     draw();
   }

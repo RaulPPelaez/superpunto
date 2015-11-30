@@ -1,7 +1,7 @@
 #define GLSL(version, shader)  "#version " #version "\n" #shader
 
 
-const char* FS_SOURCE = GLSL(330,                                                        
+const char* FS_SOURCE = GLSL(130,                                                        
 			     in vec3 Normal;
 			     in vec3 WorldPos;
 			     in vec3 Color;
@@ -14,11 +14,11 @@ const char* FS_SOURCE = GLSL(330,
 			     struct PointLight{
 			       vec3 Position;
 			       BaseLight Base;
-			     };
-			     uniform PointLight point_light;
+			     };			 
+			     PointLight point_light;
 			     uniform vec3 EyeWorldPos;
-			     uniform float MatSpecularIntensity;
-			     uniform int SpecularPower;
+			     float MatSpecularIntensity = 1.1f;
+			     int SpecularPower = 32;
 			     vec4 computeLight(BaseLight light, vec3 Direction, vec3 Normal){
 			       vec4 AmbientColor = vec4(light.Color, 1.0f) * light.Ambient;
 			       float DiffuseFactor = max(dot(normalize(Normal), -Direction),0.0);
@@ -37,6 +37,10 @@ const char* FS_SOURCE = GLSL(330,
 			       return (AmbientColor + DiffuseColor + SpecularColor);
 			     }
 			     void main() {
+
+			       point_light.Base.Color = vec3(1.0f,1.0f,1.0f);
+			       point_light.Base.Diffuse = 1.0f;
+			       point_light.Base.Ambient = 0.25f;
 			       outColor = vec4(Color,1) * computeLight(point_light.Base, vec3(1,-1,1), Normal); 
 			       outColor.w = 1.0;
 			     }   
@@ -48,11 +52,11 @@ const char* FS_SOURCE = GLSL(330,
 
 
 
-const char* VS_SOURCE = GLSL(330, 
-		 layout (location = 0) in vec3 in_vertex;
-		 layout (location = 1) in vec3 pos;
-		 layout (location = 2) in vec3 color;
-		 layout (location = 3) in float scale;
+const char* VS_SOURCE = GLSL(130, 
+		  in vec3 in_vertex;
+		  in vec3 pos;
+		  in vec3 color;
+		  in float scale;
 		 uniform mat4 model;
 		 uniform mat4 MVP;
 		 out vec3 Normal;

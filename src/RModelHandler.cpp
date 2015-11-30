@@ -8,23 +8,22 @@ void RModelHandler::initialize(glm::mat4 *MVP, glm::mat4 *model, int options){
   this-> MVP = MVP;
   this-> model = model;
   this->create_program();
+
   unimodel = glGetUniformLocation(pr.id(), "model");
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
-  glUniform1f(glGetUniformLocation(pr.id(),"gscale"), 1.0f); 
   line_pr.use();
   uniMVP_line = glGetUniformLocation(line_pr.id(), "MVP");
   line_pr.unbind();
+
   this->add_models();
-  config_light();  
-  // if(options & RGL_SHADOWMAP) shadow_processor.init();
+  //  config_light();  
 }
 
 int RModelHandler::add_models(){
+
    pr.use();
-  //textures.resize(N_models);
 
   vbos = new GLuint[2];
-
   generate_sphere_vbos(vbos[0],vbos[1]);
   Nvertex = 240; //Number of indexes of the sphere.
 
@@ -92,33 +91,19 @@ void RModelHandler::set_instancing(const GLchar *attrib, GLuint vbo, GLuint N, G
   
 void RModelHandler::config_light(){
   pr.use();
+
   glUniform1f(glGetUniformLocation(pr.id(),"MatSpecularIntensity"), 1.1f);
   glUniform1i(glGetUniformLocation(pr.id(),"SpecularPower"), 32);
-
-  glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Constant"), 1.0f);
-  glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Linear"), 0.000000001f);
-  glUniform1f(glGetUniformLocation(pr.id(),"point_light.Atten.Exp"), 0.00000000001f);
 
   glUniform3f(glGetUniformLocation(pr.id(),"point_light.Base.Color"), 1,1,1);
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Base.Diffuse"), 1.0f);
   glUniform1f(glGetUniformLocation(pr.id(),"point_light.Base.Ambient"), 0.25f);
   pr.unbind();
 }
-/*
-void RModelHandler::compute_shadows(){
-  if(!shadow_processor.isEnabled())return;
-  shadow_processor.prepare_to_draw(*model);
-  glBindVertexArray(vao);
-  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);     
-  glBindVertexArray(0);
-  shadow_processor.flush();
-}  
-*/
   
 void RModelHandler::draw_model(){
   pr.use();
   
-  //if(shadow_processor.isEnabled()) shadow_processor.attach_shadowmap(pr.id());
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(*MVP) );
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
 

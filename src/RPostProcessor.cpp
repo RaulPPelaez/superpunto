@@ -2,7 +2,7 @@
 
 void RPostProcessor::init(){
   RShader vs, fs;
-  const char* VS_SOURCE = GLSL(330,                                                        
+  const char* VS_SOURCE = GLSL(130,                                                        
 			       in vec2 in_vertex;
 			       in vec2 texCoords;
 			       out vec2 TexCoords;
@@ -12,7 +12,7 @@ void RPostProcessor::init(){
 			       }        
 			       );
   
-  const char* SC_SOURCE = GLSL(330,
+  const char* SC_SOURCE = GLSL(130,
 			       in vec2 TexCoords;
 			       out vec4 color;
 			       uniform sampler2D scTex;

@@ -7,26 +7,20 @@ void RGL::initialize(int options){
 
   drawables.initialize(&MVP, &model, options);
 
-  if(options & RGL_POSTPROCESS) post_processor.init();
-
   MVP = glm::mat4();
   model = glm::mat4();
 
   initBuffers();
 
-
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_LESS);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glEnable(GL_MULTISAMPLE);
-
   proj =glm::perspective(45.0f, 1.0f, 0.01f, 10000.0f);
 
   lightpos = glm::vec3(0,0,-10);
   loadIdentity();
   printf("DONE!\nDrawing...\n");
-  drawables.config_light();
   
 }
 
