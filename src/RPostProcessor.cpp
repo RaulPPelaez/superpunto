@@ -12,8 +12,43 @@ void RPostProcessor::init(){
 			       }        
 			       );
   
+  const char* SC_SOURCE = GLSL(330,
+			       in vec2 TexCoords;
+			       out vec4 color;
+			       uniform sampler2D scTex;
+			       const float offset = 1.0/200.0;
+			       const vec2 offsets[9] = vec2[](
+				      vec2(-offset, offset),  
+				      vec2(0.0f,    offset),  
+				      vec2(offset,  offset),  
+				      vec2(-offset, 0.0f),    
+				      vec2(0.0f,    0.0f), 
+				      vec2(offset,  0.0f),    
+				      vec2(-offset, -offset), 
+				      vec2(0.0f,    -offset), 
+				      vec2(offset,  -offset) 
+							      );
+			       const float kernel[9] = float[](
+							       1, 2, -1,
+							       0, 0, 0,
+							       4, -3, 0
+							       );
+			       const float kernel_mod = 3.0;
+			       void main() {                                               
+  				 color = texture(scTex, TexCoords);
+				 return;
+  				 vec3 sampleTex[9];
+				 for(int i = 0; i < 9; i++){
+				     sampleTex[i] = vec3(texture(scTex, TexCoords.st + offsets[i]));
+				   }
+				 vec3 col;
+				 for(int i = 0; i < 9; i++)
+				   col += sampleTex[i] * kernel[i]/kernel_mod;
+  				 color = vec4(col,1.0);
+			       }        
+			       );
   vs.charload(VS_SOURCE, GL_VERTEX_SHADER);
-  fs.load("../res/sc.fs", GL_FRAGMENT_SHADER);
+  fs.load(SC_SOURCE, GL_FRAGMENT_SHADER);
 
   pp_pr.create();
   pp_pr.add_shader(vs);

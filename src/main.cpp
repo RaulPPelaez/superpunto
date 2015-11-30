@@ -229,8 +229,29 @@ class App{
 };
 
 App::App(int argc, char** argv){
- //glewExperimental = GL_TRUE;
   cout<<"INIT...";
+
+  record_movie = false;
+  float R,G,B;
+  R = G = B = 0.5;
+  fori(0,argc){
+    if(strcmp(argv[i],"--record")==0) record_movie = true;
+    if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i+1]);
+    if(strcmp(argv[i],"--background")==0){
+      R = stod( argv[i+1]);
+      G = stod( argv[i+2]);
+      B = stod( argv[i+3]);
+    }
+    if(strcmp(argv[i],"-h")==0){
+      printf("Usage:\n spunto file [opts]\n");
+      printf("Options:\n");
+      printf("--record :  Makes a movie of all the frames in file and generates a .gif\n");
+      printf("--frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
+      printf("--background R G B : Background color in RGB, default R=G=B=0.5\n");
+
+    }
+  }
+
   glewInit();
 
   ContextSettings context(24, 8, 2, 0, 3);
@@ -243,7 +264,7 @@ App::App(int argc, char** argv){
   
   if(TARGET_FPS==60) window.setVerticalSyncEnabled(true);
 
-  glClearColor(0.5, 0.5, 0.5, 1.0f);   
+  glClearColor(R, G, B, 1.0f);   
   
   
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
@@ -261,12 +282,6 @@ App::App(int argc, char** argv){
   text.setFont(font); 
 
 
-  record_movie = false;
-  fori(0,argc){
-    if(strcmp(argv[i],"-s")==0) record_movie = true;
-    if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i]);
-    
-  }
 
 
   cout<<"DONE!"<<endl;
