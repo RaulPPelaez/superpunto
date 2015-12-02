@@ -221,7 +221,7 @@ void RGLContext::upload_step(){
   
   if(Lbox[frame] == 0.0)set_box(2*max_dist[frame]);
   else{ set_box(2*Lbox[frame]); }
-  CheckGLError();
+  //  CheckGLError();
 }
 
 class App{
@@ -281,12 +281,12 @@ void App::parse_input(int argc, char** argv){
       bcolor[2] = stod( argv[i+3]);
     }
     if(strcmp(argv[i],"-h")==0){
-      printf("Usage:\n spunto file [opts]\n");
-      printf("Options:\n");
-      printf("--record :  Makes a movie of all the frames in file and generates a .gif\n");
-      printf("--frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
-      printf("--background R G B : Background color in RGB, default R=G=B=0.5\n");
-
+      printf("\n\n\tUsage:  spunto file [opts]\n\n");
+      printf("\tOptions:\n");
+      printf("\t  --record :  Makes a movie of all the frames in file and generates a .gif\n");
+      printf("\t  --frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
+      printf("\t  --background R G B : Background color in RGB, default R=G=B=0.5\n");
+      exit(0);
     }
   }
 }
@@ -299,7 +299,7 @@ App::App(int argc, char** argv){
   this->parse_input(argc,argv);
  
   glewInit();
-  ContextSettings context(24, 8, 2, 3, 5);
+  ContextSettings context(24, 8, 2, 3, 0);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
   float GLVER = (float)window.getSettings().majorVersion+ 0.1f*window.getSettings().minorVersion;
   cout<<"OpenGL Version available: "<<GLVER<<endl;
@@ -314,7 +314,8 @@ App::App(int argc, char** argv){
   glClearColor(bcolor[0], bcolor[1], bcolor[2], 1.0f);   
   glcontext.initialize(); 
 
-  font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
+  //  font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
+  font.loadFromFile("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
   text.setFont(font); 
 
   cout<<"DONE!"<<endl;

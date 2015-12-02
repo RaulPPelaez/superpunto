@@ -18,7 +18,7 @@ SOURCES= src/$(MAIN).cpp src/utils.cpp $(RINCLUDES)
 OBJECTS = $(SOURCES:.cpp=.o)
 
 
-EXECUTABLE=bin/mc
+EXECUTABLE=bin/spunto
 
 GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
 #RLIBS = -lCamera -lglib -lRModelHandler -lhelper -lRWindow
