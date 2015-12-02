@@ -39,19 +39,3 @@ void get_inbounds(vector<double> &a){
   fori(0,a.size()) a[i]-=int( ( (a[i]<0)?-0.5:0.5 ) + a[i]);
 }
 
-
-std::vector<float> parse_colors(const std::vector<int> &colors){
-
-  int N = colors.size();
-  std::vector<float> RGB(3*N);
-
-  for(int i=0; i<3*N; i+=3){
-    int c = colors[i/3];
-    RGB[i] = (c & 0xFF)/255.0f;
-    RGB[i+1] = ((c & 0xFF00) >> 8)/255.0f;
-    RGB[i+2] = ((c & 0xFF0000) >> 16)/255.0f;
-  }
-  return RGB;
-
-}
-      

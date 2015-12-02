@@ -21,6 +21,7 @@ public:
   void draw_lines();
   RShaderProgram * get_pr(){ return &(this->pr);}
   void config_light();
+  void set_line_uniform(float par);
   //void compute_shadows();
   GLuint line_vbo;
   GLuint Nlines;

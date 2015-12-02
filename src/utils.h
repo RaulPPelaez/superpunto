@@ -17,7 +17,8 @@ FileConfig get_config(const char *fileName);
 
 bool iscomment(std::string line);
 
-
+std::vector<float> parse_colors(const std::vector<int> &colors);
+bool checksystem(float ver);
 
 
 #endif

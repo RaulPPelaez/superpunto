@@ -35,8 +35,6 @@ double vmul(const vector<double> &a, const vector<double> &b);
 void get_inbounds(vector<double> &a);
 
 
-std::vector<float> parse_colors(const std::vector<int> &colors);
-
 
 class REvent{
  public:

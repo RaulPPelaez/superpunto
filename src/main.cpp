@@ -15,10 +15,8 @@ using namespace std;
 using namespace sf;
 
 std::string fileName;
-const char * GetGLErrorStr(GLenum err)
-{
-  switch (err)
-    {
+const char * GetGLErrorStr(GLenum err){
+  switch (err){
     case GL_NO_ERROR:          return "No error";
     case GL_INVALID_ENUM:      return "Invalid enum";
     case GL_INVALID_VALUE:     return "Invalid value";
@@ -29,14 +27,10 @@ const char * GetGLErrorStr(GLenum err)
     default:                   return "Unknown error";
     }
 }
-void CheckGLError()
-{
-  while (true)
-    {
+void CheckGLError(){
+  while (true){
       const GLenum err = glGetError();
-      if (GL_NO_ERROR == err)
-	break;
-
+      if (GL_NO_ERROR == err)break;
       std::cout << "GL Error: " << GetGLErrorStr(err) << std::endl;
     }
 }
@@ -101,7 +95,6 @@ float RGLContext::parse_comment(std::string line, std::string &msg){
     token = line.substr(0,pos);
     L = std::stof(token, NULL);
     line.erase(0, pos+1);
-
   }
   msg = line;
   return L;
@@ -110,12 +103,10 @@ std::string RGLContext::current_msg(){
   return msgs[current_step-1];
 }
 void RGLContext::initBuffers(){
-play_movie = false;
+  play_movie = false;
  
-  ifstream in(fileName.c_str());
   FileConfig fc = get_config(fileName.c_str());
-    
-  std::string line;  
+  ifstream in(fileName.c_str());   
   
   int c;
   int Nmax=fc.maxN;
@@ -127,15 +118,14 @@ play_movie = false;
   msgs.resize(fc.nframes);
   Lbox.resize(fc.nframes);
   
-  
-
   positions[0].resize(3*fc.N[0],0);
   scales[0].resize(fc.N[0],1);
   colors[0].resize(3*fc.N[0],1);    
   max_dist[0] = 0.0;
 
+  std::string line;  
   getline(in,line);
-  if(iscomment(line)){ Lbox[0] = parse_comment(line, msgs[0]); getline(in,line);}
+  if(iscomment(line)){Lbox[0] = parse_comment(line, msgs[0]); getline(in,line);}
   else{Lbox[0] = 0.0; msgs[0] = " ";}
   std::stringstream is(line);
   
@@ -145,6 +135,7 @@ play_movie = false;
   int N = -1;
   printf("\rLoading data... %d%%   ", 0);
   fflush(stdout);
+
   while(!in.eof()){
     if(!iscomment(line)) N++;
    else{
@@ -154,7 +145,6 @@ play_movie = false;
      max_dist[frame] = 0.0;
      positions[frame].resize(3*fc.N[frame],0);
      scales[frame].resize(fc.N[frame],1);
-     //colors[frame].resize(3*fc.N[frame],1);    
      ctemp.resize(fc.N[frame],1);
      getline(in,line);
      printf("\rLoading data... %d%%   ", (int)(100.0f*(float)frame/(float)fc.nframes +0.5f));
@@ -196,21 +186,25 @@ play_movie = false;
 }
 
 void RGLContext::set_box(float bsize){
-  GLfloat *temp = get_wired_cube();
-  GLfloat box_data[72];
-  fori(0,72) box_data[i] = temp[i];
-  drawables.Nlines = 12; //2 points/line, 3 coords/point                                              
-  fori(0,72) box_data[i] -= 0.5;
-  fori(0,72) box_data[i] *= bsize;
-
-  glBindBuffer(GL_ARRAY_BUFFER, drawables.line_vbo);
-  glBufferData(GL_ARRAY_BUFFER, 12*2*3*sizeof(float), box_data, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  static bool first_time = true;
+  if(first_time){
+    GLfloat *temp = get_wired_cube();
+    GLfloat box_data[72];
+    fori(0,72) box_data[i] = temp[i];
+    drawables.Nlines = 12; //2 points/line, 3 coords/point                           
+    drawables.set_line_uniform(bsize);
+    glBindBuffer(GL_ARRAY_BUFFER, drawables.line_vbo);
+    glBufferData(GL_ARRAY_BUFFER, 12*2*3*sizeof(float), box_data, GL_DYNAMIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    first_time = false;
+  }
+  else{
+    drawables.set_line_uniform(bsize);
+  }
 }
 
 
 void RGLContext::upload_step(){
-
  int frame = current_step;
   if(current_step<Nframes)current_step++;
 
@@ -231,43 +225,60 @@ void RGLContext::upload_step(){
 }
 
 class App{
-  public:
-    App(int argc, char** argv);
-    void Run();
-    void Exit();
-    void screenshot();
-    void record_frame();
-  private:
-    void draw();
-    void handle_events();
-    RWindow window;	
-    RGLContext glcontext;
-    unsigned int updates_per_frame;
-    bool dostep;
-    bool pause;
-  unsigned int shot_counter, frame_shot_counter, frames_between_screenshots;
-  bool record, record_movie;
-    unsigned int frame_counter;
-    std::vector<sf::Image> GIF;
-    GifWriter GIF2;
-    sf::Font font;
-    sf::Text text;
+ public:
+  App(int argc, char** argv);
+  void Run();
+  void Exit();
+  void screenshot();
+  void record_frame();
+ private:
+  void draw();
+  void handle_events();
+  void init_default_params();
+  void parse_input(int argc, char** argv);
 
+  RWindow window;	
+  RGLContext glcontext;
+  std::vector<sf::Image> GIF;
+  GifWriter GIF2;
+  sf::Font font;
+  sf::Text text;
+  //Configuration parameters ---------
+  unsigned int updates_per_frame, frames_between_screenshots;
+  bool record_movie;
+  float bcolor[3]; //Background color
+  //State control variables-----------
+  bool dostep;
+  bool pause;
+  bool running;
+  unsigned int frame_counter, shot_counter, frame_shot_counter;
+  bool record;
+  //-----------------------
 };
 
-App::App(int argc, char** argv){
-  cout<<"INIT...";
-  glewExperimental = GL_TRUE;
+void App::init_default_params(){
+  bcolor[0] = bcolor[1] = bcolor[2] = 0.5;
   record_movie = false;
-  float R,G,B;
-  R = G = B = 0.5;
+  updates_per_frame = 0;
+  sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
+  shot_counter = frame_shot_counter = 0;
+  record = false;
+  frame_counter = 0;
+  frames_between_screenshots = 0;
+  pause = true;
+  dostep = false;
+  running = true;
+}
+
+void App::parse_input(int argc, char** argv){
   fori(0,argc){
+    if(argv[i][0]!='-') continue;
     if(strcmp(argv[i],"--record")==0) record_movie = true;
     if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i+1]);
     if(strcmp(argv[i],"--background")==0){
-      R = stod( argv[i+1]);
-      G = stod( argv[i+2]);
-      B = stod( argv[i+3]);
+      bcolor[0] = stod( argv[i+1]);
+      bcolor[1] = stod( argv[i+2]);
+      bcolor[2] = stod( argv[i+3]);
     }
     if(strcmp(argv[i],"-h")==0){
       printf("Usage:\n spunto file [opts]\n");
@@ -278,40 +289,41 @@ App::App(int argc, char** argv){
 
     }
   }
+}
 
+App::App(int argc, char** argv){
+  cout<<"INIT... ";
+  glewExperimental = GL_TRUE;
+
+  this->init_default_params();
+  this->parse_input(argc,argv);
+ 
   glewInit();
-
-  ContextSettings context(24, 8, 2, 0, 3);
+  ContextSettings context(24, 8, 2, 3, 5);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
-  cout<<"OpenGL Version used "<<window.getSettings().majorVersion<<endl;
-  //window.setPosition(Vector2i(0,0));
-  updates_per_frame = 0;
-  
-  window.setActive(true);
-  
-  if(TARGET_FPS==60) window.setVerticalSyncEnabled(true);
+  float GLVER = (float)window.getSettings().majorVersion+ 0.1f*window.getSettings().minorVersion;
+  cout<<"OpenGL Version available: "<<GLVER<<endl;
 
-  glClearColor(R, G, B, 1.0f);   
+  if(!checksystem(GLVER)){
+    cout<<"Invalid OpenGL Version!!, min 3.0 needed!"<<endl;
+    exit(0);
+  }
   
-  sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
-  shot_counter = frame_shot_counter = 0;
-  record = false;
-  frame_counter = 0;
-  frames_between_screenshots = 1;
+  if(TARGET_FPS==60 && GLVER>3.0) window.setVerticalSyncEnabled(true);
 
+  glClearColor(bcolor[0], bcolor[1], bcolor[2], 1.0f);   
   glcontext.initialize(); 
-  pause = true;
-  dostep = false;
 
   font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
   text.setFont(font); 
+
   cout<<"DONE!"<<endl;
 }
 void App::handle_events(){
   Event event;
   while (window.pollEvent(event)){
     glcontext.handle_event(event);
-    if (event.type == Event::Closed) window.close();
+    if (event.type == Event::Closed)running = false;
     if (event.type == Event::Resized){
       int w = Rmin(event.size.width, event.size.height);
       glViewport(0.0, 0.0, w, w);
@@ -324,21 +336,26 @@ void App::handle_events(){
       IF_KEY(LAlt, sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));)
     }
   }
-  
 }
 void App::Run(){
   if(record_movie){
     printf("Recording...\n");
+    window.force_draw();
+    fori(0,10)draw();
     record = true;
     glcontext.play_movie = true;
     while(glcontext.current_step<glcontext.Nframes){
+      cout<<glcontext.current_step<<" "<<glcontext.Nframes<<endl;
+      window.force_draw();
       draw();
     }
     window.close();
+    return;
   }
  
   while(window.isOpen()){ 
     draw();
+    if(!running)window.close();
   }
 }
 void App::draw(){

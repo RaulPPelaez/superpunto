@@ -11,6 +11,7 @@ class RWindow: public sf::RenderWindow{
   RWindow(){
     frames=0;
     FPS=TARGET_FPS;
+    forced_frame=false;
   }
   void update_fps(){
     frames++;
@@ -37,20 +38,23 @@ class RWindow: public sf::RenderWindow{
     }
   }
   bool ready_to_draw(){
+    if(forced_frame){forced_frame=false; return true;}
     float time = draw_clock.getElapsedTime().asMicroseconds();
     if(time>=(1e6/TARGET_FPS)){
       draw_clock.restart();
-
       return true;
     }
     return false;
   }
   unsigned int *updates_per_frame;
-
+  void force_draw(){
+    forced_frame=true;
+  }
  private:
   int frames;
   float FPS;
   Clock fps_clock;
   Clock draw_clock;
+  bool forced_frame;
 };
 #endif

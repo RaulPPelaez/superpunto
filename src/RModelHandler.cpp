@@ -108,10 +108,11 @@ void RModelHandler::draw_model(){
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(*model));
 
   glBindVertexArray(vao);
-  glDrawElementsInstanced( GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);
+  glDrawElementsInstanced(GL_TRIANGLES, Nvertex, GL_UNSIGNED_INT, 0, Ninstances);
   glBindVertexArray(0);
   pr.unbind();
 }
+
 
 
 void RModelHandler::draw_lines(){
@@ -123,6 +124,12 @@ void RModelHandler::draw_lines(){
   glLineWidth(1);
   glBindVertexArray(0);
   line_pr.unbind();
-  
+}
+
+void RModelHandler::set_line_uniform(float par){
+  line_pr.use();
+  glUniform1f(line_pr.get_attrib_handle("L"), par);
+  line_pr.unbind();
+
 
 }
