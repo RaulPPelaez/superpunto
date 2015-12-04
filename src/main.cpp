@@ -207,7 +207,7 @@ void RGLContext::set_box(float bsize){
 void RGLContext::upload_step(){
  int frame = current_step;
   if(current_step<Nframes)current_step++;
-
+  else return;
   glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[2]);
   glBufferData(GL_ARRAY_BUFFER, scales[frame].size()*sizeof(float), scales[frame].data(), GL_DYNAMIC_DRAW);
 
