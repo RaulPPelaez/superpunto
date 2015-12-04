@@ -161,7 +161,7 @@ void RGLContext::initBuffers(){
      max_dist[frame] = Rmax(max_dist[frame], abs(temp[i]));
    }
    scales[frame][N] = temp[3];
-   ctemp[N] = (temp[4]+1)*39275;
+   ctemp[N] = (int)(temp[4]+1)*39275;
    
    getline(in,line);
   }
@@ -324,13 +324,13 @@ void App::handle_events(){
   Event event;
   while (window.pollEvent(event)){
     glcontext.handle_event(event);
-    if (event.type == Event::Closed)running = false;
+    if (event.type == Event::Closed)running=false;
     if (event.type == Event::Resized){
       int w = Rmin(event.size.width, event.size.height);
       glViewport(0.0, 0.0, w, w);
     }
     if (event.type == Event::KeyPressed){
-      IF_KEY(Escape, window.close();)
+      IF_KEY(Escape, running=false;)
       IF_KEY(N, dostep = true; pause = !pause;)
       IF_KEY(L, record = !record; glcontext.play_movie = true;)
       IF_KEY(C, screenshot();)

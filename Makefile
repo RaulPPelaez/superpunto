@@ -20,8 +20,12 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 EXECUTABLE=bin/spunto
 
-GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 
-#RLIBS = -lCamera -lglib -lRModelHandler -lhelper -lRWindow
+ifdef STATIC
+  GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-network-s -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopenal -lX11 -lX11-xcb -lxcb -lxcb-randr  -lxcb-image -ludev -lpthread -lGLEW -lfreetype -ljpeg -lGL
+else
+  GLIBS= -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 	
+endif
+
 
 
 all: mc 

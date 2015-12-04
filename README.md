@@ -1,22 +1,25 @@
 # Superpunto
-SFML/Modern OpenGL clone of mrevenga's punto ( http://punto.sourceforge.net/ )
+SFML/Modern OpenGL clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
-#INSTALLATION
-Run the Makefile.
+#COMPILATION
+Run the Makefile. You can define STATIC to include all the dependencies in the executable (-DSTATIC)
 Dependencies:
+1. SFML-2.0+ and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
+2. OpenGL 3.0+
 
-1. SFML-2.0 and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
-2. OpenGL 3.3+
+Known to work in Ubuntu 14/15. You can install SFML by $ apt-get install libsfml-dev
+You can also compile it yourself in https://github.com/SFML/SFML
 
-Known to work in Ubuntu 14. You can install SFML by $ apt-get install libsfml-dev
-Precompiled sfml libs can be found under tools.
 #USAGE
-Use with $ ./superpunto inputfile
+Use with $ ./spunto inputfile [opts]
+
+run ./spunto -h for information about the available options.
+
 
 inputfile should have the following structure:
->\# Comments are used to separate frames
+>\#L=X; Comments are used to separate frames, you can force the size of the simulation box starting the comment with L=X; as in this example
 
->X1 Y1 Z1 r1 c1
+>X1 Y1 Z1 r1 c1 #You can comment here aswell!
 
 >X2 ...
 
@@ -42,6 +45,8 @@ r1 is the size of the superpunto.
 
 c1 is its color.
 
+both of these parameters are optional, if you only set 4 columns, the 4th will be interpreted as the color.
+
 If you generate a movie, use gif2mp4 to convert it to mp4.
 
 #COLORS
@@ -65,10 +70,11 @@ You can go through time using:
 
 1. Space/R to go to the next/previous frame
 2. Press M to autoplay the frames at 30 FPS
+3. Press T to go to the last frame
 
 You can take screenshots and record some frames in a gif using:
 
-1. Press L to take a screenshot every frame, these will be converted to gif at exit. You can move around while recording
+1. Press L or start using --record to take a screenshot every frame, these will be converted to gif at exit. You can move around while recording
 2. Press C to take a single screenshot.
 
 
