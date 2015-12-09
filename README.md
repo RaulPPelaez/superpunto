@@ -3,25 +3,32 @@ SFML/Modern OpenGL clone of mrevenga's SDL punto ( http://punto.sourceforge.net/
 
 #COMPILATION
 Run the Makefile. You can define STATIC to include all the dependencies in the executable (-DSTATIC)
+
+
 Dependencies:
-1. SFML-2.0+ and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
-2. OpenGL 3.0+
+
+1. SFML-2.0+ (2.3 recommended) and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
+
+2. OpenGL 3.0+ (3.3+ recommended)
+
+You can grab a compiled version (**no need for SFML and its dependencies in your system**) in "releases".
 
 Known to work in Ubuntu 14/15. You can install SFML by $ apt-get install libsfml-dev
-You can also compile it yourself in https://github.com/SFML/SFML
+
+You can also compile it yourself from https://github.com/SFML/SFML
 
 #USAGE
 Use with $ ./spunto inputfile [opts]
 
-run ./spunto -h for information about the available options.
+run ./spunto -h for information about the available options and controls.
 
 
 inputfile should have the following structure:
 >\#L=X; Comments are used to separate frames, you can force the size of the simulation box starting the comment with L=X; as in this example
 
->X1 Y1 Z1 r1 c1 #You can comment here aswell!
-
->X2 ...
+>X1 Y1 Z1 r1 c1 #You can comment here aswell! If your file has more than
+   
+>X2 ...         #5 columns, the rest will be ignored!
 
 >.
 
