@@ -49,7 +49,7 @@ class RGL{
   void upload_MVP();
 
   void setUniform(const char* name, float val);
-  
+  void change_aspect(float new_aspect);  
  private:
 
  protected:

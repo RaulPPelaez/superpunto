@@ -78,7 +78,6 @@ void RGL::handle_event(sf::Event event){
       IF_KEY(Num2, rotate(-0.1f,0,1,0);)
       IF_KEY(Num3, rotate(-0.1f,0,0,1);)
       }
-
 }
 
 
@@ -99,5 +98,7 @@ void RGL::loadIdentity(){model = glm::mat4();}
 
 void RGL::upload_MVP(){MVP = proj*view*model;}
 
-
+void RGL::change_aspect(float new_aspect){
+  this->proj =glm::perspective(45.0f, new_aspect, 0.01f, 10000.0f);
+}
 

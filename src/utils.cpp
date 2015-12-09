@@ -41,9 +41,14 @@ FileConfig get_config(const char *fileName){
    case 3:
      printf("\t3 rows, taking as XYZ\n\t%d frames\n\t%d superpuntos\n", nframes, maxN);
      break;
-   default:
+  case 2:case 1:
      printf("\t INVALID NUMBER OF ROWS IN FILE!\n");
      exit(0);
+     break;
+  default:
+    printf("\t%d rows, taking as XYZRC\n\t%d frames\n\t%d superpuntos\n", fc.nrows, nframes, maxN);
+    fc.nrows = 5;
+     break;
   }
   in.close();
   return fc;  
@@ -76,4 +81,27 @@ bool checksystem(float ver){
   if(ver<3.0) return false;
   else return true;
 
+}
+void print_help(){
+
+      printf("\n\x1b[1m Usage:  spunto file [opts]  \x1b[0m\n\n");
+      printf("\x1b[1m  Options:\x1b[0m\n");
+      printf("\t  --record :  Makes a movie of all the frames in file and generates a .gif\n");
+      printf("\t  --frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
+      printf("\t  --background R G B : Background color in RGB, default R=G=B=0.0\n");
+      printf("\t  --palette X : Change the color palette\n");
+
+      printf("\n\x1b[1m Controls:\x1b[0m\n");
+      printf("  Movement:\n");
+      printf("\t Move with WASD, E and Q to tilt and Shift/Ctrl to go up/Down\n");
+      printf("\t Use +/- to increase/decrease the speed\n");
+      printf("\t Look around holding ALT and moving the mouse\n");
+      printf("\t Rotate the world in XYZ using 123/456\n");
+      printf("  Frame control:\n");
+      printf("\t Press Space to go to the next frame, R to the previous\n");
+      printf("\t Press T to go to the last frame, B takes you to the first one\n");
+      printf("\t Press M to play the frames at 15 FPS, M again to pause\n");
+      printf("\t Press C to take a screenshot in png\n\t Press L to play and record to a gif until L is pressed again\n");
+      printf("  Others:\n");
+      printf("\t Press h to print this help page\n");
 }

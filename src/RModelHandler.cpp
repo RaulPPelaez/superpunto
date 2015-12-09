@@ -119,7 +119,7 @@ void RModelHandler::draw_lines(){
   line_pr.use();
   glUniformMatrix4fv(uniMVP_line, 1, GL_FALSE, glm::value_ptr(*MVP) );
   glBindVertexArray(line_vao);
-  glLineWidth(3); 
+  glLineWidth(2); 
   glDrawArrays(GL_LINES, 0, 72);
   glLineWidth(1);
   glBindVertexArray(0);

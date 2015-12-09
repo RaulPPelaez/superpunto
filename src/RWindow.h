@@ -33,7 +33,7 @@ class RWindow: public sf::RenderWindow{
       frames = 0;
       fps_clock.restart();
       std::stringstream sstr;
-      sstr<<" FPS = "<<(int)(FPS+0.5)<<" "<<additional;
+      sstr<<additional<<" FPS = "<<(int)(FPS+0.5);
       this->setTitle(sstr.str());
     }
   }

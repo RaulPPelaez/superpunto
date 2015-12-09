@@ -10,32 +10,12 @@
 #include"utils.h"
 #include "gif.h"
 #include"helper.h"
-
+#include<stdio.h>
 using namespace std;
 using namespace sf;
 
 std::string fileName;
-const char * GetGLErrorStr(GLenum err){
-  switch (err){
-    case GL_NO_ERROR:          return "No error";
-    case GL_INVALID_ENUM:      return "Invalid enum";
-    case GL_INVALID_VALUE:     return "Invalid value";
-    case GL_INVALID_OPERATION: return "Invalid operation";
-    case GL_STACK_OVERFLOW:    return "Stack overflow";
-    case GL_STACK_UNDERFLOW:   return "Stack underflow";
-    case GL_OUT_OF_MEMORY:     return "Out of memory";
-    default:                   return "Unknown error";
-    }
-}
-void CheckGLError(){
-  while (true){
-      const GLenum err = glGetError();
-      if (GL_NO_ERROR == err)break;
-      std::cout << "GL Error: " << GetGLErrorStr(err) << std::endl;
-    }
-}
-
-
+int palette_id=923302100; //1 is also cool
  
 class RGLContext: public RGL{
 public:
@@ -48,16 +28,15 @@ public:
   std::string current_msg();
 
   bool play_movie;  
-  std::vector<vector<float>> positions, colors,scales;
+  std::vector<vector<float>> positions, colors, scales;
   std::vector<float> max_dist;
-  std::vector<std::string> msgs; //Mesages in the comments #L=x bolablabla
+  std::vector<std::string> msgs; //Mesages in the comments #L=x; bolablabla
   std::vector<float> Lbox; //Custom box size in the comments  
   int Nframes;
   int current_step;
 private:	
   void initBuffers();
   void upload_step();
-  
   float parse_comment(std::string line, std::string &msg);
 };
 
@@ -77,7 +56,8 @@ void RGLContext::handle_event(sf::Event event){
  if (event.type == Event::KeyPressed){
    IF_KEY(R, current_step= Rmax(current_step-2,0);upload_step();)
    IF_KEY(M, play_movie = !play_movie;)
-     IF_KEY(T, current_step = Nframes-1; upload_step();)
+   IF_KEY(T, current_step = Nframes-1; upload_step();)
+   IF_KEY(B, current_step = 0; upload_step();)
  }
 }
 
@@ -104,7 +84,7 @@ std::string RGLContext::current_msg(){
 }
 void RGLContext::initBuffers(){
   play_movie = false;
- 
+  
   FileConfig fc = get_config(fileName.c_str());
   ifstream in(fileName.c_str());   
   
@@ -136,6 +116,9 @@ void RGLContext::initBuffers(){
   printf("\rLoading data... %d%%   ", 0);
   fflush(stdout);
 
+  srand(palette_id);
+  vector<unsigned int> palette(1000,0);
+  fori(0,1000) palette[i] = rand()%16581375;
   while(!in.eof()){
     if(!iscomment(line)) N++;
    else{
@@ -161,7 +144,7 @@ void RGLContext::initBuffers(){
      max_dist[frame] = Rmax(max_dist[frame], abs(temp[i]));
    }
    scales[frame][N] = temp[3];
-   ctemp[N] = (int)(temp[4]+1)*39275;
+   ctemp[N] = palette[((int)temp[4]+1)%1000];
    
    getline(in,line);
   }
@@ -207,7 +190,7 @@ void RGLContext::set_box(float bsize){
 void RGLContext::upload_step(){
  int frame = current_step;
   if(current_step<Nframes)current_step++;
-  else return;
+  else{play_movie=false;return;}
   glBindBuffer(GL_ARRAY_BUFFER, instancing_vbos[2]);
   glBufferData(GL_ARRAY_BUFFER, scales[frame].size()*sizeof(float), scales[frame].data(), GL_DYNAMIC_DRAW);
 
@@ -257,7 +240,7 @@ class App{
 };
 
 void App::init_default_params(){
-  bcolor[0] = bcolor[1] = bcolor[2] = 0.5;
+  bcolor[0] = bcolor[1] = bcolor[2] = 0.0;
   record_movie = false;
   updates_per_frame = 0;
   sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));
@@ -272,51 +255,52 @@ void App::init_default_params(){
 
 void App::parse_input(int argc, char** argv){
   fori(0,argc){
+    if(argc==1 || strcmp(argv[i],"-h")==0){
+      if(argc==1) cout<<"\nERROR!!! MISSING FILENAME"<<endl;
+      print_help();
+      exit(0);
+    }
     if(argv[i][0]!='-') continue;
     if(strcmp(argv[i],"--record")==0) record_movie = true;
+    if(strcmp(argv[i],"--palette")==0) palette_id = atoi(argv[i+1]);
     if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i+1]);
     if(strcmp(argv[i],"--background")==0){
       bcolor[0] = stod( argv[i+1]);
       bcolor[1] = stod( argv[i+2]);
       bcolor[2] = stod( argv[i+3]);
     }
-    if(strcmp(argv[i],"-h")==0){
-      printf("\n\n\tUsage:  spunto file [opts]\n\n");
-      printf("\tOptions:\n");
-      printf("\t  --record :  Makes a movie of all the frames in file and generates a .gif\n");
-      printf("\t  --frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
-      printf("\t  --background R G B : Background color in RGB, default R=G=B=0.5\n");
-      exit(0);
-    }
+
   }
 }
 
 App::App(int argc, char** argv){
-  cout<<"INIT... ";
+  cout<<"Welcome to Superpunto v1.0!\n";
+  cout<<"INIT...\n";
   glewExperimental = GL_TRUE;
 
   this->init_default_params();
   this->parse_input(argc,argv);
  
   glewInit();
-  ContextSettings context(24, 8, 2, 3, 0);
+  ContextSettings context(24, 0, 8, 3, 0);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
   float GLVER = (float)window.getSettings().majorVersion+ 0.1f*window.getSettings().minorVersion;
   cout<<"OpenGL Version available: "<<GLVER<<endl;
 
   if(!checksystem(GLVER)){
-    cout<<"Invalid OpenGL Version!!, min 3.0 needed!"<<endl;
-    exit(0);
+    cout<<"Invalid OpenGL Version!!, min 3.0 needed!, 3.3+ recommended"<<endl;
+    cout<<"Unexpected behavior can occur!!"<<endl;
   }
   
-  if(TARGET_FPS==60 && GLVER>3.0) window.setVerticalSyncEnabled(true);
+  if(/*TARGET_FPS==60 &&*/ GLVER>3.0) window.setVerticalSyncEnabled(true);
 
   glClearColor(bcolor[0], bcolor[1], bcolor[2], 1.0f);   
   glcontext.initialize(); 
 
-  //  font.loadFromFile("/usr/share/fonts/truetype/ttf-dejavu/DejaVuSans.ttf");
   font.loadFromFile("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
   text.setFont(font); 
+  text.setCharacterSize(24);
+  text.setColor(sf::Color(255*(1-bcolor[0]), 255*(1-bcolor[1]), 255*(1-bcolor[2])));
 
   cout<<"DONE!"<<endl;
 }
@@ -326,8 +310,11 @@ void App::handle_events(){
     glcontext.handle_event(event);
     if (event.type == Event::Closed)running=false;
     if (event.type == Event::Resized){
-      int w = Rmin(event.size.width, event.size.height);
-      glViewport(0.0, 0.0, w, w);
+      float w = event.size.width;
+      float h = event.size.height;
+      glViewport(0.0, 0.0, w, h);
+      glcontext.change_aspect(w/h);
+      window.setView(sf::View(sf::FloatRect(0.f, 0.f, w, h)));
     }
     if (event.type == Event::KeyPressed){
       IF_KEY(Escape, running=false;)
@@ -335,6 +322,9 @@ void App::handle_events(){
       IF_KEY(L, record = !record; glcontext.play_movie = true;)
       IF_KEY(C, screenshot();)
       IF_KEY(LAlt, sf::Mouse::setPosition(sf::Vector2i(FWIDTH/2, FHEIGHT/2));)
+    }
+    if(event.type == Event::KeyReleased){
+      IF_KEY(H, print_help();)
     }
   }
 }
@@ -362,14 +352,16 @@ void App::Run(){
 void App::draw(){
   if(window.ready_to_draw()){
     handle_events();
-    window.update_fps();
+    window.update_fps("Superpunto v1.0 stable! -- "+to_string(glcontext.Nframes)+" frames loaded -- ");
     glcontext.update();
     glcontext.draw();
     frame_counter++;
     if(record)if(frame_counter%(frames_between_screenshots+1)==0) this->record_frame();
     
-    text.setString(glcontext.current_msg());
+    text.setString(glcontext.current_msg()+" -- "+to_string(glcontext.current_step));
+    window.pushGLStates();
     window.draw(text);
+    window.popGLStates();
     window.display();
     
   }
@@ -398,7 +390,7 @@ void App::Exit(){
   
 }
 int main(int argc, char** argv){
-  fileName = std::string(argv[1]);
+  if(argc>1)  fileName = std::string(argv[1]);
   App app(argc,argv);
   app.Run();
   app.Exit();

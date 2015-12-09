@@ -67,7 +67,7 @@ const char* VS_SOURCE = GLSL(130,
 		   Color = color;
 		   gl_Position = MVP*temp;
 		   Normal = (model*vec4(scale*in_vertex,0.0)).xyz;
-		   WorldPos = (model*vec4(scale*in_vertex.xyz+pos.xyz,1.0)).xyz;  
+		   WorldPos = (model*temp).xyz;  
 		 }
 		 );
 

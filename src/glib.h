@@ -150,4 +150,9 @@ private:
 
 };
 
+
+const char * GetGLErrorStr(GLenum err);
+void CheckGLError();
+
+
 #endif
