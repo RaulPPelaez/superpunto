@@ -282,17 +282,17 @@ App::App(int argc, char** argv){
   this->parse_input(argc,argv);
  
   glewInit();
-  ContextSettings context(24, 0, 8, 3, 0);
+  ContextSettings context(24, 8, 0, 3, 0);
   window.create(VideoMode(FWIDTH,FHEIGHT), "Superpunto",Style::Default, context);
   float GLVER = (float)window.getSettings().majorVersion+ 0.1f*window.getSettings().minorVersion;
-  cout<<"OpenGL Version available: "<<GLVER<<endl;
+  printf("OpenGL Version available: %1.1f\n", GLVER);
 
   if(!checksystem(GLVER)){
     cout<<"Invalid OpenGL Version!!, min 3.0 needed!, 3.3+ recommended"<<endl;
     cout<<"Unexpected behavior can occur!!"<<endl;
   }
   
-  if(/*TARGET_FPS==60 &&*/ GLVER>3.0) window.setVerticalSyncEnabled(true);
+  /*if(GLVER>3.3)*/ window.setVerticalSyncEnabled(true);
 
   glClearColor(bcolor[0], bcolor[1], bcolor[2], 1.0f);   
   glcontext.initialize(); 
