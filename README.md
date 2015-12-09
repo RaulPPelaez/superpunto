@@ -2,7 +2,9 @@
 SFML/Modern OpenGL clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
 #COMPILATION
-Run the Makefile. You can define STATIC to include all the dependencies in the executable (-DSTATIC)
+Run the Makefile using $ make
+
+Additionally you can define STATIC to include all the dependencies in the executable (-DSTATIC=yes). However, this option is not currently tested and is only recommended for distribution.
 
 
 Dependencies:
@@ -57,11 +59,9 @@ both of these parameters are optional, if you only set 4 columns, the 4th will b
 If you generate a movie, use gif2mp4 to convert it to mp4.
 
 #COLORS
-The colors are RGB encoded as an int number varying from 0 to 255^3 = 16581375 as c = Decimal(0xRRGGBB)
+The colors are selected using C++ rand(), setting the initial seed to a constant called palette, this constant defines a color palette with colors randomly distributed between 0 (black) and 255^3(white). You can change the palette seed using the --palette option. By default palette=923302100. The generated color palette contains 1000 colors.
 
-Where RR/GG/BB go from 0x00=0 to 0xFF=255
-
-i.e full red (255,0,0) would be 0xFF0000=16711680
+**In the file, the colors are specified** from one of the 1000 available using an integer number between 0 and 1000 (higher values will be reduced to this range).
 
 #CONTROLS
 You can move around using:
@@ -78,13 +78,14 @@ You can go through time using:
 1. Space/R to go to the next/previous frame
 2. Press M to autoplay the frames at 30 FPS
 3. Press T to go to the last frame
+4. Press B to go to the last frame
 
 You can take screenshots and record some frames in a gif using:
 
 1. Press L or start using --record to take a screenshot every frame, these will be converted to gif at exit. You can move around while recording
 2. Press C to take a single screenshot.
 
-
+Run spunto -h to see a complete list of options in the current version.
 
 
 
