@@ -7,7 +7,7 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glext.h>
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Text.hpp>
 using namespace sf;
 
 #include <stdlib.h>

@@ -1,6 +1,6 @@
 #ifndef RWINDOW_H
 #define RWINDOW_H
-#include<SFML/Graphics.hpp>
+#include<SFML/Graphics/RenderWindow.hpp>
 #include<sstream>
 #include"defines.h"
 

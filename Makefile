@@ -6,7 +6,7 @@ INCLUDES = -Itools/ -Isrc/
 
 
 
-CFLAGS= -O3 $(DEBUG)  -march=native -std=c++0x -funroll-loops
+CFLAGS= -Ofast -ffast-math $(DEBUG) -march=native -std=c++11 -pipe -funroll-loops
 
 MAIN =main
 
@@ -21,7 +21,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 EXECUTABLE=bin/spunto
 
 ifdef STATIC
-  GLIBS= $(LIBRARIES) -lGL -lGLEW -lsfml-network-s -lsfml-audio-s -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lopenal -lX11 -lX11-xcb -lxcb -lxcb-randr  -lxcb-image -ludev -lpthread -lGLEW -lfreetype -ljpeg -lGL
+  GLIBS= $(LIBRARIES)  -lGL -lGLEW  -lsfml-graphics-s -lsfml-window-s -lsfml-system-s -lX11 -lX11-xcb -lxcb -lxcb-randr  -lxcb-image  -lpthread -lfreetype -ludev -ljpeg
 else
   GLIBS= -lGL -lGLEW -lsfml-graphics -lsfml-window -lsfml-system 	
 endif
@@ -31,7 +31,7 @@ endif
 all: mc 
 
 mc: $(OBJECTS) 
-	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) $(RLIBS)
+	$(CC) -o $(EXECUTABLE) $(OBJECTS) $(GLIBS) $(RLIBS) 
 
 .cpp.o: 
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@

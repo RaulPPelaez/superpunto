@@ -10,7 +10,7 @@
 
 #include <GL/glew.h>
 #include <GL/gl.h>
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Image.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
