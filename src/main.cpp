@@ -32,8 +32,12 @@ public:
   std::vector<float> max_dist;
   std::vector<std::string> msgs; //Mesages in the comments #L=x; bolablabla
   std::vector<float> Lbox; //Custom box size in the comments  
+  ifstream in;
+  FileConfig fc;
+  vector<unsigned int> palette;
   int Nframes;
   int current_step;
+  int loaded_frame;
 private:	
   void initBuffers();
   void upload_step();
@@ -82,12 +86,46 @@ float RGLContext::parse_comment(std::string line, std::string &msg){
 std::string RGLContext::current_msg(){
   return msgs[current_step-1];
 }
+
+voidRGLContext::loadStep(){
+  double temp[fc.nrows];
+  std::string line;
+  getline(in,line);
+  std::stringstream is;
+  vector<int> ctemp(fc.N[loaded_frame],0);
+  int frame = loaded_frame;
+  while(!iscomment(line)){
+    is.clear();
+    is.str(line);
+    for(int i=0; i<fc.nrows;i++) is>>temp[i];
+    if(fc.nrows==3){temp[3] = 1; temp[4] = 1;}
+    if(fc.nrows==4){temp[4] = temp[3]; temp[3]=1;}
+    fori(0,3){
+      positions[frame][3*N+i] = temp[i];
+      max_dist[frame] = Rmax(max_dist[frame], abs(temp[i]));
+    }
+    scales[frame][N] = temp[3];
+    ctemp[N] = palette[((int)temp[4]+1)%1000];
+    getline(in,line);
+  }
+  colors[frame] = parse_colors(ctemp);
+  loaded_frame++; 
+  Lbox[frame] = parse_comment(line, msgs[frame]);
+  max_dist[frame] = 0.0;
+  positions[frame].resize(3*fc.N[frame],0);
+  scales[frame].resize(fc.N[frame],1);
+
+  colors[frame] = parse_colors(ctemp);
+
+
+}
 void RGLContext::initBuffers(){
   play_movie = false;
   
-  FileConfig fc = get_config(fileName.c_str());
-  ifstream in(fileName.c_str());   
-  
+  fc = get_config(fileName.c_str());
+  in.open(fileName.c_str());   
+  loaded_frame = 0;
+
   int c;
   int Nmax=fc.maxN;
   Nframes = fc.nframes;
@@ -109,15 +147,14 @@ void RGLContext::initBuffers(){
   else{Lbox[0] = 0.0; msgs[0] = " ";}
   std::stringstream is(line);
   
-  double temp[fc.nrows];
-  vector<int> ctemp(fc.N[0],0);
+
   int frame = 0;
   int N = -1;
   printf("\rLoading data... %d%%   ", 0);
   fflush(stdout);
 
   srand(palette_id);
-  vector<unsigned int> palette(1000,0);
+  palette = vector<unsigned int>(1000,0);
   fori(0,1000) palette[i] = rand()%16581375;
   while(!in.eof()){
     if(!iscomment(line)) N++;
