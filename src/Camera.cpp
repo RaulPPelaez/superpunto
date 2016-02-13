@@ -1,47 +1,67 @@
 #include "Camera.h"
 
-	
+FreeCamera::FreeCamera(){
+  this->pos   = glm::vec3(0, 130, 0); 
+  this->right = glm::vec3(-1, 0, 0);
+  //  this->up = glm::vec3(0,-1.0/sqrt(2.0),-1.0/sqrt(2.0));
+  this->up    = glm::vec3(0, 0.0f, -1.0f);
+  this->front = glm::cross(right,up);
+  int mx, my;
+  SDL_GetMouseState(&mx, &my);
+  zero_mpos = glm::ivec2(mx,my);
+  mpos = zero_mpos;
+
+  yaw = 0;
+  pitch = 0;
+  roll=0;
+  this->mult = 1;
+  this->updateCameraVectors();
+  cspeed = 0.6;
+}
+void FreeCamera::warp(glm::vec3 np){this-> pos = np;}
+glm::vec3 FreeCamera::get_view(){return pos+front;}
+glm::mat4 FreeCamera::lookAt(){return this->view = glm::lookAt(pos, pos+front, up);}
+
+
+
+
+#define KEYSTATE(KEY)  keystate[SDL_SCANCODE_##KEY]
 
 void FreeCamera::update(){
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)) this->pos += this->right*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) this->pos -= this->right*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::W)) this->pos += this->front*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::S))this->pos -= this->front*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::LShift)) this->pos += this->up*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::LControl))this->pos -= this->up*CAMSPEED*mult;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::Add)) this->mult*=1.01;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::Subtract)) this->mult *=0.99;
+  const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+  
+  if(KEYSTATE(A)) this->pos += this->right*cspeed*mult;
+  if(KEYSTATE(D)) this->pos -= this->right*cspeed*mult;
+  if(KEYSTATE(W)) this->pos += this->front*cspeed*mult;
+  if(KEYSTATE(S))this->pos -= this->front*cspeed*mult;
+  if(KEYSTATE(LSHIFT)) this->pos += this->up*cspeed*mult;
+  if(KEYSTATE(LCTRL))this->pos -= this->up*cspeed*mult;
+  if(KEYSTATE(KP_PLUS)) this->mult*=1.05;
+  if(KEYSTATE(KP_MINUS)) this->mult *=0.95;
 
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::E))this->roll = 4*CAMSPEED;
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q))this->roll = -4*CAMSPEED;
+  if(KEYSTATE(E))this->roll = 4*cspeed;
+  if(KEYSTATE(Q))this->roll = -4*cspeed;
 
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::P)){
+  if(KEYSTATE(P)){
 	  printf("up: %.3f, %.3f, %.3f  \n", up.x, up.y, up.z);
 	  printf("right: %.3f, %.3f, %.3f  \n", right.x, right.y, right.z);
 	  printf("pos: %.3f, %.3f, %.3f  \n", pos.x, pos.y, pos.z);
 	  printf("front: %.3f, %.3f, %.3f  \n\n", front.x, front.y, front.z);
   }
-  if(sf::Keyboard::isKeyPressed(sf::Keyboard::LAlt)) process_mouse();
-  else this->updateCameraVectors();
+  if(KEYSTATE(LALT)) process_mouse();
+  this->updateCameraVectors();
 }
 
 void FreeCamera::process_mouse(){
-  
-  mpos = sf::Mouse::getPosition();
-  //if( (mpos.x == zero_mpos.x) && (mpos.y == zero_mpos.y) ) return;
-  sf::Mouse::setPosition(zero_mpos);				
+
+  SDL_GetMouseState(&mpos[0], &mpos[1]);
 
   yaw  = (float)( (zero_mpos.x - mpos.x) ) * MOUSE_SENS;		
   pitch =-(float)( (zero_mpos.y - mpos.y) ) * MOUSE_SENS;
-
-  this->updateCameraVectors();	
+  zero_mpos = mpos;
 }
 void FreeCamera::updateCameraVectors(){
- 
-  //right = glm::vec3(1,0,0);
-  //up = glm::vec3(0,1,0);
-   //front = glm::vec3(0,0,1);
-   
+    
   glm::quat q1 = glm::angleAxis(glm::radians(pitch), right);
   glm::mat4 rot1 = glm::mat4_cast(q1);
   up =  glm::normalize(glm::mat3(rot1)*up);  
@@ -51,8 +71,6 @@ void FreeCamera::updateCameraVectors(){
   glm::mat4 rot2 = glm::mat4_cast(q2);
   right = glm::normalize(glm::mat3(rot2)*right);
 	
- 
-  
   front = glm::normalize(glm::cross(right,up));
   glm::quat q3 = glm::angleAxis(glm::radians(roll), front);
   glm::mat4 rot3 = glm::mat4_cast(q3);
@@ -60,42 +78,17 @@ void FreeCamera::updateCameraVectors(){
   right =  glm::normalize(glm::mat3(rot3)*right);
   up =  glm::normalize(glm::cross(front,right));
 
-  
+  yaw= 0;
+  pitch = 0;
   roll = 0;
 
   
 }
-	
-	
-	
-/*
-void FPSCamera::process_mouse(){
-  mpos = sf::Mouse::getPosition();
-  //if( (mpos.x == zero_mpos.x) && (mpos.y == zero_mpos.y) ) return;
-  sf::Mouse::setPosition(zero_mpos);				
 
-    GLfloat xoffset = (float)( (zero_mpos.x - mpos.x) );
-    GLfloat yoffset = -(float)( (zero_mpos.y - mpos.y) ); 
 
-    yaw   += xoffset*MOUSE_SENS;
-    pitch += yoffset*MOUSE_SENS;
-
-    if(pitch > 89.0f)
-        pitch = 89.0f;
-    if(pitch < -89.0f)
-        pitch = -89.0f;
-	
-    this->updateCameraVectors();
-}
-void FPSCamera::updateCameraVectors(){
-  
- front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front = glm::normalize(front);
-
-  
-}
-	
-*/
-	
+void FreeCamera::set_origin(){
+  int mx, my;
+  SDL_GetMouseState(&mx, &my);
+  zero_mpos = glm::ivec2(mx,my);
+  mpos = zero_mpos;
+}	
