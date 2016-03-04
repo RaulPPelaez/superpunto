@@ -186,9 +186,8 @@ void RGLContext::init(SDL_Window *& w){
 
   printf("\tOpenGL version %d.%d available!\n", major, minor);
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);                                                                    
-  glCullFace(GL_BACK);
-  //glEnable(GL_MULTISAMPLE);
+  glEnable(GL_BLEND);
+  glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
 }
 

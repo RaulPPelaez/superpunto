@@ -1,49 +1,139 @@
 #define GLSL(version, shader)  "#version " #version "\n" #shader
 
 
+const char* VS_SOURCE = GLSL(450, 
+layout (location = 0) in vec3 in_vertex;
+layout (location = 2) in vec3 color;
+layout (location = 3) in float scale;
+uniform mat4 model;
+uniform mat4 proj;
+uniform mat4 MVP;
+uniform vec4 viewport;
+
+out vec3 Color;
+out vec2 center;
+out float R;
+
+void main(){
+  R = scale*2;
+  vec4 temp = vec4(in_vertex, 1.0);
+
+  gl_Position =  MVP*temp;
+
+  Color = color;
+
+  gl_PointSize = R*max(viewport.z, viewport.w);
+  center = gl_Position.xy;  
+
+}
+);
+
+
 const char* FS_SOURCE = GLSL(450,                     
-			     in vec3 Normal;
-			     in vec3 WorldPos;
-			     in vec3 Color;
-			     out vec4 outColor;
+in vec3 Color;
+in float R;
 
-			     uniform vec3 EyeWorldPos;
+in vec2 center;
+out vec4 outColor;
 
-			     struct BaseLight{
-			       vec3 Color;
-			       float Ambient;
-			       float Diffuse;
-			     }; 
-			     BaseLight light;
-			     float MatSpecularIntensity = 1.1f;
-			     int SpecularPower = 32;
+uniform vec4 viewport;
+uniform mat4 proj;
 
-			     vec4 computeLight(BaseLight light, vec3 Direction, vec3 Normal){
-			       vec4 AmbientColor = vec4(light.Color, 1.0f) * light.Ambient;
-			       float DiffuseFactor = max(dot(normalize(Normal), -Direction),0.0);
-			       vec4 DiffuseColor = vec4(0, 0, 0, 0.0f);
-			       vec4 SpecularColor = vec4(0, 0, 0, 0.0f);
-			       if (DiffuseFactor > 0) {
-				 DiffuseColor = vec4(light.Color, 1.0f) * light.Diffuse * DiffuseFactor;
-				 vec3 VertexToEye = normalize(EyeWorldPos - WorldPos);
-				 vec3 LightReflect = normalize(reflect(Direction, Normal));
-				 float SpecularFactor = dot(VertexToEye, LightReflect);
-				 SpecularFactor = pow(SpecularFactor, SpecularPower);
-				 if (SpecularFactor > 0) {
-				   SpecularColor = vec4(light.Color, 1.0f) * (MatSpecularIntensity * SpecularFactor);
-				 }
-			       }
-			       return (AmbientColor + DiffuseColor + SpecularColor);
-			     }
-			     void main() {
 
-			       light.Color = vec3(1.0f,1.0f,1.0f);
-			       light.Diffuse = 1.0f;
-			       light.Ambient = 0.25f;
-			       outColor = vec4(Color,1) * computeLight(light, vec3(1,-1,1), Normal); 
-			       //outColor = vec4(1,0,0,0);
-			       outColor.w = 1.0f;
-			     }   
+void main(){
+  float r2 = R*R;
+  vec2 ndc_pixel = 2*gl_FragCoord.xy/viewport.zw-1;
+  vec2 diff = center-ndc_pixel;
+  float d2 = dot(diff,diff);
+  if(d2*4<r2)
+    outColor =vec4(1,0,0,1);
+  else
+    outColor =vec4(0,1,0,1);
+    //  else
+    //discard;
+    //  gl_FragDepth = gl_FragCoord.z + dr*gl_DepthRange.diff/2.0*proj[2].z;
+
+}
+);
+
+/* PERSPECTIVE
+
+
+
+
+const char* VS_SOURCE = GLSL(450, 
+layout (location = 0) in vec3 in_vertex;
+layout (location = 2) in vec3 color;
+layout (location = 3) in float scale;
+uniform mat4 model;
+uniform mat4 proj;
+uniform mat4 MVP;
+uniform vec4 viewport;
+
+out vec3 Color;
+out mat4 VPMTInverse;
+out mat4 VPInverse;
+out vec3 centernormclip;
+
+out float R;
+void main(){
+  R = scale*10;
+  vec4 temp = vec4(in_vertex, 1.0);
+  gl_Position =  MVP*temp;
+  Color = color;
+
+
+  mat4 T = mat4(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		in_vertex.x/R, in_vertex.y/R, in_vertex.z/R, 1.0/R);
+
+  mat4 PMTt = transpose(MVP * T);
+
+  vec4 r1 = PMTt[0];
+  vec4 r2 = PMTt[1];
+  vec4 r4 = PMTt[3];
+  float r1Dr4T = dot(r1.xyz,r4.xyz)-r1.w*r4.w;
+  float r1Dr1T = dot(r1.xyz,r1.xyz)-r1.w*r1.w;
+  float r4Dr4T = dot(r4.xyz,r4.xyz)-r4.w*r4.w;
+  float r2Dr2T = dot(r2.xyz,r2.xyz)-r2.w*r2.w;
+  float r2Dr4T = dot(r2.xyz,r4.xyz)-r2.w*r4.w;
+
+  gl_Position = vec4(-r1Dr4T, -r2Dr4T, gl_Position.z/gl_Position.w*(-r4Dr4T), -r4Dr4T);
+
+
+  float discriminant_x = r1Dr4T*r1Dr4T-r4Dr4T*r1Dr1T;
+  float discriminant_y = r2Dr4T*r2Dr4T-r4Dr4T*r2Dr2T;
+  float screen = max(viewport.z, viewport.w);
+
+  gl_PointSize = sqrt(max(discriminant_x, discriminant_y))*screen/(-r4Dr4T);
+
+
+  // prepare varyings
+
+  mat4 TInverse = mat4(
+		       1.0,          0.0,          0.0,         0.0,
+		       0.0,          1.0,          0.0,         0.0,
+		       0.0,          0.0,          1.0,         0.0,
+		       -in_vertex.x, -in_vertex.y, -in_vertex.z, R);
+  mat4 VInverse = mat4( // TODO: move this one to CPU
+		       2.0/viewport.z, 0.0, 0.0, 0.0,
+		       0.0, 2.0/viewport.w, 0.0, 0.0,
+		       0.0, 0.0, 2.0, 0.0,
+
+		       -(viewport.z+2.0*viewport.x)/viewport.z,
+		       -(viewport.w+2.0*viewport.y)/viewport.w,
+		       -0.5f, 1.0);
+
+  VPMTInverse = TInverse*inverse(MVP)*VInverse;
+  VPInverse = inverse(proj)*VInverse; // TODO: move to CPU
+  vec4 centerclip = MVP*temp;
+  centernormclip = vec3(centerclip)/centerclip.w;
+
+
+
+}
 );
 
 
@@ -51,27 +141,128 @@ const char* FS_SOURCE = GLSL(450,
 
 
 
+const char* FS_SOURCE = GLSL(450,                     
 
+in vec3 Color;
+
+in mat4 VPMTInverse;
+in mat4 VPInverse;
+in vec3 centernormclip;
+
+out vec4 outColor;
+
+uniform vec4 viewport;
+uniform mat4 proj;
+
+
+void main(){
+    vec4 c3 = VPMTInverse[2];
+    vec4 xpPrime = VPMTInverse*vec4(gl_FragCoord.x, gl_FragCoord.y, 0.0, 1.0);
+
+    float c3TDc3 = dot(c3.xyz, c3.xyz)-c3.w*c3.w;
+    float xpPrimeTDc3 = dot(xpPrime.xyz, c3.xyz)-xpPrime.w*c3.w;
+    float xpPrimeTDxpPrime = dot(xpPrime.xyz, xpPrime.xyz)-xpPrime.w*xpPrime.w;
+
+    float square = xpPrimeTDc3*xpPrimeTDc3 - c3TDc3*xpPrimeTDxpPrime;
+    if (square<0.0) {
+        discard;
+    } else {
+        float z = ((-xpPrimeTDc3-sqrt(square))/c3TDc3);
+        gl_FragDepth = z;
+
+        vec4 pointclip = VPInverse*vec4(gl_FragCoord.x, gl_FragCoord.y, z, 1);
+        vec3 pointnormclip = vec3(pointclip)/pointclip.w;
+
+        vec3 lightDir = normalize(-vec3(1,1,1));
+        float intensity = .2 + max(dot(lightDir,normalize(pointnormclip-centernormclip)), 0.0);
+        outColor = intensity*vec4(Color,1);
+    }
+
+
+}
+);
+
+
+*/
+
+
+
+
+
+
+
+/*
 const char* VS_SOURCE = GLSL(450, 
-			     layout (location = 0) in vec3 in_vertex;
-			     layout (location = 1) in vec3 pos;
-			     layout (location = 2) in vec3 color;
-			     layout (location = 3) in float scale;
-			     uniform mat4 model;
-			     uniform mat4 MVP;
-			     out vec3 Normal;
-			     out vec3 Color;
-			     out vec3 WorldPos;
-			     void main () {
-			       vec3 vpos = scale*in_vertex;
-			       vec4 temp = vec4(vpos+pos, 1.0);
-			       Color = color;
-			       gl_Position =  MVP*temp;
-			       Normal = (model*vec4(vpos ,0.0)).xyz;
-			       WorldPos = (model*temp).xyz;  
-			     }
-		 );
+layout (location = 0) in vec3 in_vertex;
+layout (location = 2) in vec3 color;
+layout (location = 3) in float scale;
+uniform mat4 model;
+uniform mat4 proj;
+uniform mat4 MVP;
+uniform vec4 viewport;
 
+out vec3 Color;
+out mat4 VPMTInverse;
+out mat4 VPInverse;
+out vec3 centernormclip;
+
+void main(){
+  float R = scale;
+  vec4 temp = vec4(in_vertex, 1.0);
+  Color = color;
+  gl_PointSize = scale;
+  gl_Position =  MVP*temp;
+
+  mat4 T = mat4(
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		in_vertex.x/R, in_vertex.y/R, in_vertex.z/R, 1.0/R);
+  mat4 PMTt = transpose(MVP*T);
+
+
+  vec4 r1 = PMTt[0];
+  vec4 r2 = PMTt[1];
+  vec4 r4 = PMTt[3];
+  float r1Dr4T = dot(r1.xyz,r4.xyz)-r1.w*r4.w;
+  float r1Dr1T = dot(r1.xyz,r1.xyz)-r1.w*r1.w;
+  float r4Dr4T = dot(r4.xyz,r4.xyz)-r4.w*r4.w;
+  float r2Dr2T = dot(r2.xyz,r2.xyz)-r2.w*r2.w;
+  float r2Dr4T = dot(r2.xyz,r4.xyz)-r2.w*r4.w;
+
+  gl_Position = vec4(-r1Dr4T, -r2Dr4T, gl_Position.z/gl_Position.w*(-r4Dr4T), -r4Dr4T);
+
+  
+  float discriminant_x = r1Dr4T*r1Dr4T-r4Dr4T*r1Dr1T;
+  float discriminant_y = r2Dr4T*r2Dr4T-r4Dr4T*r2Dr2T;
+  float screen = max(float(viewport.z), float(viewport.w));
+  
+  gl_PointSize = sqrt(max(discriminant_x, discriminant_y))*screen/(-r4Dr4T);
+
+
+
+  mat4 TInverse = mat4(
+       1.0,          0.0,          0.0,         0.0,
+       0.0,          1.0,          0.0,         0.0,
+       0.0,          0.0,          1.0,         0.0,
+       -in_vertex.x, -in_vertex.y, -in_vertex.z, R);
+  mat4 VInverse = mat4(
+       2.0/float(viewport.z), 0.0, 0.0, 0.0,
+       0.0, 2.0/float(viewport.w), 0.0, 0.0,
+       0.0, 0.0,                   2.0/gl_DepthRange.diff, 0.0,
+       -float(viewport.z+2.0*viewport.x)/float(viewport.z),
+       -float(viewport.w+2.0*viewport.y)/float(viewport.w),
+       -(gl_DepthRange.near+gl_DepthRange.far)/gl_DepthRange.diff, 1.0);
+
+  VPMTInverse = TInverse*inverse(MVP)*VInverse;
+  VPInverse = inverse(proj)*VInverse;
+  vec4 centerclip = model*temp;
+  centernormclip = vec3(centerclip)/centerclip.w;
+
+
+}
+);
+*/
 
 
 

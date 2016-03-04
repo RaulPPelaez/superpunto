@@ -1,11 +1,12 @@
-CXX=clang++
+CXX=icpc
 CC=$(CXX)
 
 #
-CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops
+CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops -DGLEW_STATIC
 CXXFLAGS=$(CFLAGS)
 
-LDFLAGS= -lSDL2 -lGL -lGLEW 
+LDFLAGS= -L/usr/lib64
+LDLIBS= -lSDL2 -lGL -l:libGLEW.a 
 
 GLOBJS=RWindow.o RGL.o RGLHandle.o Camera.o RShadowMapper.o
 

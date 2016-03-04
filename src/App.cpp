@@ -4,6 +4,7 @@ uint palette_id=923302100; //1 is also cool
 
 App::App(int argc, char *argv[]){
   file.name = argv[1];
+  cfg.set_default();
   cfg.parse_args(argc, argv);
   init();
   run();
@@ -11,7 +12,6 @@ App::App(int argc, char *argv[]){
 App::~App(){}
 
 bool App::init(){
-  cfg.set_default();
   read_input();
   initSDL();
   visible = true;
@@ -101,13 +101,13 @@ void App::handle_events(){
     }
     if(e.type == SDL_WINDOWEVENT){
       switch(e.window.event){
-      case SDL_WINDOWEVENT_FOCUS_GAINED: visible = true; break;
-      case SDL_WINDOWEVENT_FOCUS_LOST: visible = false; break;
-      case SDL_WINDOWEVENT_RESIZED:
-	FWIDTH = e.window.data1;
-	FHEIGHT = e.window.data2;
-	gl->handle_resize(); 
-	break;	
+       case SDL_WINDOWEVENT_FOCUS_GAINED: visible = true; break;
+       case SDL_WINDOWEVENT_FOCUS_LOST: visible = false; break;
+       case SDL_WINDOWEVENT_RESIZED:
+	 FWIDTH = e.window.data1;
+	 FHEIGHT = e.window.data2;
+	 gl->handle_resize(); 
+       break;	
       }
     }
   }
@@ -118,27 +118,9 @@ void App::update(){
 }
 void App::draw(){
     w->update_fps();
-    glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 0.0);
+    //    cout<<cfg.bcolor[0]<<endl;
+    glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     gl->draw();
     w->display();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

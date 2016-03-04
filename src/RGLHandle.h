@@ -18,7 +18,6 @@ class RGLHandle{
   ~RGLHandle();
   bool init(int maxN);
   bool init_buffers();
-  bool init_sphere();
   bool init_instance_vbos();
   bool init_vao();
 
@@ -39,19 +38,16 @@ class RGLHandle{
   FreeCamera cam;
  private:
 
-  VBO sphere_vbos[2]; //Vertex, index
   VBO instances_vbos[3]; //pos, color, radius
   int maxN, currentN;
   VAO spheres_vao;
-  std::map<string, uint> attribs;
+  std::map<string, int> attribs, uniforms;
   RShaderProgram pr;
 
   glm::mat4 MVP, model, view, proj;
-  GLuint uniMVP, unimodel;
 
 
 };
 
-void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO);
 
 #endif

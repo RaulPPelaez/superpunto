@@ -7,3 +7,7 @@ clean:
 	$(MAKE) -C src/ clean
 redo:
 	$(MAKE) -C src/ redo 
+	mv src/spunto bin/
+shaders: 
+	rm -f src/RGLHandle.o
+	$(MAKE) all

@@ -138,7 +138,7 @@ bool RFile::read_frames(){
      max_dist[frame] = max(max_dist[frame], pos[frame][3*N+i]);
    }
 
-   scales[frame][N] = temp[3];
+   scales[frame][N] = temp[3]/10.0;
    ctemp[N] = palette[((int)temp[4]+1)%1000];
    
    getline(in,line);
