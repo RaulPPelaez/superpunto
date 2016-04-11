@@ -1,4 +1,4 @@
-CXX=icpc
+CXX=g++
 CC=$(CXX)
 
 #

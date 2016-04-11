@@ -1,6 +1,6 @@
-#include "App.h"
+#include"App.h"
 
-uint palette_id=923302100; //1 is also cool 
+uint palette_id = 923302100; //1 is also cool 
 
 App::App(int argc, char *argv[]){
   file.name = argv[1];
@@ -30,6 +30,7 @@ bool App::initSDL(){
   initOpenGL();
   return true;
 }
+
 bool App::initWindow(){
   printf("Starting graphic context...      \n");
   

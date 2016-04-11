@@ -54,8 +54,8 @@ bool RGLHandle::init_instance_vbos(){
 
 bool RGLHandle::init_math(){
   float ratio = FWIDTH/(float)FHEIGHT;
-  //proj =glm::perspective(45.0f, ratio, 1.0f, 100.0f);
-  proj =glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -1.0f, 10000.0f);   
+  proj =glm::perspective(45.0f, ratio, 0.1f, 100.0f);
+  //proj =glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, -1.0f, 10000.0f);   
   model = glm::mat4();
   view = cam.lookAt();
   rotate_model(M_PI/4.0f, 1.0f, 0.0f, 0.0f);
@@ -79,10 +79,11 @@ bool RGLHandle::init_shaders(){
 bool RGLHandle::init_uniforms(){
   printf("\tInit uniforms...    ");
   pr.use();
-  uniforms["MVP"]      = glGetUniformLocation(pr.id(), "MVP"     );
-  uniforms["model"]    = glGetUniformLocation(pr.id(), "model"   );
-  uniforms["viewport"] = glGetUniformLocation(pr.id(), "viewport");
-  uniforms["proj"]     = glGetUniformLocation(pr.id(), "proj");
+  uniforms["MVP"]        = glGetUniformLocation(pr.id(), "MVP"     );
+  uniforms["model"]      = glGetUniformLocation(pr.id(), "model"   );
+  uniforms["viewport"]   = glGetUniformLocation(pr.id(), "viewport");
+  uniforms["proj"]       = glGetUniformLocation(pr.id(), "proj");
+  uniforms["pointScale"] = glGetUniformLocation(pr.id(), "pointScale");
   
   pr.unbind();
   printf("DONE!\n");
@@ -121,7 +122,10 @@ void RGLHandle::draw(){
   glUniformMatrix4fv(uniforms["model"] , 1, GL_FALSE, glm::value_ptr(view*model));
   glUniformMatrix4fv(uniforms["proj"]  , 1, GL_FALSE, glm::value_ptr(proj));
 
+
   GLfloat m_viewport[4];glGetFloatv(GL_VIEWPORT, m_viewport);
+  glUniform1f(uniforms["pointScale"], (float)FWIDTH/tanf(45.0f*0.5f*M_PI/180.0f)); 
+
   glUniform4fv(uniforms["viewport"], 1, m_viewport);
 
   spheres_vao.use();

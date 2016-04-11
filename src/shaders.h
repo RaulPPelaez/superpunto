@@ -9,20 +9,24 @@ uniform mat4 model;
 uniform mat4 proj;
 uniform mat4 MVP;
 uniform vec4 viewport;
+	  uniform float pointScale;
 
 out vec3 Color;
 out vec2 center;
 out float R;
 
 void main(){
-  R = scale*2;
+
+  vec3 posEye = vec3( model * vec4(in_vertex,1.0));
+  float dist = length(posEye);
+
+  R = 100*scale*(pointScale/dist);
   vec4 temp = vec4(in_vertex, 1.0);
 
   gl_Position =  MVP*temp;
 
   Color = color;
-
-  gl_PointSize = R*max(viewport.z, viewport.w);
+  gl_PointSize = R;
   center = gl_Position.xy;  
 
 }
@@ -36,23 +40,32 @@ in float R;
 in vec2 center;
 out vec4 outColor;
 
+			     uniform mat4 model;
+			     uniform mat4 MVP;
 uniform vec4 viewport;
 uniform mat4 proj;
 
 
 void main(){
-  float r2 = R*R;
-  vec2 ndc_pixel = 2*gl_FragCoord.xy/viewport.zw-1;
-  vec2 diff = center-ndc_pixel;
-  float d2 = dot(diff,diff);
-  if(d2*4<r2)
-    outColor =vec4(1,0,0,1);
-  else
-    outColor =vec4(0,1,0,1);
-    //  else
-    //discard;
-    //  gl_FragDepth = gl_FragCoord.z + dr*gl_DepthRange.diff/2.0*proj[2].z;
+  
+  vec3 lightDir = vec3(0.577, 0.577, 0.577);
 
+  vec3 N;
+
+  N.xy = gl_PointCoord.xy*vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+
+  float mag = dot(N.xy, N.xy);
+  
+
+
+  if(mag>1.0) discard;//outColor = vec4(0,1,0,1);
+  else{
+    
+    
+    N.z = sqrt(1.0-mag);
+    float diffuse = max(0.0, dot(lightDir, N));
+    outColor = vec4(Color,1)*diffuse+0.1*vec4(1,1,1,1);
+  }
 }
 );
 
