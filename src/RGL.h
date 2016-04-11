@@ -25,8 +25,6 @@ class VBO{
   ~VBO();
   void init(GLenum type, GLbitfield flags, const DataLayout &dl);
   void init(GLenum type, GLbitfield flags);
-  void * map(GLenum usage = GL_WRITE_ONLY);
-  void unmap();
   bool initmem(GLenum type, GLbitfield flags, GLsizeiptr size, const void *data);
   bool initmem(GLsizeiptr size, const void *data);
   bool upload(GLenum type, GLintptr offset, GLsizeiptr size, const void *data);  
@@ -36,8 +34,8 @@ class VBO{
   GLenum type() const{ return this->tp;}
   DataLayout get_layout() const{return this->layout;}
 
-  void use();
-  void unbind();
+  void use() const;
+  void unbind() const;
  private:
   GLuint vid;
   GLenum tp;

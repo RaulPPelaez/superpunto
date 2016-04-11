@@ -42,9 +42,8 @@ void DataLayout::init(){
 
 
 
-
 VBO::VBO(){
-  glCreateBuffers(1, &vid);
+  glGenBuffers(1, &vid);
   initialized = meminit = false;
 }
 VBO::~VBO(){glDeleteBuffers(1, &vid);}
@@ -54,22 +53,21 @@ void VBO::init(GLenum type, GLbitfield flags, const DataLayout &dl){
   initialized = true;
   layout = dl;
 }
-
 void VBO::init(GLenum type, GLbitfield flags){
   this->tp = type;
   this->flags = flags;
   initialized = true;
   layout.init();
 }
-
-
 bool VBO::initmem(GLenum type, GLbitfield flags, GLsizeiptr size, const void *data){
   glBufferStorage(type, size, data, flags);
   return true;
 }
 bool VBO::initmem(GLsizeiptr size, const void *data){
   if(!this->initialized) return false;
-  glNamedBufferStorage(this->vid, size, data, this->flags);
+  this->use();
+  glBufferStorage(this->tp, size, data, this->flags);
+  this->unbind();
   meminit = true;
   return true;
 }
@@ -79,33 +77,39 @@ bool VBO::upload(GLenum type, GLintptr offset, GLsizeiptr size, const void *data
 }
 bool VBO::upload(GLintptr offset, GLsizeiptr size, const void *data){
   if(!this->meminit) return false;
-  glNamedBufferSubData(vid, offset, size, data);
+  this->use();
+  glBufferSubData(this->tp, offset, size, data);
+  this->unbind();
+  // glNamedBufferSubData(vid, offset, size, data);
   return true;
 }
-
-
-void *VBO::map(GLenum usage){ return glMapNamedBuffer(vid, usage);}
-void VBO::unmap(){ glUnmapNamedBuffer(vid);}
-
-void VBO::use(){ glBindBuffer(tp, vid);}
-void VBO::unbind(){ glBindBuffer(tp, 0);}
+void VBO::use() const{ glBindBuffer(tp, vid);}
+void VBO::unbind() const{ glBindBuffer(tp, 0);}
 
 
 
 
-VAO::VAO(){glCreateVertexArrays(1,&vid);}
+VAO::VAO(){glGenVertexArrays(1,&vid);}
 VAO::~VAO(){glDeleteVertexArrays(1,&vid);}
-
 void VAO::set_attrib(uint attrib, const VBO &vbo, GLint binding){
   if(vbo.type() == GL_ELEMENT_ARRAY_BUFFER) return;
   DataLayout dl = vbo.get_layout();
-  glVertexArrayAttribFormat(vid, attrib, dl.size, dl.type, dl.normalized, dl.offset);
-  glVertexArrayAttribBinding(vid, attrib, binding);
-  glVertexArrayVertexBuffer(vid, binding, vbo.id(), 0, dl.stride);
-  glEnableVertexArrayAttrib(vid, attrib);
   this->use();
+  vbo.use();
+  //  glVertexArrayAttribFormat(vid, attrib, dl.size, dl.type, dl.normalized, dl.offset);
+  // glVertexArrayAttribBinding(vid, attrib, binding);
+  // glVertexArrayVertexBuffer(vid, binding, vbo.id(), 0, dl.stride);
+
+  glVertexAttribPointer(attrib, dl.size, dl.type, dl.normalized,  dl.stride,  0);
+
+
+  glEnableVertexAttribArray(attrib);
+
+
+
   glVertexAttribDivisor(attrib, dl.divisor);
   this->unbind();
+  vbo.unbind();
 
 }
 void VAO::use(){glBindVertexArray(vid);}
@@ -113,15 +117,14 @@ void VAO::unbind(){glBindVertexArray(0);}
 
 
 
-FBO::FBO(){ glCreateFramebuffers(1, &fid);}
+
+FBO::FBO(){ glGenFramebuffers(1, &fid);}
 FBO::~FBO(){ glDeleteFramebuffers(1, &fid);}
 
 
 
 RShader::RShader(){}
 RShader::~RShader(){glDeleteShader(sid);}
-
-
 bool RShader::charload(const GLchar * src, GLenum type){
   if(!src) return false;
   tp = type;
@@ -139,37 +142,39 @@ bool RShader::charload(const GLchar * src, GLenum type){
   }
   return true;
 }
-
 bool RShader::load(const char * fileName, GLenum type){
   return charload(read_file(fileName).c_str(), type);
 }
 
+
+
+
 RShaderProgram::RShaderProgram(){pid = glCreateProgram();}
 RShaderProgram::~RShaderProgram(){glDeleteProgram(pid);}
-
 bool RShaderProgram::init(RShader *shader_list, uint nshaders){  
   fori(0,nshaders) glAttachShader(pid, shader_list[i].id());
   glLinkProgram(pid);
   return true;
 }
-
 void RShaderProgram::use(){glUseProgram(pid);}
 void RShaderProgram::unbind(){glUseProgram(0);}
 
 
+
+
+
 RGLContext::RGLContext(){  }
 RGLContext::~RGLContext(){ SDL_GL_DeleteContext(context); }
-
 void RGLContext::init(SDL_Window *& w){
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
   //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-  //  SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+  // SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
   context = SDL_GL_CreateContext(w);
   

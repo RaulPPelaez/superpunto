@@ -1,11 +1,12 @@
-CXX=clang++
+CXX=g++
 CC=$(CXX)
 
 #
-CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops
+CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops -m64
 CXXFLAGS=$(CFLAGS)
 
-LDFLAGS= -lSDL2 -lGL -lGLEW 
+SDLLIBS= $(shell sdl2-config --static-libs)
+LDLIBS= -lGL  -lGLEW $(SDLLIBS)
 
 GLOBJS=RWindow.o RGL.o RGLHandle.o Camera.o RShadowMapper.o
 

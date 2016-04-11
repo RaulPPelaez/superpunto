@@ -38,14 +38,11 @@ void RWindow::update_fps(){
 }
 
 bool RWindow::ready_to_draw(){
-  return true;
-  /*
     static int last_time = 0;
-    int current_time = SDL_GetTicks();
-    if(current_time>(100.0f/3.0f)+last_time){
+    int current_time = SDL_GetTicks(); //ms
+    if(current_time>(100.0f/3.0)+last_time){
       last_time = current_time;
       return true;
     }
     return false;
-  */
 }
