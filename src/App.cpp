@@ -1,9 +1,10 @@
 #include "App.h"
-
+#include"RPNG.h"
 uint palette_id=923302100; //1 is also cool 
 
 App::App(int argc, char *argv[]){
   file.name = argv[1];
+  cfg.set_default();
   cfg.parse_args(argc, argv);
   init();
   run();
@@ -11,9 +12,9 @@ App::App(int argc, char *argv[]){
 App::~App(){}
 
 bool App::init(){
-  cfg.set_default();
   read_input();
   initSDL();
+  initOpenGL();
   visible = true;
   return true;
 }
@@ -27,7 +28,6 @@ bool App::read_input(){
 
 bool App::initSDL(){
   initWindow();
-  initOpenGL();
   return true;
 }
 bool App::initWindow(){
@@ -43,7 +43,6 @@ bool App::initOpenGL(){
   gl->init(file.maxN);
   gl->cam.warp(glm::vec3(0, 3.0f*file.max_dist[0], 0));
   upload_frame(0);
-  
   return true;
 }
 
@@ -68,11 +67,17 @@ void App::upload_previous_frame(){
 
 
 void App::run(){
+  SDL_Delay(100);
+  //This **appears** to fix the damn glitching screen bug, nvm is OS's fail
+  w->display();
+  w->display();
+
   while(w->isOpen()){
     handle_events();
     if(w->ready_to_draw()){
       update();
       draw();
+      if(cfg.record_movie) screenshot();
     }
   }
 }
@@ -90,6 +95,7 @@ void App::handle_events(){
       IF_KEY(t, upload_frame(file.Nframes-1);)
       IF_KEY(m, cfg.play = !cfg.play;)
       IF_KEY(h, cfg.print_help();)
+      IF_KEY(c, this->screenshot();)
 
       IF_KEY(4, gl->rotate_model(0.1f,1,0,0);)
       IF_KEY(5, gl->rotate_model(0.1f,0,1,0);)
@@ -112,33 +118,30 @@ void App::handle_events(){
     }
   }
 }
+
+void App::screenshot(){
+  static int counter = 0;
+  static bool init = false;
+  if(!init){
+    system("mkdir -p screenshots");
+    init = true;
+  }
+  std::string fileName = string("screenshots/shot_")+to_string(counter)+string(".png");
+  Uint8* pixels = gl->getPixels();
+  glm::int2 s = gl->getSize();
+  savePNG(fileName.c_str(), pixels, s.x, s.y);
+  counter++;
+}
+
 void App::update(){
   if(visible) gl->update();
   if(cfg.play) upload_next_frame();
 }
 void App::draw(){
     w->update_fps();
-    glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0);
     gl->draw();
     w->display();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

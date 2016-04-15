@@ -19,7 +19,6 @@ extern uint FHEIGHT;
 
 #define fori(x,y) for(int i=x; i<y; i++)
 #define forj(x,y) for(int j=x; j<y; j++)
-#define fork(x,y) for(int k=x; k<y; k++)
 
 
 #define MOUSE_SENS 0.25f

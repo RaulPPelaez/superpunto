@@ -2,7 +2,7 @@
 #define RGL_H
 #include "header.h"
 #include "RFile.h"
-
+#include<glm/gtx/compatibility.hpp>
 
 
 const char * GetGLErrorStr(GLenum err);
@@ -59,16 +59,30 @@ class VAO{
 };
 
 
-class FBO{
+class RTex{
 public:
-  FBO();
-  ~FBO();
+  RTex();
+  ~RTex();
+
+  bool upload(const void *data);
+  void resize(GLuint wx, GLuint wy);
   void use();
   void unbind();
-  GLuint id(){return this->fid;}
+  GLuint id(){return this->tid;}
+  GLuint getUnit(){return this->unit;}
+  void init(GLenum ifmt, GLenum efmt, GLenum dtp); //internal format, external format, data type  
+  
+  inline glm::int2 getSize(){ return this->size;}
+
+  operator GLuint() const{return tid;} 
 private:
-  GLuint fid;
+  GLuint tid;
+  GLenum tp;
+  GLenum format[3]; //internal, external, type
+  glm::int2 size;
+  static GLuint unit;
 };
+
 
 class RShader{
  public:
@@ -88,10 +102,36 @@ class RShaderProgram{
   ~RShaderProgram();
   bool init(RShader *shader_list, uint nshaders);
   GLuint id() const{return this->pid;}
+  operator GLuint() const{return this->pid;}
   void use();
   void unbind();
  private:
   uint pid;
+};
+
+class FBO{
+ public:
+  FBO();
+  ~FBO();
+  void use();
+  void unbind();
+  GLuint id(){return this->fid;}
+  void draw();
+  Uint8* getColorData();
+  float* getDepthData();
+
+  inline glm::int2 getSize(){return ctex.getSize();}
+
+  void handle_resize();
+ private:
+  GLenum tp;
+  GLuint fid;
+  RTex ctex, dtex; //color, depth
+  GLuint draw_buffer;
+  RShaderProgram pr;
+  vector<float> ddata;
+  vector<Uint8> cdata;
+
 };
 
 class RGLContext{
@@ -102,4 +142,5 @@ public:
 private:
   SDL_GLContext context;
 };
+
 #endif

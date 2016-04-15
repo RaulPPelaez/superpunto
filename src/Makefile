@@ -2,14 +2,16 @@ CXX=clang++
 CC=$(CXX)
 
 #
-CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops
+CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops -I../third_party/include
 CXXFLAGS=$(CFLAGS)
 
-LDFLAGS= -lSDL2 -lGL -lGLEW 
 
-GLOBJS=RWindow.o RGL.o RGLHandle.o Camera.o RShadowMapper.o
+LDFLAGS= -L../third_party/lib
+LDLIBS= -lSDL2 -lGL ../third_party/glew.o -lpng
 
-OBJS= spunto.o App.o $(GLOBJS) RFile.o
+GLOBJS=RWindow.o RGL.o RGLHandle.o Camera.o RShadowMapper.o 
+
+OBJS= spunto.o App.o $(GLOBJS) RFile.o RPNG.o
 
 all:spunto
 

@@ -1,5 +1,10 @@
 #include "RGLHandle.h"
 
+
+#define FOV glm::radians(45.0f)
+#define ZNEAR 1.0f
+#define ZFAR 100.0f
+
 RGLHandle::RGLHandle(){}
 RGLHandle::~RGLHandle(){}
                                                                                                
@@ -27,6 +32,7 @@ bool RGLHandle::init_buffers(){
   init_sphere();
   init_instance_vbos();
   init_vao();
+
   printf("DONE!\n");
   return true;
 }
@@ -36,7 +42,6 @@ bool RGLHandle::init_sphere(){ //Config and upload sphere vertices
   sphere_vbos[0].init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
   sphere_vbos[1].init(GL_ELEMENT_ARRAY_BUFFER, GL_MAP_READ_BIT);
   fill_sphere_vbos(sphere_vbos[0], sphere_vbos[1]);
-
   return true;
 }
 
@@ -45,7 +50,6 @@ bool RGLHandle::init_vao(){ //Configure Vertex Array Object
   spheres_vao.set_attrib(attribs["pos"], instances_vbos[0], 1);  
   spheres_vao.set_attrib(attribs["color"], instances_vbos[1], 2);
   spheres_vao.set_attrib(attribs["scale"], instances_vbos[2], 3);
-
   return true;
 }
 
@@ -65,7 +69,7 @@ bool RGLHandle::init_instance_vbos(){
 
 
 bool RGLHandle::init_math(){
-  proj =glm::perspective(45.0f, FWIDTH/(float)FHEIGHT, 0.01f, 10000.0f);
+  proj =glm::perspective(FOV, FWIDTH/(float)FHEIGHT, ZNEAR, ZFAR);
   model = glm::mat4();
   view = cam.lookAt();
   rotate_model(M_PI/4.0f, 1.0f, 0.0f, 0.0f);
@@ -75,15 +79,16 @@ bool RGLHandle::init_math(){
   return true;
 }
 
-#include "shaders.h"
-bool RGLHandle::init_shaders(){  
+
+extern const char* VS_SOURCE;
+extern const char* FS_SOURCE;
+bool RGLHandle::init_shaders(){
   printf("\tInit shaders...     ");
   RShader shs[2];
   shs[0].charload(VS_SOURCE, GL_VERTEX_SHADER);
   shs[1].charload(FS_SOURCE, GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
   printf("DONE!\n");
-  
   return true;
 }
 bool RGLHandle::init_uniforms(){
@@ -97,7 +102,7 @@ bool RGLHandle::init_uniforms(){
 }
 
 
-bool RGLHandle::upload_instances(const float *pos, const float *colors, const float *scales, int N){  
+bool RGLHandle::upload_instances(const float *pos, const float *colors, const float *scales, int N){
   instances_vbos[0].upload(0, 3*N*sizeof(float), (const void *)pos);
   instances_vbos[1].upload(0, 3*N*sizeof(float), (const void *)colors);
   instances_vbos[2].upload(0, 1*N*sizeof(float), (const void *)scales);
@@ -108,18 +113,29 @@ bool RGLHandle::upload_instances(const float *pos, const float *colors, const fl
 void RGLHandle::handle_resize(){
   glViewport(0,0,FWIDTH, FHEIGHT);
   float ar = FWIDTH/(float)FHEIGHT;
-  proj =glm::perspective(45.0f, ar, 0.01f, 10000.0f);
+  proj =glm::perspective(FOV, ar, ZNEAR, ZFAR);
+  //fbo.handle_resize();
 }
 
 void RGLHandle::rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z){
   model = glm::rotate(model, angle,  glm::vec3(x, y, z));
 }
 
+
+Uint8* RGLHandle::getPixels(){
+  return fbo.getColorData();
+}
+
+
 void RGLHandle::update(){
   cam.update();
 }
 
 void RGLHandle::draw(){
+  //  glViewport(0,0,FWIDTH, FHEIGHT);
+  fbo.use();
+  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   pr.use();
   view = cam.lookAt();
   MVP = proj*view*model;
@@ -128,15 +144,16 @@ void RGLHandle::draw(){
   glUniform3f(glGetUniformLocation(pr.id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
   spheres_vao.use();
   sphere_vbos[1].use(); //indices
-  glDrawElementsInstanced(GL_TRIANGLES, 240, GL_UNSIGNED_INT, NULL, currentN); 
+  glDrawElementsInstanced(GL_TRIANGLES, 240, GL_UNSIGNED_INT, NULL, currentN);
   sphere_vbos[1].unbind();
-  spheres_vao.unbind();
   pr.unbind();
+  fbo.unbind();
+  //  glViewport(0,0,1,1);
+  glDisable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT);
+  fbo.draw();
+  spheres_vao.unbind(); //just as a dummy vao for glDrawArrays to work
 }
-
-
-
-
 
 
 void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO){

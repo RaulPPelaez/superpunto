@@ -2,22 +2,22 @@
 
 
 uint FWIDTH = 800;
-uint FHEIGHT = 600;
+uint FHEIGHT = 800;
 
 RWindow::RWindow(string title, uint fw, uint fh){
   if(SDL_WasInit(SDL_INIT_VIDEO) == 0) SDL_Init(SDL_INIT_VIDEO);  
   this->title = title;
   w = SDL_CreateWindow(title.c_str(), 0, 0, fw, fh, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-  SDL_Delay(100);
   glcontext.init(w);
-  SDL_Delay(100);
   open = true;
 }
 RWindow::~RWindow(){
   SDL_DestroyWindow(w);
   SDL_Quit();
 }
-void RWindow::display(){ SDL_GL_SwapWindow(w);}
+void RWindow::display(){ 
+SDL_GL_SwapWindow(w);
+}
 bool RWindow::isOpen(){ return this->open;}
 void RWindow::close(){ open=false;}
 

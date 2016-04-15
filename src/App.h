@@ -33,6 +33,8 @@ private:
   void handle_events();
   void draw();
 
+  void screenshot();
+
   RGLHandle *gl;
   RWindow *w;
   RConfig cfg;

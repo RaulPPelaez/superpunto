@@ -35,9 +35,13 @@ class RGLHandle{
   void handle_resize();
   void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
 
+  Uint8 *getPixels();
+  glm::int2 getSize(){return fbo.getSize();}
 
   FreeCamera cam;
  private:
+  
+  FBO fbo;
 
   VBO sphere_vbos[2]; //Vertex, index
   VBO instances_vbos[3]; //pos, color, radius
@@ -45,11 +49,8 @@ class RGLHandle{
   VAO spheres_vao;
   std::map<string, uint> attribs;
   RShaderProgram pr;
-
   glm::mat4 MVP, model, view, proj;
   GLuint uniMVP, unimodel;
-
-
 };
 
 void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO);

@@ -1,3 +1,6 @@
+#ifndef SHADERS_H
+#define SHADERS_H
+
 #define GLSL(version, shader)  "#version " #version "\n" #shader
 
 
@@ -8,7 +11,6 @@ const char* FS_SOURCE = GLSL(450,
 			     out vec4 outColor;
 
 			     uniform vec3 EyeWorldPos;
-
 			     struct BaseLight{
 			       vec3 Color;
 			       float Ambient;
@@ -40,7 +42,7 @@ const char* FS_SOURCE = GLSL(450,
 			       light.Color = vec3(1.0f,1.0f,1.0f);
 			       light.Diffuse = 1.0f;
 			       light.Ambient = 0.25f;
-			       outColor = vec4(Color,1) * computeLight(light, vec3(1,-1,1), Normal); 
+			       outColor = vec4(Color,1) * computeLight(light, vec3(1,-1,1), Normal);
 			       //outColor = vec4(1,0,0,0);
 			       outColor.w = 1.0f;
 			     }   
@@ -74,21 +76,42 @@ const char* VS_SOURCE = GLSL(450,
 
 
 
+const char* VS_QUAD_SOURCE = GLSL(450,
+      const vec2 v[4] =
+	     vec2[4]( vec2(-1.0, -1.0),
+		      vec2( 1.0, -1.0),
+		      vec2(-1.0,  1.0),
+		      vec2( 1.0,  1.0));
+       void main () {
+	 gl_Position =  vec4(v[gl_VertexID], 0.0, 1.0);
+       }
+);
+const char* FS_QUAD_SOURCE = GLSL(450,
+               layout(binding = 0) uniform sampler2D dtex;
+               layout(binding = 1) uniform sampler2D tex;
+	       out vec4 c;
+	       void main (){
+		 // float n = 1.0f;
+		 // float f = 100.0f;
+		 // float z = texture(dtex, gl_FragCoord.xy/800.0f).x;
+		 // z =pow(z,2);//  (2.0f*n)/ (f+n-z*(f-n));
+		 //c = vec4(z);
 
-const char* VS_KK_SOURCE = GLSL(450, 	
-			       const vec4 v[3] = vec4[3]( vec4(0.25, -0.25, 0.5, 1),
-							  vec4(-0.25, -0.25, 0.5, 1),
-							  vec4(0.25, 0.25, 0.5, 1));
 
-			     void main () {
-			       gl_Position =  v[gl_VertexID];
-			     }
-		 );
-const char* FS_KK_SOURCE = GLSL(450, 			   
-			       out vec4 c;
-			     void main () {
-			       c = vec4(1.0f,0.0f,0.0f,1.0f);
-			     }
-		 );
+		 c = texelFetch(tex, ivec2(gl_FragCoord.xy), 0);
+		  // if(textureSize(dtex, 0).x==1)
+		  //   c = vec4(0,0.5,0,1);
+		  // else
+		  //   c = vec4(0,0,1,1);
+		 
+		 
+		 
+		  //c = texture(dtex, gl_FragCoord.xy/800.0f); 		 
+		 //c = texture(tex, gl_FragCoord.xy/800.0f);
+		 c.w = 1;
+	       }
+);
 
 
+
+#endif
