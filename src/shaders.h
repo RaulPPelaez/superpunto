@@ -8,7 +8,12 @@ const char* FS_SOURCE = GLSL(450,
 			     in vec3 Normal;
 			     in vec3 WorldPos;
 			     in vec3 Color;
+			     in flat int id;
 			     out vec4 outColor;
+
+			     
+			     uniform bool picking;
+			     uniform bool drawing_picked;
 
 			     uniform vec3 EyeWorldPos;
 			     struct BaseLight{
@@ -38,13 +43,24 @@ const char* FS_SOURCE = GLSL(450,
 			       return (AmbientColor + DiffuseColor + SpecularColor);
 			     }
 			     void main() {
-
-			       light.Color = vec3(1.0f,1.0f,1.0f);
-			       light.Diffuse = 1.0f;
-			       light.Ambient = 0.25f;
-			       outColor = vec4(Color,1) * computeLight(light, vec3(1,-1,1), Normal);
-			       //outColor = vec4(1,0,0,0);
-			       outColor.w = 1.0f;
+			        if(picking){
+				  //id*2 to gain precision, "only" 255^3/2 differenciable objects 
+				  int r = (id*2)%256;
+				  int g = (id*2)/256%256;
+				  int b = (id*2)/(256*256);
+				  outColor = vec4(r/256.0f,g/256.0f,b/256.0f,1.0f);       
+			        }
+			        else if(drawing_picked){
+				  outColor = vec4(1.0f-Color,1);
+				}
+				else{
+				 light.Color = vec3(1.0f,1.0f,1.0f);
+				 light.Diffuse = 1.0f;
+				 light.Ambient = 0.25f;
+				 outColor = vec4(Color,1) * computeLight(light, vec3(1,-1,1), Normal);
+				 //outColor = vec4(1,0,0,0);
+				 outColor.w = 1.0f;
+				}
 			     }   
 );
 
@@ -61,11 +77,15 @@ const char* VS_SOURCE = GLSL(450,
 			     layout (location = 3) in float scale;
 			     uniform mat4 model;
 			     uniform mat4 MVP;
+			     uniform float pickscale;
 			     out vec3 Normal;
 			     out vec3 Color;
 			     out vec3 WorldPos;
+			     out int id;
+			     
 			     void main () {
-			       vec3 vpos = scale*in_vertex;
+			       id = gl_InstanceID+1;
+			       vec3 vpos = pickscale*scale*in_vertex;
 			       vec4 temp = vec4(vpos+pos, 1.0);
 			       Color = color;
 			       gl_Position =  MVP*temp;

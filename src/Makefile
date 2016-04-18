@@ -1,4 +1,4 @@
-CXX=clang++
+CXX=g++
 CC=$(CXX)
 
 #

@@ -4,6 +4,8 @@
 #include "header.h"
 #include "RGL.h"
 #include "Camera.h"
+#include "RFile.h"
+
 #include<string>
 #include<map>
 #include<iostream>
@@ -16,7 +18,7 @@ class RGLHandle{
  public:
   RGLHandle();
   ~RGLHandle();
-  bool init(int maxN);
+  bool init(int maxN, RConfig cfg);
   bool init_buffers();
   bool init_sphere();
   bool init_instance_vbos();
@@ -35,6 +37,7 @@ class RGLHandle{
   void handle_resize();
   void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
 
+  int pick(int x, int y);
   Uint8 *getPixels();
   glm::int2 getSize(){return fbo.getSize();}
 
@@ -51,6 +54,8 @@ class RGLHandle{
   RShaderProgram pr;
   glm::mat4 MVP, model, view, proj;
   GLuint uniMVP, unimodel;
+  int picked;
+  RConfig cfg;  
 };
 
 void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO);

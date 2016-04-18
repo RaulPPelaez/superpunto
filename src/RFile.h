@@ -16,6 +16,7 @@ struct RFile{
   uint Nframes;
   uint maxN;
   uint current_frame;
+
   vector<int> Natframe;
   
   vector<vector<float>> pos, scales, colors;

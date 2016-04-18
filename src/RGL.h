@@ -102,6 +102,7 @@ class RShaderProgram{
   ~RShaderProgram();
   bool init(RShader *shader_list, uint nshaders);
   GLuint id() const{return this->pid;}
+  void setFlag(const GLchar* flag, int val);
   operator GLuint() const{return this->pid;}
   void use();
   void unbind();
@@ -117,6 +118,7 @@ class FBO{
   void unbind();
   GLuint id(){return this->fid;}
   void draw();
+  glm::vec4 getPixel(int x, int y);
   Uint8* getColorData();
   float* getDepthData();
 

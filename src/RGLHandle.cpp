@@ -5,15 +5,18 @@
 #define ZNEAR 1.0f
 #define ZFAR 100.0f
 
-RGLHandle::RGLHandle(){}
+RGLHandle::RGLHandle(){picked = -1;}
 RGLHandle::~RGLHandle(){}
                                                                                                
 
-bool RGLHandle::init(int maxN){
+bool RGLHandle::init(int maxN, RConfig cfg){
+  this->maxN = maxN;
+  this->cfg = cfg;
+
   printf("Initializing OpenGL...\n");
   this->handle_resize();
 
-  this->maxN = maxN;
+  
   attribs["in_vertex"] = 0;
   attribs["pos"] = 1;
   attribs["color"] = 2;
@@ -88,6 +91,7 @@ bool RGLHandle::init_shaders(){
   shs[0].charload(VS_SOURCE, GL_VERTEX_SHADER);
   shs[1].charload(FS_SOURCE, GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
+  
   printf("DONE!\n");
   return true;
 }
@@ -96,6 +100,9 @@ bool RGLHandle::init_uniforms(){
   pr.use();
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
   unimodel = glGetUniformLocation(pr.id(), "model");
+  pr.setFlag("picking",0);
+  pr.setFlag("drawing_picked",0);
+  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
   pr.unbind();
   printf("DONE!\n");
   return true;
@@ -130,28 +137,55 @@ Uint8* RGLHandle::getPixels(){
 void RGLHandle::update(){
   cam.update();
 }
+int RGLHandle::pick(int x, int y){
+  glClearColor(0.0f ,0.0f ,0.0f ,1.0f);
+  pr.setFlag("picking",1);
+  pr.unbind();
+  draw();
+  pr.setFlag("picking",0);
+  pr.unbind();
+  glm::vec4 pixel = fbo.getPixel(x,y);
+  picked =pixel[0]+256*pixel[1]+ 256*256*pixel[2] - 1;
+  //Two colors identify the same index to gain precision,
+  //"only" 255^3/2 differenciable objects 
+  if(picked>=0) picked /=2;
+  //  cerr<<pixel[0]<<" "<<pixel[1]<<" "<<pixel[2]<<endl<<picked<<endl;
+  return picked;
+}
 
 void RGLHandle::draw(){
   //  glViewport(0,0,FWIDTH, FHEIGHT);
+  //pr.setFlag("picking",1);
   fbo.use();
+  glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0);
   glEnable(GL_DEPTH_TEST);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   pr.use();
   view = cam.lookAt();
   MVP = proj*view*model;
+
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(MVP));
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(model));
   glUniform3f(glGetUniformLocation(pr.id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
   spheres_vao.use();
   sphere_vbos[1].use(); //indices
   glDrawElementsInstanced(GL_TRIANGLES, 240, GL_UNSIGNED_INT, NULL, currentN);
+  if(picked>=0){
+    glLineWidth(1.3f);
+    pr.setFlag("drawing_picked", 1);
+    glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.3f);
+    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, 240,
+					GL_UNSIGNED_INT, NULL, 1, picked);
+    glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
+    pr.setFlag("drawing_picked", 0);
+  }
+
   sphere_vbos[1].unbind();
   pr.unbind();
   fbo.unbind();
-  //  glViewport(0,0,1,1);
-  glDisable(GL_DEPTH_TEST);
-  glClear(GL_COLOR_BUFFER_BIT);
+
   fbo.draw();
+
   spheres_vao.unbind(); //just as a dummy vao for glDrawArrays to work
 }
 

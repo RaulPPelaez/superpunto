@@ -39,7 +39,8 @@ private:
   RWindow *w;
   RConfig cfg;
   RFile file;
-  
+
+  int selected_particle;
   bool visible;
 
 };

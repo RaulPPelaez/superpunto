@@ -191,22 +191,33 @@ FBO::FBO(){
 FBO::~FBO(){ glDeleteFramebuffers(1, &fid);}
 
 void FBO::draw(){
-  unbind();
+  glDisable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT);
   pr.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   pr.unbind();
-
 }
 void FBO::use(){ glBindFramebuffer(tp, fid);}
 void FBO::unbind(){ glBindFramebuffer(tp, 0);}
+
+glm::vec4 FBO::getPixel(int x, int y){
+  //Origin equal to the one fiven by SDL mouse pos, not sure wich corner
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
+  Uint8 p[4];
+  glReadPixels(x,FHEIGHT-y, 1,1, GL_RGBA, GL_UNSIGNED_BYTE, (void *)p);
+  return {p[0], p[1], p[2], p[3]};
+}
 
 Uint8* FBO::getColorData(){
   int cdatasize = ctex.getSize().x*ctex.getSize().y*4;  
   if(cdata.size() != cdatasize) cdata.resize(cdatasize);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   glReadPixels(0,0, FWIDTH,FHEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, (void *)cdata.data());
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   return cdata.data();
 }
+
+
 float* FBO::getDepthData(){
   int ddatasize = dtex.getSize().x*dtex.getSize().y;  
   if(ddata.size() != ddatasize) ddata.resize(ddatasize);
@@ -219,6 +230,7 @@ float* FBO::getDepthData(){
   //   ddata2[4*i+2] = int(255*ddata[i]);
   //   ddata2[4*i+3] = 255;
   // }
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   return ddata.data();
 }
 
@@ -268,6 +280,10 @@ bool RShaderProgram::init(RShader *shader_list, uint nshaders){
 void RShaderProgram::use(){glUseProgram(pid);}
 void RShaderProgram::unbind(){glUseProgram(0);}
 
+void RShaderProgram::setFlag(const GLchar* flag, int val){
+  use();
+  glUniform1i(glGetUniformLocation(pid, flag), val);
+}
 
 RGLContext::RGLContext(){  }
 RGLContext::~RGLContext(){ SDL_GL_DeleteContext(context); }

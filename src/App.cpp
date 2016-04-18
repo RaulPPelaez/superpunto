@@ -40,7 +40,7 @@ bool App::initWindow(){
 }
 bool App::initOpenGL(){
   gl = new RGLHandle;
-  gl->init(file.maxN);
+  gl->init(file.maxN, cfg);
   gl->cam.warp(glm::vec3(0, 3.0f*file.max_dist[0], 0));
   upload_frame(0);
   return true;
@@ -116,6 +116,14 @@ void App::handle_events(){
 	break;	
       }
     }
+    if(e.type == SDL_MOUSEBUTTONDOWN){
+      int id = gl->pick(e.button.x, e.button.y);
+      if(id>=0 && id<file.maxN){
+	selected_particle = id;
+	cerr<<"Selected Superpunto: "<<selected_particle<<endl;
+      }
+      
+    }
   }
 }
 
@@ -123,7 +131,7 @@ void App::screenshot(){
   static int counter = 0;
   static bool init = false;
   if(!init){
-    system("mkdir -p screenshots");
+    int sysret = system("mkdir -p screenshots");
     init = true;
   }
   std::string fileName = string("screenshots/shot_")+to_string(counter)+string(".png");
@@ -139,7 +147,6 @@ void App::update(){
 }
 void App::draw(){
     w->update_fps();
-    glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0);
     gl->draw();
     w->display();
 }
