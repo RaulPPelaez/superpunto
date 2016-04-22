@@ -117,7 +117,11 @@ void RModelHandler::draw_model(){
 
 void RModelHandler::draw_lines(){
   line_pr.use();
-  glUniformMatrix4fv(uniMVP_line, 1, GL_FALSE, glm::value_ptr(*MVP) );
+  glm::mat4 lmvp = glm::mat4();
+
+  lmvp  = glm::scale(lmvp, glm::vec3(Lx,Ly,Lz));
+
+  glUniformMatrix4fv(uniMVP_line, 1, GL_FALSE, glm::value_ptr((*MVP)*lmvp) );
   glBindVertexArray(line_vao);
   glLineWidth(2); 
   glDrawArrays(GL_LINES, 0, 72);
@@ -126,10 +130,13 @@ void RModelHandler::draw_lines(){
   line_pr.unbind();
 }
 
-void RModelHandler::set_line_uniform(float par){
-  line_pr.use();
-  glUniform1f(line_pr.get_attrib_handle("L"), par);
-  line_pr.unbind();
+void RModelHandler::set_line_uniform(float lx, float ly, float lz){
+  Lx = lx;
+  Ly = ly;
+  Lz = lz;
+  // line_pr.use();
+  // glUniform1f(line_pr.get_attrib_handle("L"), par);
+  //line_pr.unbind();
 
 
 }

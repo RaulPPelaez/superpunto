@@ -24,20 +24,20 @@ public:
   void update();
   void draw();
   void handle_event(sf::Event event);
-  void set_box(float bsize);  
+  void set_box(float lx, float ly, float lz);  
   std::string current_msg();
 
   bool play_movie;  
   std::vector<vector<float>> positions, colors, scales;
   std::vector<float> max_dist;
   std::vector<std::string> msgs; //Mesages in the comments #L=x; bolablabla
-  std::vector<float> Lbox; //Custom box size in the comments  
+  std::vector<vector<float>> Lbox; //Custom box size in the comments  
   int Nframes;
   int current_step;
 private:	
   void initBuffers();
   void upload_step();
-  float parse_comment(std::string line, std::string &msg);
+  float parse_comment(int dir, std::string line, std::string &msg);
 };
 
 void RGLContext::draw(){
@@ -61,9 +61,19 @@ void RGLContext::handle_event(sf::Event event){
  }
 }
 
-float RGLContext::parse_comment(std::string line, std::string &msg){
-
-  std::string delim = "L=";
+float RGLContext::parse_comment(int dir, std::string line, std::string &msg){
+  std::string delim;
+  switch(dir){
+  case 0:
+    delim = "Lx=";
+    break;
+  case 1:
+    delim = "Ly=";
+    break;
+  case 2:
+    delim = "Lz=";
+    break;
+  }    
   std::string delim2 = ";";
   float L = 0.0;
   size_t pos = 0;
@@ -101,12 +111,13 @@ void RGLContext::initBuffers(){
   positions[0].resize(3*fc.N[0],0);
   scales[0].resize(fc.N[0],1);
   colors[0].resize(3*fc.N[0],1);    
+  Lbox[0].resize(3,0);
   max_dist[0] = 0.0;
 
   std::string line;  
   getline(in,line);
-  if(iscomment(line)){Lbox[0] = parse_comment(line, msgs[0]); getline(in,line);}
-  else{Lbox[0] = 0.0; msgs[0] = " ";}
+  if(iscomment(line)){fori(0,3)Lbox[0][i] = parse_comment(i,line, msgs[0]); getline(in,line);}
+  else{Lbox[0][0] = 0.0; msgs[0] = " ";}
   std::stringstream is(line);
   
   double temp[fc.nrows];
@@ -124,7 +135,8 @@ void RGLContext::initBuffers(){
    else{
      colors[frame] = parse_colors(ctemp);
      N=-1; frame++; 
-     Lbox[frame] = parse_comment(line, msgs[frame]);
+     Lbox[frame].resize(3,0);
+     forj(0,3)Lbox[frame][j] = parse_comment(j, line, msgs[frame]);
      max_dist[frame] = 0.0;
      positions[frame].resize(3*fc.N[frame],0);
      scales[frame].resize(fc.N[frame],1);
@@ -158,7 +170,7 @@ void RGLContext::initBuffers(){
   drawables.set_instancing("scale", instancing_vbos[2], 0, 1, sizeof(float));
   drawables.set_instancing("pos", instancing_vbos[0], positions[0].size()/3, 3, 3*sizeof(float));
   
-  float max = Rmax(max_dist[0], Lbox[0]);
+  float max = Rmax(max_dist[0], Lbox[0][0]);
   
   cam.pos.x =0;
   cam.pos.y +=2*( max+10);
@@ -168,21 +180,21 @@ void RGLContext::initBuffers(){
   upload_step();
 }
 
-void RGLContext::set_box(float bsize){
+void RGLContext::set_box(float lx, float ly, float lz){
   static bool first_time = true;
   if(first_time){
     GLfloat *temp = get_wired_cube();
     GLfloat box_data[72];
     fori(0,72) box_data[i] = temp[i];
     drawables.Nlines = 12; //2 points/line, 3 coords/point                           
-    drawables.set_line_uniform(bsize);
+    drawables.set_line_uniform(lx, ly, lz);
     glBindBuffer(GL_ARRAY_BUFFER, drawables.line_vbo);
     glBufferData(GL_ARRAY_BUFFER, 12*2*3*sizeof(float), box_data, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     first_time = false;
   }
   else{
-    drawables.set_line_uniform(bsize);
+    drawables.set_line_uniform(lx, ly, lz);
   }
 }
 
@@ -202,8 +214,8 @@ void RGLContext::upload_step(){
   
   glBindBuffer(GL_ARRAY_BUFFER,0);
   
-  if(Lbox[frame] == 0.0)set_box(2*max_dist[frame]);
-  else{ set_box(2*Lbox[frame]); }
+  if(Lbox[frame][0] == 0.0)set_box(2*max_dist[frame],2*max_dist[frame],2*max_dist[frame]);
+  else{ set_box(2*Lbox[frame][0],2*Lbox[frame][1],2*Lbox[frame][2]); }
   //  CheckGLError();
 }
 

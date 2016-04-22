@@ -1,6 +1,6 @@
-#L=1; holahola 1
+#Lx=2;Ly=5;Lz=1; holahola 1
 0 0 0 1 1
 0 0 1 1 23
-# L=25; holahola 23
+#Lx=2;Ly=5;Lz=1; holahola 1
 0 1 0 1 24
 1 3 4 0.5 1

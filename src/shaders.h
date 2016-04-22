@@ -77,9 +77,9 @@ const char* VS_SOURCE = GLSL(130,
 const char* LINE_VS_SOURCE = GLSL(130,                                                        
 				  in vec3 in_vertex;
 				  uniform mat4 MVP;
-				  uniform float L;
-				  void main() {                                               
-				    gl_Position = MVP*(vec4((in_vertex.xyz-0.5)*L,1.0));
+				  //	  uniform float L;
+				  void main() {   
+				    gl_Position = MVP*(vec4((in_vertex.xyz-0.5),1.0));
 				  }        
 				  );
   

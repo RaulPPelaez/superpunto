@@ -21,7 +21,7 @@ public:
   void draw_lines();
   RShaderProgram * get_pr(){ return &(this->pr);}
   void config_light();
-  void set_line_uniform(float par);
+  void set_line_uniform(float lx, float ly, float lz);
   //void compute_shadows();
   GLuint line_vbo;
   GLuint Nlines;
@@ -41,6 +41,7 @@ private:
   RShaderProgram pr, line_pr;
   GLuint unimodel, uniMVP, uniMVP_line;
   glm::mat4 *MVP, *model;
+  float Lx, Ly, Lz;
   
 };
 
