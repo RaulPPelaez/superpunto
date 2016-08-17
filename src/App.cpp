@@ -2,14 +2,22 @@
 #include"RPNG.h"
 uint palette_id=923302100; //1 is also cool 
 
-App::App(int argc, char *argv[]){
+
+
+App::App(int argc, char *argv[]):
+  w(nullptr),
+  gl(nullptr)
+{
   file.name = argv[1];
   cfg.set_default();
   cfg.parse_args(argc, argv);
   init();
   run();
 }
-App::~App(){}
+App::~App(){
+  delete w;
+  delete gl;
+}
 
 bool App::init(){
   read_input();
@@ -32,16 +40,14 @@ bool App::initSDL(){
 }
 bool App::initWindow(){
   printf("Starting graphic context...      \n");
-  
-  string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";
+  string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";  
   w = new RWindow(title, FWIDTH, FHEIGHT);
   printf("DONE!\n");
   return true;
 }
 bool App::initOpenGL(){
-  gl = new RGLHandle;
-  gl->init(file.maxN, cfg);
-  gl->cam.warp(glm::vec3(0, 3.0f*file.max_dist[0], 0));
+  gl = new RGLHandle(file.maxN, 1.0f/file.maxScale, cfg);
+  gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
   upload_frame(0);
   return true;
 }
@@ -103,6 +109,9 @@ void App::handle_events(){
       IF_KEY(1, gl->rotate_model(-0.1f,1,0,0);)
       IF_KEY(2, gl->rotate_model(-0.1f,0,1,0);)
       IF_KEY(3, gl->rotate_model(-0.1f,0,0,1);)
+
+	IF_KEY(8, gl->SSAOrad(+0.01);)
+	IF_KEY(9, gl->SSAOrad(-0.01);)
 
     }
     if(e.type == SDL_WINDOWEVENT){

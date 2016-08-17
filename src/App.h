@@ -31,6 +31,7 @@ private:
 
   void update();
   void handle_events();
+
   void draw();
 
   void screenshot();

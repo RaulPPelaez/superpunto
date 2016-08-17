@@ -16,9 +16,8 @@
 using namespace std;
 class RGLHandle{
  public:
-  RGLHandle();
+  RGLHandle(int maxN, float gscale, RConfig cfg);
   ~RGLHandle();
-  bool init(int maxN, RConfig cfg);
   bool init_buffers();
   bool init_sphere();
   bool init_instance_vbos();
@@ -32,6 +31,11 @@ class RGLHandle{
   bool upload_instances(const float *pos, const float *colors, const float *scales, int N);
 
   void update();
+  void geometry_pass();
+  void light_pass();
+  void SSAO_pass();
+  void SSAOrad(float inc);
+  void render_picked();
   void draw();
   
   void handle_resize();
@@ -39,19 +43,21 @@ class RGLHandle{
 
   int pick(int x, int y);
   Uint8 *getPixels();
-  glm::int2 getSize(){return fbo.getSize();}
+  glm::int2 getSize(){return gBuffer.getSize();}
 
   FreeCamera cam;
  private:
   
-  FBO fbo;
+  FBO fbo, ssaofbo;
+  GBuffer gBuffer;
 
   VBO sphere_vbos[2]; //Vertex, index
   VBO instances_vbos[3]; //pos, color, radius
   int maxN, currentN;
-  VAO spheres_vao;
+  float gscale;
+  VAO spheres_vao, dummy_vao;
   std::map<string, uint> attribs;
-  RShaderProgram pr;
+  RShaderProgram pr, lightpr, ssaopr;
   glm::mat4 MVP, model, view, proj;
   GLuint uniMVP, unimodel;
   int picked;

@@ -9,6 +9,7 @@
 #include<sstream>
 #include<iostream>
 using namespace std;
+#include"math_helper.h"
 
 struct RFile{
   const char *name;
@@ -20,9 +21,10 @@ struct RFile{
   vector<int> Natframe;
   
   vector<vector<float>> pos, scales, colors;
-  vector<float> Lbox;
-  vector<float> max_dist;
+  vector<float3> Lbox;
+  vector<float3> max_dist;
   vector<string> msgs;
+  float maxScale;
   
   bool get_frame(float *&ps, float *&cs, float *&ss, int &N, int frame);
   bool get_next_frame(float *&ps, float *&cs, float *&ss, int &N);
@@ -33,7 +35,7 @@ struct RFile{
   bool iscomment(std::string line);
   bool read_frames();
   vector<float> parse_colors(const std::vector<int> &colors);
-  float parse_comment(std::string line, std::string &msg);
+  void parse_comment(std::string line, std::string &msg, float *L);
 };
 
 

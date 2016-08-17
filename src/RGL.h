@@ -70,7 +70,7 @@ public:
   void unbind();
   GLuint id(){return this->tid;}
   GLuint getUnit(){return this->unit;}
-  void init(GLenum ifmt, GLenum efmt, GLenum dtp); //internal format, external format, data type  
+  void init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size); //internal format, external format, data type  
   
   inline glm::int2 getSize(){ return this->size;}
 
@@ -80,7 +80,8 @@ private:
   GLenum tp;
   GLenum format[3]; //internal, external, type
   glm::int2 size;
-  static GLuint unit;
+  GLuint unit;
+  static GLuint unit_counter;
 };
 
 
@@ -110,6 +111,7 @@ class RShaderProgram{
   uint pid;
 };
 
+
 class FBO{
  public:
   FBO();
@@ -118,21 +120,49 @@ class FBO{
   void unbind();
   GLuint id(){return this->fid;}
   void draw();
+
   glm::vec4 getPixel(int x, int y);
   Uint8* getColorData();
-  float* getDepthData();
+  
+  void setFormat(GLenum ifmt, GLenum efmt, GLenum dtp);
 
   inline glm::int2 getSize(){return ctex.getSize();}
+  void bindColorTex(RShaderProgram &apr);
+  GLuint getTexUnit(){return ctex.getUnit();}
 
   void handle_resize();
- private:
+
+  RShaderProgram pr;
+ protected:
+  VAO vao; //dummy vao
   GLenum tp;
   GLuint fid;
-  RTex ctex, dtex; //color, depth
-  GLuint draw_buffer;
+  RTex ctex; //color
+
+  GLenum* draw_buffer;
+  vector<Uint8> cdata;  
+
+};
+
+
+
+class GBuffer: public FBO{
+ public:
+  GBuffer();
+  float* getDepthData();
+
+  void bindSamplers(RShaderProgram &apr);
+
+  void handle_resize();
+
   RShaderProgram pr;
+ private:
+  RTex dtex, ptex, normdtex; //color, depth, position, normal/linear depth 
+  RTex noisetex;
   vector<float> ddata;
-  vector<Uint8> cdata;
+
+
+  
 
 };
 
