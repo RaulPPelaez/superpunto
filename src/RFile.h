@@ -9,6 +9,13 @@
 #include<sstream>
 #include<iostream>
 using namespace std;
+#include"math_helper.h"
+
+struct ParticleData{
+  float *pos=nullptr, *scales=nullptr, *colors=nullptr;
+  uint N=0;
+  float3 L;
+};
 
 struct RFile{
   const char *name;
@@ -20,20 +27,22 @@ struct RFile{
   vector<int> Natframe;
   
   vector<vector<float>> pos, scales, colors;
-  vector<float> Lbox;
-  vector<float> max_dist;
+  vector<float3> Lbox;
+  vector<float3> max_dist;
   vector<string> msgs;
-  
-  bool get_frame(float *&ps, float *&cs, float *&ss, int &N, int frame);
-  bool get_next_frame(float *&ps, float *&cs, float *&ss, int &N);
-  bool get_previous_frame(float *&ps, float *&cs, float *&ss, int &N);
+  float maxScale;
 
+  ParticleData current;
+  
+  bool set_frame(int frame);
+  bool set_next_frame();
+  bool set_previous_frame();
 
   bool get_config();
   bool iscomment(std::string line);
   bool read_frames();
   vector<float> parse_colors(const std::vector<int> &colors);
-  float parse_comment(std::string line, std::string &msg);
+  void parse_comment(std::string line, std::string &msg, float *L);
 };
 
 
@@ -42,6 +51,7 @@ struct RConfig{
   bool play;
   int frames_between_screenshots;
   float bcolor[3];
+  std::string fontName;
   
   bool parse_args(int argc, char *argv[]);
   void print_help();

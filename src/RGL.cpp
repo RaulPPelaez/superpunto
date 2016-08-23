@@ -1,4 +1,3 @@
-
 #include "RGL.h"
 
 
@@ -107,32 +106,22 @@ void VAO::use(){glBindVertexArray(vid);}
 void VAO::unbind(){glBindVertexArray(0);}
 
 
-RTex::RTex(){}
-void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp){
-  unit++;
+RTex::RTex(){  unit_counter++;   this->unit = unit_counter; tid = 0;}
+void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size = {FWIDTH, FHEIGHT}){
   tp = GL_TEXTURE_2D;
   format[0] = ifmt;
   format[1] = efmt;
   format[2] = dtp;
-
-  size = {FWIDTH, FHEIGHT};
-
+  this->size = size;
+  if(tid !=0){
+    glDeleteTextures(1, &tid);
+  }
   glCreateTextures(tp, 1, &tid);
   glBindTextureUnit(unit, tid);
-  //glActiveTexture(GL_TEXTURE0+unit);
   glTextureStorage2D(tid, 1, format[0], size.x, size.y); //Immutable size  
-  // glBindTexture(tp, tid);
-  // glTexImage2D(tp, 0, format[0], size.x, size.y, 0, format[1], format[2], 0);
-  // glBindTexture(tp, 0);
-  //glTextureParameteri(tid, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  //glTextureParameteri(tid, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  //glTextureParameteri(tid, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  //glTextureParameteri(tid, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-  //glTextureSubImage2D(texid, 0, 0,0, FWIDTH, FHEIGHT, GL_RGBA, 0);
-  //Use if teximage is used
   glClearTexSubImage(tid, 0, 0,0,0, size.x,size.y,1, format[1], format[2], 0);
-
+  glTextureParameteri(tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTextureParameteri(tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 RTex::~RTex(){glDeleteTextures(1, &tid);}
@@ -154,49 +143,56 @@ void RTex::resize(GLuint wx, GLuint wy){
   //size.x = wx;
   //size.y = wy;
   glDeleteTextures(1, &tid);
-  init(format[0], format[1], format[2]);
+  init(format[0], format[1], format[2], glm::int2(wx, wy));
   //  glTexImage2D(tp, 0, format[0], size.x, size.y, 0, format[1], format[2], 0);
 }
 
-GLuint RTex::unit = -1;
+GLuint RTex::unit_counter = -1;
 
 
 #include"shaders.h"
 
-FBO::FBO(){ 
+FBO::FBO(){
   printf("\tInit FBO...     ");
   tp = GL_FRAMEBUFFER;
   glCreateFramebuffers(1, &fid);  
 
-  //Depth texture
-  dtex.init(GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
-  glTextureParameteri(dtex, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-  glTextureParameteri(dtex, GL_TEXTURE_COMPARE_MODE,   GL_NONE);
-  glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
+  //Rendering textures/buffers
+  draw_buffer = new GLenum[2];
+  draw_buffer[0] = GL_COLOR_ATTACHMENT0;
+  //Color  texture
 
+  ctex.init(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE); 
 
-  draw_buffer = GL_COLOR_ATTACHMENT0;
-  ctex.init(GL_RGBA32F, GL_RGBA, GL_UNSIGNED_BYTE); //Color texture
-  glNamedFramebufferTexture(fid, draw_buffer, ctex, 0);
+  glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
 
-  glNamedFramebufferDrawBuffers(fid, 1, &draw_buffer);
+  glNamedFramebufferDrawBuffers(fid, 1, draw_buffer);
 
   RShader shs[2];
-  shs[0].charload(VS_QUAD_SOURCE, GL_VERTEX_SHADER);
-  shs[1].charload(FS_QUAD_SOURCE, GL_FRAGMENT_SHADER);
-  pr.init(shs, 2);
+  shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/quad.fs", GL_FRAGMENT_SHADER);
 
+  pr.init(shs, 2);
+  pr.setFlag("ctex", ctex.getUnit());
   printf("DONE!\n");
 }
+
+void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp){
+  ctex.init(ifmt, efmt, dtp); 
+  glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
+}
+
+
 FBO::~FBO(){ glDeleteFramebuffers(1, &fid);}
 
 void FBO::draw(){
-  glDisable(GL_DEPTH_TEST);
-  glClear(GL_COLOR_BUFFER_BIT);
   pr.use();
+  vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  vao.unbind();
   pr.unbind();
 }
+
 void FBO::use(){ glBindFramebuffer(tp, fid);}
 void FBO::unbind(){ glBindFramebuffer(tp, 0);}
 
@@ -217,8 +213,54 @@ Uint8* FBO::getColorData(){
   return cdata.data();
 }
 
+void FBO::handle_resize(){
+  ctex.resize(FWIDTH, FHEIGHT);
+  glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
+}
 
-float* FBO::getDepthData(){
+void FBO::bindColorTex(RShaderProgram &apr){
+  apr.setFlag("ctex"    , ctex.getUnit()); 
+}
+
+GBuffer::GBuffer(): FBO(){
+  printf("\t\tInit GBuffer...     ");
+  //Depth texture
+  dtex.init(GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+  glTextureParameteri(dtex, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  glTextureParameteri(dtex, GL_TEXTURE_COMPARE_MODE,   GL_NONE);
+  glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
+
+  //Rendering textures/buffers
+  draw_buffer = new GLenum[3];
+  draw_buffer[0] = GL_COLOR_ATTACHMENT0;
+  draw_buffer[1] = GL_COLOR_ATTACHMENT1;
+  draw_buffer[2] = GL_COLOR_ATTACHMENT2;
+
+  //Normal and linear depth encoded as alpha, for SSAO
+  normdtex.init(GL_RGBA16F, GL_RGBA, GL_FLOAT); //Color texture
+  glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
+
+  //Position texture for deferred shading
+  ptex.init(GL_RGB16F, GL_RGB, GL_FLOAT); 
+  glNamedFramebufferTexture(fid, draw_buffer[2], ptex, 0);
+
+  glNamedFramebufferDrawBuffers(fid, 3, draw_buffer);
+
+  noisetex.init(GL_RGB16F, GL_RGB, GL_FLOAT, glm::int2(4, 4));
+  glm::vec3 noise[16];
+  
+  fori(0,16){
+    noise[i] = glm::vec3(RANDESP*2.0-1.0f, RANDESP*2.0-1.0f, 0.0f);
+  } 
+  noisetex.upload((void *) noise);
+  glTextureParameteri(noisetex, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTextureParameteri(noisetex, GL_TEXTURE_WRAP_T, GL_REPEAT);  
+
+  printf("DONE!\n");
+}
+
+
+float* GBuffer::getDepthData(){
   int ddatasize = dtex.getSize().x*dtex.getSize().y;  
   if(ddata.size() != ddatasize) ddata.resize(ddatasize);
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
@@ -234,13 +276,23 @@ float* FBO::getDepthData(){
   return ddata.data();
 }
 
-void FBO::handle_resize(){
-  ctex.resize(FWIDTH, FHEIGHT);
-  glNamedFramebufferTexture(fid, draw_buffer, ctex, 0);
+void GBuffer::handle_resize(){
+  FBO::handle_resize();
+  normdtex.resize(FWIDTH, FHEIGHT);
+  glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
+  ptex.resize(FWIDTH, FHEIGHT);
+  glNamedFramebufferTexture(fid, draw_buffer[2], ptex, 0);
   dtex.resize(FWIDTH, FHEIGHT);
   glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
 }
 
+void GBuffer::bindSamplers(RShaderProgram &apr){
+  apr.setFlag("ctex"    , ctex.getUnit());     
+  apr.setFlag("dtex"    , dtex.getUnit());     
+  apr.setFlag("ndtex"   , normdtex.getUnit()); 
+  apr.setFlag("ptex"    , ptex.getUnit());     
+  apr.setFlag("noisetex", noisetex.getUnit()); 
+}
 
 RShader::RShader(){}
 RShader::~RShader(){glDeleteShader(sid);}
@@ -261,6 +313,16 @@ bool RShader::charload(const GLchar * src, GLenum type){
     printf("%s\n", buffer);
     return false;
   }
+  int bufflen;
+  glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &bufflen);
+  if (bufflen > 1){
+    GLchar* log_string = new char[bufflen + 1];
+    glGetShaderInfoLog(sid, bufflen, 0, log_string);
+    printf("%s\n", log_string);
+    
+    delete log_string;
+    }
+
   return true;
 }
 
@@ -274,6 +336,16 @@ RShaderProgram::~RShaderProgram(){glDeleteProgram(pid);}
 bool RShaderProgram::init(RShader *shader_list, uint nshaders){
   fori(0,nshaders) glAttachShader(pid, shader_list[i].id());
   glLinkProgram(pid);
+  int isLinked = 0;
+  glGetProgramiv(pid, GL_LINK_STATUS, (int *)&isLinked);
+  if(isLinked == GL_FALSE){
+    int bl = 0;
+    glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &bl);
+    std::vector<GLchar> infoLog(bl);
+    glGetProgramInfoLog(pid, bl, &bl, &infoLog[0]);
+    printf("%s\n",infoLog.data());
+
+  }
   return true;
 }
 
@@ -281,8 +353,7 @@ void RShaderProgram::use(){glUseProgram(pid);}
 void RShaderProgram::unbind(){glUseProgram(0);}
 
 void RShaderProgram::setFlag(const GLchar* flag, int val){
-  use();
-  glUniform1i(glGetUniformLocation(pid, flag), val);
+  glProgramUniform1i(pid, glGetUniformLocation(pid, flag), val);
 }
 
 RGLContext::RGLContext(){  }
@@ -313,9 +384,13 @@ void RGLContext::init(SDL_Window *& w){
   glGetIntegerv(GL_MINOR_VERSION, &minor);
 
   printf("\tOpenGL version %d.%d available!\n", major, minor);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  //glEnable(GL_BLEND);
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
+  //glEnable(GL_FRAMEBUFFER_SRGB); 
   //glEnable(GL_MULTISAMPLE);
 }
 

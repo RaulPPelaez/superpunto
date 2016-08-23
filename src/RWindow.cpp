@@ -2,7 +2,7 @@
 
 
 uint FWIDTH = 800;
-uint FHEIGHT = 800;
+uint FHEIGHT = 600;
 
 RWindow::RWindow(string title, uint fw, uint fh){
   if(SDL_WasInit(SDL_INIT_VIDEO) == 0) SDL_Init(SDL_INIT_VIDEO);  
@@ -31,21 +31,18 @@ void RWindow::update_fps(){
   if(total_seconds>counted_seconds){
     FPS = frames_this_second/(total_seconds-counted_seconds);
     counted_seconds = total_seconds;
-    SDL_SetWindowTitle(w, (title+" FPS = "+to_string((int)(FPS+0.5))).c_str());
+    SDL_SetWindowTitle(w, (title+" FPS = "+to_string((int)(FPS+0.5f))).c_str());
     frames_this_second = 0;
   }
 
 }
 
 bool RWindow::ready_to_draw(){
-  return true;
-  /*
     static int last_time = 0;
     int current_time = SDL_GetTicks();
-    if(current_time>(100.0f/3.0f)+last_time){
+    if((current_time-last_time)>=(100.0f/6.0f)){
       last_time = current_time;
       return true;
     }
     return false;
-  */
 }

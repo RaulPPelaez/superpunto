@@ -1,18 +1,22 @@
+
 #include "RGLHandle.h"
 
 
 #define FOV glm::radians(45.0f)
-#define ZNEAR 1.0f
-#define ZFAR 100.0f
+#define ZNEAR 0.01f
+#define ZFAR 1000.0f
+//Vertex per sphere in fill_vbos
+#define NVERTEX 240
 
-RGLHandle::RGLHandle(){picked = -1;}
-RGLHandle::~RGLHandle(){}
-                                                                                               
+RGLHandle::RGLHandle(int maxN, float gscale, RConfig cfg):
+  boxSize(glm::vec3(0)),
+  maxN(maxN),
+  gscale(gscale),
+  cfg(cfg),
+  picking(false){
 
-bool RGLHandle::init(int maxN, RConfig cfg){
-  this->maxN = maxN;
-  this->cfg = cfg;
-
+  picked[0] = picked[1] = -1;
+  
   printf("Initializing OpenGL...\n");
   this->handle_resize();
 
@@ -26,12 +30,27 @@ bool RGLHandle::init(int maxN, RConfig cfg){
   init_math();
   init_shaders();
   init_uniforms();
+
+  textRenderer.setFont(cfg.fontName.c_str(), 45);
+  
   printf("DONE!\n");
-  return true;
 }
+
+RGLHandle::~RGLHandle(){}
+                                                                                               
+
 
 bool RGLHandle::init_buffers(){
   printf("\tInit buffers...     ");
+
+  DataLayout dl;
+  dl.init(3, 3*sizeof(float), GL_FLOAT, 0);
+  lines_vbo.init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
+  lines_vbo.initmem(2*sizeof(float)*3, NULL);
+  
+  box_vbo.init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
+  fill_box_vbo(box_vbo);
+  
   init_sphere();
   init_instance_vbos();
   init_vao();
@@ -48,11 +67,14 @@ bool RGLHandle::init_sphere(){ //Config and upload sphere vertices
   return true;
 }
 
-bool RGLHandle::init_vao(){ //Configure Vertex Array Object
+bool RGLHandle::init_vao(){ //Configure Vertex Array Objects
   spheres_vao.set_attrib(attribs["in_vertex"], sphere_vbos[0], 0);
   spheres_vao.set_attrib(attribs["pos"], instances_vbos[0], 1);  
   spheres_vao.set_attrib(attribs["color"], instances_vbos[1], 2);
   spheres_vao.set_attrib(attribs["scale"], instances_vbos[2], 3);
+
+  line_vao.set_attrib(0, lines_vbo, 0);
+  box_vao.set_attrib(0, box_vbo, 0);
   return true;
 }
 
@@ -88,10 +110,31 @@ extern const char* FS_SOURCE;
 bool RGLHandle::init_shaders(){
   printf("\tInit shaders...     ");
   RShader shs[2];
-  shs[0].charload(VS_SOURCE, GL_VERTEX_SHADER);
-  shs[1].charload(FS_SOURCE, GL_FRAGMENT_SHADER);
+  // shs[0].charload(VS_SOURCE, GL_VERTEX_SHADER);
+  // shs[1].charload(FS_SOURCE, GL_FRAGMENT_SHADER);
+  shs[0].load("../src/shaders/geom.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/geom.fs", GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
+
+  shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/light.fs", GL_FRAGMENT_SHADER);
+  lightpr.init(shs, 2);
+
+  shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/ssao.fs", GL_FRAGMENT_SHADER);
+  ssaopr.init(shs, 2);
   
+  shs[0].load("../src/shaders/line.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/line.fs", GL_FRAGMENT_SHADER);
+  linepr.init(shs, 2);
+  
+  shs[0].load("../src/shaders/box.vs", GL_VERTEX_SHADER);
+  shs[1].load("../src/shaders/box.fs", GL_FRAGMENT_SHADER);
+  boxpr.init(shs, 2);
+
+  ssaofbo.setFormat(GL_R32F, GL_RED, GL_FLOAT);
+  //CheckGLError();
+
   printf("DONE!\n");
   return true;
 }
@@ -102,18 +145,52 @@ bool RGLHandle::init_uniforms(){
   unimodel = glGetUniformLocation(pr.id(), "model");
   pr.setFlag("picking",0);
   pr.setFlag("drawing_picked",0);
-  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
+  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"),
+	      1.0f);
+  glUniform1f(glGetUniformLocation(pr.id(), "gscale"),
+	      this->gscale);
+  glUniform1f(glGetUniformLocation(pr.id(), "znear"),
+	      ZNEAR);
+  glUniform1f(glGetUniformLocation(pr.id(), "zfar"),
+	      ZFAR);
   pr.unbind();
+
+  gBuffer.bindSamplers(lightpr);
+  gBuffer.bindSamplers(ssaopr);
+  
+  lightpr.setFlag("SSAOtex", ssaofbo.getTexUnit());
+  
+  //ssaofbo.bindColorTex(lightpr);
+
+  linepr.use();
+  glUniform1f(glGetUniformLocation(linepr.id(), "gscale"),
+	      this->gscale);
+  glUniform3f(glGetUniformLocation(linepr.id(), "color"),
+	      1,1,1);
+
+  linepr.unbind();
+  boxpr.use();
+  glUniform1f(glGetUniformLocation(boxpr.id(), "gscale"),
+	      this->gscale);
+  glUniform3f(glGetUniformLocation(boxpr.id(), "color"),
+	      0,0,1);
+  boxpr.unbind();
   printf("DONE!\n");
   return true;
 }
 
 
-bool RGLHandle::upload_instances(const float *pos, const float *colors, const float *scales, int N){
-  instances_vbos[0].upload(0, 3*N*sizeof(float), (const void *)pos);
-  instances_vbos[1].upload(0, 3*N*sizeof(float), (const void *)colors);
-  instances_vbos[2].upload(0, 1*N*sizeof(float), (const void *)scales);
-  currentN = N;
+bool RGLHandle::upload_instances(ParticleData pdata){
+  int N = pdata.N;
+  instances_vbos[0].upload(0, 3*N*sizeof(float),
+			   (const void *)pdata.pos);
+  instances_vbos[1].upload(0, 3*N*sizeof(float),
+			   (const void *)pdata.colors);
+  instances_vbos[2].upload(0, 1*N*sizeof(float),
+			   (const void *)pdata.scales);
+  this->particles = pdata;
+  float3 L = pdata.L;
+  this->boxSize = glm::vec3(L.x, L.y, L.z);
   return true;
 }
 
@@ -121,7 +198,9 @@ void RGLHandle::handle_resize(){
   glViewport(0,0,FWIDTH, FHEIGHT);
   float ar = FWIDTH/(float)FHEIGHT;
   proj =glm::perspective(FOV, ar, ZNEAR, ZFAR);
+  //gBuffer.handle_resize();
   //fbo.handle_resize();
+  //ssaofbo.handle_resize();
 }
 
 void RGLHandle::rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z){
@@ -136,57 +215,197 @@ Uint8* RGLHandle::getPixels(){
 
 void RGLHandle::update(){
   cam.update();
+  
 }
-int RGLHandle::pick(int x, int y){
+int RGLHandle::pick(int x, int y, int pickindex){
   glClearColor(0.0f ,0.0f ,0.0f ,1.0f);
+  pr.use();
   pr.setFlag("picking",1);
+  this->picking = true;
   pr.unbind();
-  draw();
+  //  draw();
+  geometry_pass();
+  pr.use();
   pr.setFlag("picking",0);
   pr.unbind();
-  glm::vec4 pixel = fbo.getPixel(x,y);
-  picked =pixel[0]+256*pixel[1]+ 256*256*pixel[2] - 1;
+  glm::vec4 pixel = gBuffer.getPixel(x,y);
+  this->picked[pickindex] =pixel[0]+256*pixel[1]+ 256*256*pixel[2] - 1;
   //Two colors identify the same index to gain precision,
   //"only" 255^3/2 differenciable objects 
-  if(picked>=0) picked /=2;
+  if(picked[pickindex]>=0) picked[pickindex] /=2;
   //  cerr<<pixel[0]<<" "<<pixel[1]<<" "<<pixel[2]<<endl<<picked<<endl;
-  return picked;
+  this->picking = false;
+  return picked[pickindex];
 }
+void RGLHandle::render_picked(){
+  if(picked[0]<0 && picked[1]<0) return;
+  
+  glLineWidth(1.3f);
+  pr.setFlag("drawing_picked", 1);
+  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.3f);
+  if(picked[0]>=0)
+    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX,
+					GL_UNSIGNED_INT,
+					NULL, 1, picked[0]);
+  if(picked[1]>=0)
+    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX,
+					GL_UNSIGNED_INT,
+					NULL, 1, picked[1]);
+  if(picked[1]>=0 && picked[0]>=0){
+    linepr.use();
+      
+    float lineptr[6];
+    fori(0,3) forj(0,2) lineptr[i+3*j] = particles.pos[3*picked[j]+i];
 
-void RGLHandle::draw(){
-  //  glViewport(0,0,FWIDTH, FHEIGHT);
-  //pr.setFlag("picking",1);
-  fbo.use();
-  glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0);
+    
+    lines_vbo.upload(0, 6*sizeof(float), (const void *)&lineptr[0]);
+    glUniformMatrix4fv(glGetUniformLocation(linepr.id(), "MVP")
+		       , 1, GL_FALSE, glm::value_ptr(MVP));
+    glUniformMatrix4fv(glGetUniformLocation(linepr.id(), "model")
+		       , 1, GL_FALSE, glm::value_ptr(model));
+    line_vao.use();
+    glLineWidth(3.3f);
+    glDrawArrays(GL_LINES, 0, 2);
+    glLineWidth(1.0f);
+    pr.use();
+    spheres_vao.use();
+  }
+  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
+  pr.setFlag("drawing_picked", 0);
+}
+void RGLHandle::render_box(){
+  boxpr.use();
+  box_vao.use();
+  glUniformMatrix4fv(glGetUniformLocation(boxpr.id(), "MVP")
+		     , 1, GL_FALSE, glm::value_ptr(MVP));
+  glUniform3f(glGetUniformLocation(boxpr.id(), "boxSize"),
+	      boxSize.x, boxSize.y, boxSize.z);
+  glLineWidth(3.0f);
+  glDrawArrays(GL_LINES, 0, 72);
+  glLineWidth(1.0f);
+  box_vao.unbind();  
+  boxpr.unbind();
+}
+void RGLHandle::geometry_pass(){
+
+  gBuffer.use();
   glEnable(GL_DEPTH_TEST);
+  glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0f);  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  pr.use();
+  
   view = cam.lookAt();
   MVP = proj*view*model;
 
+  pr.use();
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(MVP));
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(model));
-  glUniform3f(glGetUniformLocation(pr.id(), "EyeWorldPos"), cam.pos.x, cam.pos.y, cam.pos.z);
+
+
   spheres_vao.use();
   sphere_vbos[1].use(); //indices
-  glDrawElementsInstanced(GL_TRIANGLES, 240, GL_UNSIGNED_INT, NULL, currentN);
-  if(picked>=0){
-    glLineWidth(1.3f);
-    pr.setFlag("drawing_picked", 1);
-    glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.3f);
-    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, 240,
-					GL_UNSIGNED_INT, NULL, 1, picked);
-    glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
-    pr.setFlag("drawing_picked", 0);
+  glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL, particles.N);
+  if(!picking) render_picked();
+  render_box();  
+  sphere_vbos[1].unbind(); //indices
+  spheres_vao.unbind(); 
+  pr.unbind();
+
+  gBuffer.unbind();
+
+
+  
+}
+
+
+void RGLHandle::light_pass(){
+  fbo.use();
+  glDisable(GL_DEPTH_TEST);
+  lightpr.use();
+  glUniform3f(glGetUniformLocation(lightpr.id(), "viewPos"), cam.pos.x, cam.pos.y, cam.pos.z);
+
+  dummy_vao.use();
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  dummy_vao.unbind();
+
+  lightpr.unbind();
+  fbo.unbind();
+}
+
+
+GLfloat lerp(GLfloat a, GLfloat b, GLfloat f){
+  return a + f * (b - a);
+}
+void RGLHandle::SSAO_pass(){
+  static const int nsamples = 129;
+  static glm::vec4 points[nsamples];
+  static bool gen_points = true;
+  
+  if(gen_points){
+    fori(0,nsamples){
+      /*We will sample depths in a semisphere*/
+      glm::vec4 sample =
+	glm::normalize(
+		       glm::vec4(RANDESP*2.0-1.0,
+				 RANDESP*2.0-1.0,
+				 RANDESP,0)
+		       );
+      float scale = float(i)/nsamples;
+      /*We want the samples to be preferently close*/
+      scale = lerp(0.1f, 1.0f, scale*scale);
+      sample *= scale;
+      points[i] = sample;
+    }
+    /*Upload the sample points*/
+    glProgramUniform4fv(ssaopr.id(),
+			glGetUniformLocation(ssaopr.id(),
+					     "points"),
+			nsamples, glm::value_ptr(points[0]));
+    gen_points = false;
   }
 
-  sphere_vbos[1].unbind();
-  pr.unbind();
-  fbo.unbind();
+  ssaofbo.use();
+  // glUniformMatrix4fv(glGetUniformLocation(ssaopr.id(), "proj"),
+  // 		     1, GL_FALSE, glm::value_ptr(proj));
 
+  glDisable(GL_DEPTH_TEST);
+  ssaopr.use();
+
+  dummy_vao.use();
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  dummy_vao.unbind();
+
+  ssaopr.unbind();
+  ssaofbo.unbind();
+}
+
+void RGLHandle::SSAOrad(float inc){
+  static float rad = 0.4f;
+  rad += inc;
+  glProgramUniform1f(ssaopr.id(),
+		     glGetUniformLocation(ssaopr.id(),"radius"),
+		     rad);
+  cerr<<rad<<endl;
+}
+void RGLHandle::draw(){
+  //glViewport(0,0,FWIDTH, FHEIGHT);
+  //pr.setFlag("picking",1); //Uncomment for picking view
+
+  geometry_pass();
+  SSAO_pass();
+  light_pass();
+
+  glDisable(GL_DEPTH_TEST);
+
+  
   fbo.draw();
+  glEnable(GL_BLEND);
+  glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+  textRenderer.draw();
+  glDisable(GL_BLEND);
+}
 
-  spheres_vao.unbind(); //just as a dummy vao for glDrawArrays to work
+void RGLHandle::drawText(const char* text, int x, int y){
+  textRenderer.setText(text, x,y);
 }
 
 
@@ -245,3 +464,23 @@ void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO){
   indicesVBO.initmem(sizeof(index), index);
 }
 
+void fill_box_vbo(VBO &boxVBO){
+  float v[] = {
+    0,0,0, 0,1,0,
+    1,0,0, 1,1,0,
+    1,0,1, 1,1,1,
+    0,0,1, 0,1,1,
+    0,1,0, 0,1,1,
+    1,1,0, 1,1,1,
+    1,0,0, 1,0,1,
+    0,0,0, 0,0,1,
+    0,1,0, 1,1,0,
+    0,1,1, 1,1,1,
+    0,0,1, 1,0,1,
+    0,0,0, 1,0,0
+  };
+
+  fori(0,72) v[i] -= 0.5f;
+    
+  boxVBO.initmem(sizeof(v), v);
+}

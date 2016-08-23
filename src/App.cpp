@@ -2,14 +2,22 @@
 #include"RPNG.h"
 uint palette_id=923302100; //1 is also cool 
 
-App::App(int argc, char *argv[]){
+
+
+App::App(int argc, char *argv[]):
+  w(nullptr),
+  gl(nullptr)
+{
   file.name = argv[1];
   cfg.set_default();
   cfg.parse_args(argc, argv);
   init();
   run();
 }
-App::~App(){}
+App::~App(){
+  delete w;
+  delete gl;
+}
 
 bool App::init(){
   read_input();
@@ -32,37 +40,44 @@ bool App::initSDL(){
 }
 bool App::initWindow(){
   printf("Starting graphic context...      \n");
-  
-  string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";
+  string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";  
   w = new RWindow(title, FWIDTH, FHEIGHT);
   printf("DONE!\n");
   return true;
 }
 bool App::initOpenGL(){
-  gl = new RGLHandle;
-  gl->init(file.maxN, cfg);
-  gl->cam.warp(glm::vec3(0, 3.0f*file.max_dist[0], 0));
+  gl = new RGLHandle(file.maxN, 1.0f/file.maxScale, cfg);
+  gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
   upload_frame(0);
+
   return true;
 }
 
 void App::upload_frame(int frame){
-  float *ps, *cs, *ss; //poss, colors, scales
-  int N;
-  if(!file.get_frame(ps, cs, ss, N, frame)) return;
-  gl->upload_instances(ps, cs, ss, N);
+  if(!file.set_frame(frame)) return;
+  gl->upload_instances(file.current);
+  gl->drawText(
+	       (file.msgs[file.current_frame]+
+		string(" -- ")+to_string(file.current_frame)).c_str(),
+	       0, 0);
 }
 void App::upload_next_frame(){
-  float *ps, *cs, *ss; //poss, colors, scales
-  int N;
-  if(!file.get_next_frame(ps, cs, ss, N)) return;
-  gl->upload_instances(ps, cs, ss, N);
+  if(!file.set_next_frame()) return;
+  gl->upload_instances(file.current);
+  gl->drawText(
+	       (file.msgs[file.current_frame]+
+		string(" -- ")+to_string(file.current_frame)).c_str(),
+	       0, 0);
+    
 }
 void App::upload_previous_frame(){
-  float *ps, *cs, *ss; //poss, colors, scales
-  int N;
-  if(!file.get_previous_frame(ps, cs, ss, N)) return;
-  gl->upload_instances(ps, cs, ss, N);
+  if(!file.set_previous_frame()) return;
+  gl->upload_instances(file.current);
+  gl->drawText(
+	       (file.msgs[file.current_frame]+
+		string(" -- ")+to_string(file.current_frame)).c_str(),
+	       0, 0);
+
 }
 
 
@@ -77,7 +92,6 @@ void App::run(){
     if(w->ready_to_draw()){
       update();
       draw();
-      if(cfg.record_movie) screenshot();
     }
   }
 }
@@ -96,6 +110,7 @@ void App::handle_events(){
       IF_KEY(m, cfg.play = !cfg.play;)
       IF_KEY(h, cfg.print_help();)
       IF_KEY(c, this->screenshot();)
+      IF_KEY(l, cfg.record_movie = !cfg.record_movie; cfg.play = !cfg.play;)	
 
       IF_KEY(4, gl->rotate_model(0.1f,1,0,0);)
       IF_KEY(5, gl->rotate_model(0.1f,0,1,0);)
@@ -103,6 +118,9 @@ void App::handle_events(){
       IF_KEY(1, gl->rotate_model(-0.1f,1,0,0);)
       IF_KEY(2, gl->rotate_model(-0.1f,0,1,0);)
       IF_KEY(3, gl->rotate_model(-0.1f,0,0,1);)
+
+	IF_KEY(8, gl->SSAOrad(+0.01);)
+	IF_KEY(9, gl->SSAOrad(-0.01);)
 
     }
     if(e.type == SDL_WINDOWEVENT){
@@ -117,11 +135,20 @@ void App::handle_events(){
       }
     }
     if(e.type == SDL_MOUSEBUTTONDOWN){
-      int id = gl->pick(e.button.x, e.button.y);
-      if(id>=0 && id<file.maxN){
-	selected_particle = id;
-	cerr<<"Selected Superpunto: "<<selected_particle<<endl;
+      int button = e.button.button == SDL_BUTTON_LEFT ? 0:1;
+      int id = gl->pick(e.button.x, e.button.y, button);
+      gl->picked[button] = id;
+      if(id>=0 && id<file.maxN)
+	cerr<<"Selected Superpunto: "<<id<<endl;
+      if(gl->picked[0]>=0 && gl->picked[1] >=0){
+	cerr<<"\tDistance between "<<gl->picked[0]<<" and "<<gl->picked[1]<<": ";
+	float *ps = file.current.pos;
+	cerr<<"( ";
+	fori(0,3)
+	  cerr<<ps[3*gl->picked[1]+i]-ps[3*gl->picked[0]+i]<<" ";
+	cerr<<")"<<endl;
       }
+
       
     }
   }
@@ -130,19 +157,44 @@ void App::handle_events(){
 void App::screenshot(){
   static int counter = 0;
   static bool init = false;
+
   if(!init){
     int sysret = system("mkdir -p screenshots");
     init = true;
   }
-  std::string fileName = string("screenshots/shot_")+to_string(counter)+string(".png");
+  std::string fileName = string("screenshots/shot_")+
+    to_string(counter)+string(".png");
   Uint8* pixels = gl->getPixels();
   glm::int2 s = gl->getSize();
   savePNG(fileName.c_str(), pixels, s.x, s.y);
   counter++;
 }
 
+void App::movieAddFrame(){
+  static FILE* fp = nullptr;
+  static bool init = false;
+  if(!init){
+    int rate = 16;
+    int bitrate = 24000;
+    string movie_fileName("movie.mp4");
+    string cmd = string("avconv -loglevel panic -y -f rawvideo -s ");
+    cmd += to_string(FWIDTH) + string("x") + to_string(FHEIGHT);
+    cmd += string(" -pix_fmt rgba -r ") + to_string(rate);
+    cmd += string(" -i - -vf vflip -an -b:v ") + to_string(bitrate) +
+      string("k ");
+    cmd += movie_fileName;
+    cerr<<"Encoding video with command:"<<endl;
+    cerr<<cmd<<endl;
+    fp = popen(cmd.c_str(), "w");
+    init = true;
+  }
+  Uint8* pixels = gl->getPixels();
+  glm::int2 s = gl->getSize();
+  fwrite(pixels, s.x*s.y*4, 1, fp);
+}
 void App::update(){
   if(visible) gl->update();
+  if(cfg.record_movie) movieAddFrame();
   if(cfg.play) upload_next_frame();
 }
 void App::draw(){

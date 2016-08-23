@@ -4,7 +4,7 @@
 #include<SDL2/SDL.h>
 #define GL3_PROTOTYPES 1
 #include"GL/glew.h"
-
+#include<string>
 typedef unsigned int uint;
 
 
@@ -23,11 +23,7 @@ extern uint FHEIGHT;
 
 #define MOUSE_SENS 0.25f
 
-extern uint palette_id;
-
-
-
-
 
 
 #endif
+extern uint palette_id;

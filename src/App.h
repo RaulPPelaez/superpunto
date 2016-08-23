@@ -31,16 +31,18 @@ private:
 
   void update();
   void handle_events();
+
   void draw();
 
   void screenshot();
+  void movieAddFrame();
 
   RGLHandle *gl;
   RWindow *w;
   RConfig cfg;
   RFile file;
 
-  int selected_particle;
+  
   bool visible;
 
 };
