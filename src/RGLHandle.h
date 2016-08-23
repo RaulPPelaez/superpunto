@@ -37,7 +37,6 @@ class RGLHandle{
   void SSAO_pass();
   void SSAOrad(float inc);
 
-  void render_picked();
   void draw();
   void drawText(const char* text, int x, int y);
   
