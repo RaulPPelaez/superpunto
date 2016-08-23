@@ -11,6 +11,7 @@
 using namespace std;
 #include"math_helper.h"
 
+
 struct ParticleData{
   float *pos=nullptr, *scales=nullptr, *colors=nullptr;
   uint N=0;

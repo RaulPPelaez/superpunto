@@ -1,8 +1,6 @@
 #include"RFile.h"
 #include"math_helper.h"
 
-
-
 bool RFile::set_frame(int frame){
   if(frame>Nframes-1  || frame<0) return false;
   current_frame = frame;
@@ -181,6 +179,7 @@ vector<float> RFile::parse_colors(const std::vector<int> &colors){
   }
   return RGB;
 }
+
 
 float get_flag(std::string flag, std::string &line){
   float res = 0.0f;

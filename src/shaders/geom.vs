@@ -1,5 +1,6 @@
 #version 450
 
+
 layout (location = 0) in vec3 in_vertex;
 layout (location = 1) in vec3 pos;
 layout (location = 2) in vec3 color;
@@ -13,7 +14,8 @@ uniform float gscale = 1.0f;
 out vec3 Normal;
 out vec3 Color;
 out vec3 Pos;
-out int id;
+
+flat out int id;
 			     
 void main () {
   id = gl_InstanceID+1;

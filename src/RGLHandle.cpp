@@ -5,6 +5,7 @@
 #define FOV glm::radians(45.0f)
 #define ZNEAR 0.01f
 #define ZFAR 1000.0f
+
 //Vertex per sphere in fill_vbos
 #define NVERTEX 240
 
@@ -16,7 +17,7 @@ RGLHandle::RGLHandle(int maxN, float gscale, RConfig cfg):
   picking(false){
 
   picked[0] = picked[1] = -1;
-  
+
   printf("Initializing OpenGL...\n");
   this->handle_resize();
 
@@ -162,6 +163,7 @@ bool RGLHandle::init_uniforms(){
   
   //ssaofbo.bindColorTex(lightpr);
 
+
   linepr.use();
   glUniform1f(glGetUniformLocation(linepr.id(), "gscale"),
 	      this->gscale);
@@ -229,7 +231,9 @@ int RGLHandle::pick(int x, int y, int pickindex){
   pr.setFlag("picking",0);
   pr.unbind();
   glm::vec4 pixel = gBuffer.getPixel(x,y);
+
   this->picked[pickindex] =pixel[0]+256*pixel[1]+ 256*256*pixel[2] - 1;
+
   //Two colors identify the same index to gain precision,
   //"only" 255^3/2 differenciable objects 
   if(picked[pickindex]>=0) picked[pickindex] /=2;
@@ -303,6 +307,7 @@ void RGLHandle::geometry_pass(){
 
   spheres_vao.use();
   sphere_vbos[1].use(); //indices
+
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL, particles.N);
   if(!picking) render_picked();
   render_box();  
@@ -312,8 +317,6 @@ void RGLHandle::geometry_pass(){
 
   gBuffer.unbind();
 
-
-  
 }
 
 

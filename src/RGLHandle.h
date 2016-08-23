@@ -37,6 +37,7 @@ class RGLHandle{
   void SSAO_pass();
   void SSAOrad(float inc);
 
+  void render_picked();
   void draw();
   void drawText(const char* text, int x, int y);
   
@@ -59,6 +60,7 @@ class RGLHandle{
 
   VBO sphere_vbos[2]; //Vertex, index
   VBO instances_vbos[3]; //pos, color, radius
+
   ParticleData particles; //Current particle data in CPU
   VBO lines_vbo; //lines start/end
   VBO box_vbo;

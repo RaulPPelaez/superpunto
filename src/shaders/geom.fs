@@ -2,11 +2,12 @@
 in vec3 Normal;
 in vec3 Pos;
 in vec3 Color;
-in flat int id;
+flat in int id;
 
-layout (location = 0) out vec4 outColor;
-layout (location = 1) out vec4 normalDepth;
-layout (location = 2) out vec3 positionBuffer;
+layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 normalDepth;
+layout(location = 2) out vec3 positionBuffer;
+
 
 uniform bool picking;
 uniform bool drawing_picked;

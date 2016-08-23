@@ -9,14 +9,13 @@
 
 layout(location = 0) out float occ;
 
-
 const int NSAMPLES = 129;
 uniform vec4 points[NSAMPLES];
 /*This radius works well for radius 1 spheres*/
 uniform float radius = 0.015f;
 
 void main(){
-  occ = 0.0f;
+  occ = 0.0;
   vec4 ND = texelFetch(ndtex, ivec2(gl_FragCoord.xy), 0);
   
   vec3 N = ND.xyz;
@@ -28,7 +27,6 @@ void main(){
   /*Create a random rotated base to randomize directions*/
   vec3 rv = texture(noisetex,
 		    ivec2(gl_FragCoord.xy/vec2(800.0f, 600.0f)/4.0f)).xyz;
-  
   vec3 tangent = normalize(rv - N*dot(rv, N));
   vec3 bitan = cross(N, tangent);
   mat3 TBN = mat3(tangent, bitan, N);
@@ -48,7 +46,7 @@ void main(){
 		 , 0).w;
     /*depth is 1.0f in the background,
       this prevents the background from occluding the model*/
-    if(their_depth!=1.0f){
+    if(their_depth!=1.0){
       float delta = (z-their_depth);
       /*Occlude the pixel if the sample is closer*/
       /*This number works well for radius one spheres*/
