@@ -4,7 +4,6 @@
 void RGL::initialize(int options){
   
   frames = 0.0;
-
   drawables.initialize(&MVP, &model, options);
 
   MVP = glm::mat4();

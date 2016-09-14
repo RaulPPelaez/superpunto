@@ -90,6 +90,7 @@ void print_help(){
       printf("\t  --frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
       printf("\t  --background R G B : Background color in RGB, default R=G=B=0.0\n");
       printf("\t  --palette X : Change the color palette\n");
+      printf("\t  --RGB : Interpret color column as RGB color id instead of palette generated color (as integers, 255 is red)\n");
 
       printf("\n\x1b[1m Controls:\x1b[0m\n");
       printf("  Movement:\n");

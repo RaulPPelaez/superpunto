@@ -34,6 +34,7 @@ public:
   std::vector<vector<float>> Lbox; //Custom box size in the comments  
   int Nframes;
   int current_step;
+  bool readHexColor;
 private:	
   void initBuffers();
   void upload_step();
@@ -156,7 +157,11 @@ void RGLContext::initBuffers(){
      max_dist[frame] = Rmax(max_dist[frame], abs(temp[i]));
    }
    scales[frame][N] = temp[3];
-   ctemp[N] = palette[((int)temp[4]+1)%1000];
+
+   if(readHexColor)
+     ctemp[N] = temp[4];//palette[((int)temp[4]+1)%1000];
+   else
+     ctemp[N] = palette[((int)temp[4]+1)%1000];
    
    getline(in,line);
   }
@@ -263,6 +268,7 @@ void App::init_default_params(){
   pause = true;
   dostep = false;
   running = true;
+  glcontext.readHexColor = false;
 }
 
 void App::parse_input(int argc, char** argv){
@@ -275,6 +281,7 @@ void App::parse_input(int argc, char** argv){
     if(argv[i][0]!='-') continue;
     if(strcmp(argv[i],"--record")==0) record_movie = true;
     if(strcmp(argv[i],"--palette")==0) palette_id = atoi(argv[i+1]);
+    if(strcmp(argv[i],"--RGB")==0) glcontext.readHexColor = true;
     if(strcmp(argv[i],"--frames-between-screenshots")==0)frames_between_screenshots = atoi(argv[i+1]);
     if(strcmp(argv[i],"--background")==0){
       bcolor[0] = stod( argv[i+1]);
@@ -307,8 +314,8 @@ App::App(int argc, char** argv){
   /*if(GLVER>3.3)*/ window.setVerticalSyncEnabled(true);
 
   glClearColor(bcolor[0], bcolor[1], bcolor[2], 1.0f);   
-  glcontext.initialize(); 
-
+  glcontext.initialize();
+  
   font.loadFromFile("/usr/share/fonts/truetype/freefont/FreeSans.ttf");
   text.setFont(font); 
   text.setCharacterSize(24);

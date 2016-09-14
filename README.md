@@ -26,7 +26,7 @@ run ./spunto -h for information about the available options and controls.
 
 
 inputfile should have the following structure:
->\#L=X; Comments are used to separate frames, you can force the size of the simulation box starting the comment with L=X; as in this example
+>\#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment with Lx=X;Ly=Y;Lz=Z; as in this example
 
 >X1 Y1 Z1 r1 c1 #You can comment here aswell! If your file has more than
    
@@ -59,9 +59,17 @@ both of these parameters are optional, if you only set 4 columns, the 4th will b
 If you generate a movie, use gif2mp4 to convert it to mp4.
 
 #COLORS
+**Using palette** (Default)
+
 The colors are selected using C++ rand(), setting the initial seed to a constant called palette, this constant defines a color palette with colors randomly distributed between 0 (black) and 255^3(white). You can change the palette seed using the --palette option. By default palette=923302100. The generated color palette contains 1000 colors.
 
 **In the file, the colors are specified** from one of the 1000 available using an integer number between 0 and 1000 (higher values will be reduced to this range).
+
+**Using RGB id** (by passing the flag --RGB when running spunto)
+
+if --RGB is present the color column is interpreted as a RGB hexadecimal value, written as an integer.
+So full red (0xff0000) would be 255 and white(0xFFffFF) would be 16777215.
+
 
 #CONTROLS
 You can move around using:
