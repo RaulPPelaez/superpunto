@@ -3,7 +3,8 @@
 #include "header.h"
 #include "RFile.h"
 #include<glm/gtx/compatibility.hpp>
-
+#include<vector>
+using namespace std;
 
 const char * GetGLErrorStr(GLenum err);
 void CheckGLError();
@@ -174,5 +175,6 @@ public:
 private:
   SDL_GLContext context;
 };
+
 
 #endif

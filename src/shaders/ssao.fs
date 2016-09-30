@@ -49,8 +49,8 @@ void main(){
     if(their_depth!=1.0){
       float delta = (z-their_depth);
       /*Occlude the pixel if the sample is closer*/
-      /*This number works well for radius one spheres*/
-      if( delta>3.0005e-4 ) {occ += 2.0;}
+      /*This number works well for radius one spheres, depends on ZNEAR and ZFAR*/
+      if( delta>3.0005e-5 ) {occ += 2.0;}
     }
 
   }

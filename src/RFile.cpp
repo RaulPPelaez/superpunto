@@ -1,10 +1,55 @@
 #include"RFile.h"
 #include"math_helper.h"
 
+
+ColorParser::ColorParser(ColorParserType tp, uint pid): palette_id(pid), tp(tp){
+
+  switch(tp){
+  case PALETTE:
+    srand(palette_id);
+    palette.resize(1000,0);
+    fori(0,palette.size())
+      palette[i] = rand()%0xffFFff;
+    palette[1] = 0xFF00;
+    palette[2] = 0xFF00;
+    palette[3] = 0xFF;
+    break;
+
+  }
+  
+}
+
+RColor ColorParser::getColor(uint id){
+
+  switch(tp){
+  case PALETTE:
+    return id2BGR(palette[(id+1)%palette.size()]);
+    break;
+  case HEXBGR:
+    return id2BGR(id);
+    break;
+  }
+
+
+
+}
+
+
+RColor ColorParser::id2BGR(uint id){
+  return {(id & 0xFF)/255.0f,
+         ((id & 0xFF00) >> 8)/255.0f,
+      ((id & 0xFF0000) >> 16)/255.0f};
+}
+
+
+
+
 bool RFile::set_frame(int frame){
   if(frame>Nframes-1  || frame<0) return false;
   current_frame = frame;
   current.pos = pos[frame].data();
+  if(Nrows>=6)current.vel = vel[frame].data();
+  else current.vel = nullptr;
   current.scales = scales[frame].data();
   current.colors = colors[frame].data();
   current.N = Natframe[frame];
@@ -67,66 +112,70 @@ bool RFile::get_config(){
   if(N>maxN){maxN = N;}
   Natframe.push_back(N);
   switch(Nrows){
-   case 5:
-     printf("\t5 rows, taking as XYZRC\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
-     break;
-   case 4:
-     printf("\t4 rows, taking as XYZC\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
-     break;
-   case 3:
-     printf("\t3 rows, taking as XYZ\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
-     break;
-  case 2:case 1:
-     printf("\t INVALID NUMBER OF ROWS IN FILE!\n");
-     exit(0);
-     break;
+  case 7:
+    printf("\t7 rows, taking as XYZC VxVyVz\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
+    break;
+  case 6:
+    printf("\t6 rows, taking as XYZ VxVyVz\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
+    break;
+  case 5:
+    printf("\t5 rows, taking as XYZRC\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
+    break;
+  case 4:
+    printf("\t4 rows, taking as XYZC\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
+    break;
+  case 3:
+    printf("\t3 rows, taking as XYZ\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
+    break;
   default:
-    printf("\t%d rows, taking as XYZRC\n\t%d frames\n\t%d superpuntos\n", Nrows, Nframes, maxN);
-    Nrows = 5;
-     break;
+    printf("\t INVALID NUMBER OF ROWS IN FILE!\n");
+    exit(0);
+    break;
   }
   in.close();
   return true;
 }
 
-bool RFile::read_frames(){
+bool RFile::read_frames(ColorParserType readColorMode){//bool readHexColor){
+
   current_frame = 0;
   
   maxScale = 0.0f;  
   ifstream in(name);   
   /*Reserve space for all the file*/
   pos.resize(Nframes);
+  if(Nrows>=6) vel.resize(Nframes);
   scales.resize(Nframes);
   colors.resize(Nframes);
-  msgs.resize(Nframes," ");
+  msgs.resize(Nframes, " ");
   Lbox.resize(Nframes, make_float3(0.0f));
   max_dist.resize(Nframes, make_float3(0.0f));
-  
   /*Helper variables*/
   std::string line;  
   std::stringstream is;
 
-  float temp[Nrows];
-  vector<int> ctemp(Natframe[0],0);
+  float temp[8];
+  //vector<int> ctemp(Natframe[0],0);
   
   /*Generate color pallete*/
-  srand(palette_id);
-  vector<unsigned int> palette(1000,0);
-  fori(0,1000) palette[i] = rand()%0xffFFff;
+  // srand(palette_id);
+  // vector<unsigned int> palette(1000,0);
+  // fori(0,1000) palette[i] = rand()%0xffFFff;
 
+  ColorParser cparser(readColorMode, palette_id);
   /*Read all the frames*/
   getline(in,line);
   for(int frame = 0; frame<Nframes; frame++){
     printf("\rLoading data... %d%%   ",
 	   (int)(100.0f*(float)frame/(float) Nframes +0.5f));
     fflush(stdout);
-
     int N = Natframe[frame];
     /*Reserve space*/
     pos[frame].resize(3*N,0);
+    if(Nrows>=6) vel[frame].resize(3*N, 0);
     scales[frame].resize( N,1);
-    //colors[frame].resize(3*N,1);    //No need for this
-    ctemp.resize(N);
+    colors[frame].resize(3*N,1);    //No need for this
+    //ctemp.resize(N);
     /*Read and parse comments*/
     while(iscomment(line)){
       parse_comment(line, msgs[frame], (float*)&(Lbox[frame]));
@@ -136,49 +185,55 @@ bool RFile::read_frames(){
     fori(0, N){
       is.clear();
       is.str(line);
-      temp[3] = 0.0f; //Radius
-      temp[4] = 1.0f; //Color
-
       /*Read all the rows, XYZ minimum*/
       forj(0, Nrows){
 	is>>temp[j];
       }
-      if(Nrows==4) swap(temp[3], temp[4]);
-      /*Get color id from palette*/
-      ctemp[i] = palette[((int)temp[4]+1)%palette.size()];
-      /*Save data*/
-      forj(0,3){
-      pos[frame][3*i+j] = temp[j];
-      ((float*)&max_dist[frame])[j] =
-	Rmax(((float*)&max_dist[frame])[j], temp[0]);
+
+      if(Nrows==4){
+	swap(temp[3], temp[4]);
+	temp[3] = 1.0f;
       }
+      if(Nrows==6){
+	//X Y Z R C Vx Vy Vz
+	swap(temp[5], temp[7]); //Vx->Vz
+	swap(temp[4], temp[6]); //C->Vy
+	swap(temp[3], temp[5]); //R->Vx 
+
+	temp[4] = 0.0f; //Default color
+      }
+      if(Nrows==7){
+	swap(temp[6], temp[7]); //Vy->Vz
+	swap(temp[5], temp[6]); //Vx->Vy
+	swap(temp[4], temp[5]); //C->Vx
+	swap(temp[3], temp[4]); //R->C
+	temp[3] = 1.0f; //Default radius
+      }
+
+      ((RColor*)(colors[frame].data()))[i] = cparser.getColor(temp[4]);
+      
+
+      forj(0,3){
+	pos[frame][3*i+j] = temp[j];
+	((float*)&max_dist[frame])[j] =
+	  Rmax(((float*)&max_dist[frame])[j], temp[0]);
+      }
+      if(Nrows>=6)
+	forj(0,3) vel[frame][3*i+j] = temp[5+j];
       
       scales[frame][i] = temp[3];
       /*Keep record of the biggest particle*/
       if(frame==0) if(temp[3]>maxScale) maxScale = temp[3];
-      
+
       getline(in,line);
     }
-    /*Decode color ids*/
-    colors[frame] = parse_colors(ctemp);
-    
+
   }
   printf("\rLoading data... 100 %%   \nDONE!\n");
   
   return true;
 }
 
-vector<float> RFile::parse_colors(const std::vector<int> &colors){
-  int N = colors.size();
-  std::vector<float> RGB(3*N);
-  for(int i=0; i<3*N; i+=3){
-    int c = colors[i/3];
-    RGB[i] = (c & 0xFF)/255.0f;
-    RGB[i+1] = ((c & 0xFF00) >> 8)/255.0f;
-    RGB[i+2] = ((c & 0xFF0000) >> 16)/255.0f;
-  }
-  return RGB;
-}
 
 
 float get_flag(std::string flag, std::string &line){
@@ -228,6 +283,13 @@ bool RConfig::parse_args(int argc, char *argv[]){
     if(strcmp(argv[i],"--record")==0) record_movie = true;
     if(strcmp(argv[i],"--palette")==0) palette_id = atoi(argv[i+1]);
     if(strcmp(argv[i],"--frames-between-screenshots")==0) frames_between_screenshots = atoi(argv[i+1]);
+    if(strcmp(argv[i],"--RGB")==0) read_color_mode=HEXBGR;//readHexColor = true;
+    if(strcmp(argv[i],"--renderer")==0){
+      if(strcmp(argv[i+1],"arrows")==0)
+	render_type = ARROWS;
+      if(strcmp(argv[i+1],"particles")==0)
+	render_type = PARTICLES;
+    }
     if(strcmp(argv[i],"--background")==0){
       bcolor[0] = stod( argv[i+1]);
       bcolor[1] = stod( argv[i+2]);
@@ -242,10 +304,12 @@ bool RConfig::parse_args(int argc, char *argv[]){
 void RConfig::print_help(){
   printf("\n\x1b[1m Usage:  spunto file [opts]  \x1b[0m\n\n");
   printf("\x1b[1m  Options:\x1b[0m\n");
-  printf("\t  --record :  Makes a movie of all the frames in file and generates a .gif\n");
+  printf("\t  --record :  Makes a movie of all the frames in file and generates a .mp4\n");
   printf("\t  --frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)\n");
   printf("\t  --background R G B : Background color in RGB, default R=G=B=0.0\n");
   printf("\t  --palette X : Change the color palette\n");
+  printf("\t  --RGB : Read colors as hex values in BGR (as integers) (0xFF=red=255). Overrides palette\n");
+  printf("\t  --renderer [render=arrows,particles]: Rendering mode.\n");
 
   printf("\n\x1b[1m Controls:\x1b[0m\n");
   printf("  Movement:\n");
@@ -256,8 +320,8 @@ void RConfig::print_help(){
   printf("  Frame control:\n");
   printf("\t Press Space to go to the next frame, R to the previous\n");
   printf("\t Press T to go to the last frame, B takes you to the first one\n");
-  printf("\t Press M to play the frames at 15 FPS, M again to pause\n");
-  printf("\t Press C to take a screenshot in png\n\t Press L to play and record to a gif until L is pressed again\n");
+  printf("\t Press M to play the frames at 60 FPS, M again to pause\n");
+  printf("\t Press C to take a screenshot in png\n\t Press L to play and record to a mp4 until L is pressed again\n");
   printf("  Others:\n");
   printf("\t Press h to print this help page\n");
 }
@@ -269,6 +333,10 @@ void RConfig::set_default(){
   frames_between_screenshots = 2;
   bcolor[0] = bcolor[1] = bcolor[2] = 0.0f;
   fontName  = std::string("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+  //readHexColor = false;
+  read_color_mode=PALETTE;
+  render_type = PARTICLES;
+  
 }
 
 

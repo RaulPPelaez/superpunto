@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "RFile.h"
 #include "RTextRenderer.h"
+#include "shaders.h"
 
 #include<string>
 #include<map>
@@ -19,22 +20,10 @@ class RGLHandle{
  public:
   RGLHandle(int maxN, float gscale, RConfig cfg);
   ~RGLHandle();
-  bool init_buffers();
-  bool init_sphere();
-  bool init_instance_vbos();
-  bool init_vao();
-
-  bool init_shaders();
-
-  bool init_math();
-  bool init_uniforms();
   
   bool upload_instances(ParticleData pdata);
 
   void update();
-  void geometry_pass();
-  void light_pass();
-  void SSAO_pass();
   void SSAOrad(float inc);
 
   void draw();
@@ -50,6 +39,20 @@ class RGLHandle{
   FreeCamera cam;
   int picked[2];
  private:
+
+  bool init_buffers();
+  bool init_sphere();
+  bool init_instance_vbos();
+  bool init_vao();
+
+  bool init_shaders();
+
+  bool init_math();
+  bool init_uniforms();
+
+  void geometry_pass();
+  void light_pass();
+  void SSAO_pass();
 
   void render_picked();
   void render_box();

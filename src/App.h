@@ -3,7 +3,9 @@
 
 #include"header.h"
 #include"RWindow.h"
-#include"RGLHandle.h"
+#include"RRenderer.h"
+#include"RParticleRenderer.h"
+#include"RArrowRenderer.h"
 #include"RFile.h"
 #include<vector>
 #include<string>
@@ -37,7 +39,7 @@ private:
   void screenshot();
   void movieAddFrame();
 
-  RGLHandle *gl;
+  RRenderer *gl;
   RWindow *w;
   RConfig cfg;
   RFile file;

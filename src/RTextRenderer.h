@@ -12,13 +12,15 @@ class RTextRenderer{
 public:
   RTextRenderer();
   bool setFont(const char * fontName, int size);
-  bool setText(const char* text, int x, int y);
+  bool setText(const char* text, int x, int y, float sizefactor = 1.0f);
+  bool move(int x, int y);
   void draw();
   
 private:
-  RShaderProgram pr;
-  VAO dummy_vao;
+  static RShaderProgram* pr;
+  static VAO* dummy_vao;
   glm::vec2 size, pos;
+  float size_factor;
   RTex tex;
   TTF_Font *font;
   static bool SDL_ttf_init;

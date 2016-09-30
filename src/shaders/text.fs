@@ -11,5 +11,4 @@ void main (){
   vec2 vvv = vv;
   vvv.y = -vv.y;
   c = texture(ctex,  vvv);
-
 }

@@ -1,22 +1,13 @@
+#include"RParticleRenderer.h"
 
-#include "RGLHandle.h"
-
-
-#define FOV glm::radians(45.0f)
-#define ZNEAR 0.1f
-#define ZFAR 10000.0f
 
 //Vertex per sphere in fill_vbos
 #define NVERTEX 240
 
-RGLHandle::RGLHandle(int maxN, float gscale, RConfig cfg):
-  boxSize(glm::vec3(0)),
+RParticleRenderer::RParticleRenderer(int maxN, float gscale, RConfig cfg):
+  RRenderer(cfg, gscale),
   maxN(maxN),
-  gscale(gscale),
-  cfg(cfg),
   picking(false){
-
-  picked[0] = picked[1] = -1;
 
   printf("Initializing OpenGL...\n");
   this->handle_resize();
@@ -28,29 +19,23 @@ RGLHandle::RGLHandle(int maxN, float gscale, RConfig cfg):
   attribs["scale"] = 3;
 
   init_buffers();
-  init_math();
   init_shaders();
   init_uniforms();
-
-  textRenderer.setFont(cfg.fontName.c_str(), 45);
   
   printf("DONE!\n");
 }
 
-RGLHandle::~RGLHandle(){}
+RParticleRenderer::~RParticleRenderer(){}
                                                                                                
 
 
-bool RGLHandle::init_buffers(){
+bool RParticleRenderer::init_buffers(){
   printf("\tInit buffers...     ");
 
   DataLayout dl;
   dl.init(3, 3*sizeof(float), GL_FLOAT, 0);
   lines_vbo.init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
   lines_vbo.initmem(2*sizeof(float)*3, NULL);
-  
-  box_vbo.init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
-  fill_box_vbo(box_vbo);
   
   init_sphere();
   init_instance_vbos();
@@ -59,7 +44,7 @@ bool RGLHandle::init_buffers(){
   printf("DONE!\n");
   return true;
 }
-bool RGLHandle::init_sphere(){ //Config and upload sphere vertices
+bool RParticleRenderer::init_sphere(){ //Config and upload sphere vertices
   DataLayout dl;
   dl.init(3, 3*sizeof(float), GL_FLOAT, 0);
   sphere_vbos[0].init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
@@ -68,18 +53,18 @@ bool RGLHandle::init_sphere(){ //Config and upload sphere vertices
   return true;
 }
 
-bool RGLHandle::init_vao(){ //Configure Vertex Array Objects
+bool RParticleRenderer::init_vao(){ //Configure Vertex Array Objects
   spheres_vao.set_attrib(attribs["in_vertex"], sphere_vbos[0], 0);
   spheres_vao.set_attrib(attribs["pos"], instances_vbos[0], 1);  
   spheres_vao.set_attrib(attribs["color"], instances_vbos[1], 2);
   spheres_vao.set_attrib(attribs["scale"], instances_vbos[2], 3);
 
   line_vao.set_attrib(0, lines_vbo, 0);
-  box_vao.set_attrib(0, box_vbo, 0);
+
   return true;
 }
 
-bool RGLHandle::init_instance_vbos(){
+bool RParticleRenderer::init_instance_vbos(){
   DataLayout dl;
   dl.init(3, 3*sizeof(float), GL_FLOAT, 0, 1);
   instances_vbos[0].init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
@@ -94,18 +79,7 @@ bool RGLHandle::init_instance_vbos(){
 }
 
 
-bool RGLHandle::init_math(){
-  proj =glm::perspective(FOV, FWIDTH/(float)FHEIGHT, ZNEAR, ZFAR);
-  model = glm::mat4();
-  view = cam.lookAt();
-  rotate_model(M_PI/4.0f, 1.0f, 0.0f, 0.0f);
-
-  MVP = proj*view*model;
-
-  return true;
-}
-
-bool RGLHandle::init_shaders(){
+bool RParticleRenderer::init_shaders(){
   printf("\tInit shaders...     ");
   RShader shs[2];
   shs[0].charload(shaders_geom_vs, GL_VERTEX_SHADER);
@@ -126,9 +100,6 @@ bool RGLHandle::init_shaders(){
   shs[1].charload(shaders_line_fs, GL_FRAGMENT_SHADER);
   linepr.init(shs, 2);
   
-  shs[0].charload(shaders_box_vs, GL_VERTEX_SHADER);
-  shs[1].charload(shaders_box_fs, GL_FRAGMENT_SHADER);
-  boxpr.init(shs, 2);
 
   ssaofbo.setFormat(GL_R32F, GL_RED, GL_FLOAT);
   //CheckGLError();
@@ -136,7 +107,7 @@ bool RGLHandle::init_shaders(){
   printf("DONE!\n");
   return true;
 }
-bool RGLHandle::init_uniforms(){
+bool RParticleRenderer::init_uniforms(){
   printf("\tInit uniforms...    ");
   pr.use();
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
@@ -160,7 +131,6 @@ bool RGLHandle::init_uniforms(){
   
   //ssaofbo.bindColorTex(lightpr);
 
-
   linepr.use();
   glUniform1f(glGetUniformLocation(linepr.id(), "gscale"),
 	      this->gscale);
@@ -168,18 +138,12 @@ bool RGLHandle::init_uniforms(){
 	      1,1,1);
 
   linepr.unbind();
-  boxpr.use();
-  glUniform1f(glGetUniformLocation(boxpr.id(), "gscale"),
-	      this->gscale);
-  glUniform3f(glGetUniformLocation(boxpr.id(), "color"),
-	      0,0,1);
-  boxpr.unbind();
   printf("DONE!\n");
   return true;
 }
 
 
-bool RGLHandle::upload_instances(ParticleData pdata){
+bool RParticleRenderer::upload_instances(ParticleData pdata){
   int N = pdata.N;
   instances_vbos[0].upload(0, 3*N*sizeof(float),
 			   (const void *)pdata.pos);
@@ -189,34 +153,15 @@ bool RGLHandle::upload_instances(ParticleData pdata){
 			   (const void *)pdata.scales);
   this->particles = pdata;
   float3 L = pdata.L;
-  this->boxSize = glm::vec3(L.x, L.y, L.z);
+  box.setSize(glm::vec3(L.x, L.y, L.z));
   return true;
 }
 
-void RGLHandle::handle_resize(){
-  glViewport(0,0,FWIDTH, FHEIGHT);
-  float ar = FWIDTH/(float)FHEIGHT;
-  proj =glm::perspective(FOV, ar, ZNEAR, ZFAR);
-  //gBuffer.handle_resize();
-  //fbo.handle_resize();
-  //ssaofbo.handle_resize();
+void RParticleRenderer::update(){
+  RRenderer::update();
 }
 
-void RGLHandle::rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z){
-  model = glm::rotate(model, angle,  glm::vec3(x, y, z));
-}
-
-
-Uint8* RGLHandle::getPixels(){
-  return fbo.getColorData();
-}
-
-
-void RGLHandle::update(){
-  cam.update();
-  
-}
-int RGLHandle::pick(int x, int y, int pickindex){
+int RParticleRenderer::pick(int x, int y, int pickindex){
   glClearColor(0.0f ,0.0f ,0.0f ,1.0f);
   pr.use();
   pr.setFlag("picking",1);
@@ -238,7 +183,7 @@ int RGLHandle::pick(int x, int y, int pickindex){
   this->picking = false;
   return picked[pickindex];
 }
-void RGLHandle::render_picked(){
+void RParticleRenderer::render_picked(){
   if(picked[0]<0 && picked[1]<0) return;
   
   glLineWidth(1.3f);
@@ -274,29 +219,15 @@ void RGLHandle::render_picked(){
   glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
   pr.setFlag("drawing_picked", 0);
 }
-void RGLHandle::render_box(){
-  boxpr.use();
-  box_vao.use();
-  glUniformMatrix4fv(glGetUniformLocation(boxpr.id(), "MVP")
-		     , 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniform3f(glGetUniformLocation(boxpr.id(), "boxSize"),
-	      boxSize.x, boxSize.y, boxSize.z);
-  glLineWidth(3.0f);
-  glDrawArrays(GL_LINES, 0, 72);
-  glLineWidth(1.0f);
-  box_vao.unbind();  
-  boxpr.unbind();
-}
-void RGLHandle::geometry_pass(){
+
+void RParticleRenderer::geometry_pass(){
 
   gBuffer.use();
   glEnable(GL_DEPTH_TEST);
+
   glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0f);  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  view = cam.lookAt();
-  MVP = proj*view*model;
-
+ 
   pr.use();
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(MVP));
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(model));
@@ -307,7 +238,7 @@ void RGLHandle::geometry_pass(){
 
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL, particles.N);
   if(!picking) render_picked();
-  render_box();  
+  box.draw();
   sphere_vbos[1].unbind(); //indices
   spheres_vao.unbind(); 
   pr.unbind();
@@ -317,7 +248,7 @@ void RGLHandle::geometry_pass(){
 }
 
 
-void RGLHandle::light_pass(){
+void RParticleRenderer::light_pass(){
   fbo.use();
   glDisable(GL_DEPTH_TEST);
   lightpr.use();
@@ -335,7 +266,7 @@ void RGLHandle::light_pass(){
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f){
   return a + f * (b - a);
 }
-void RGLHandle::SSAO_pass(){
+void RParticleRenderer::SSAO_pass(){
   static const int nsamples = 129;
   static glm::vec4 points[nsamples];
   static bool gen_points = true;
@@ -378,7 +309,7 @@ void RGLHandle::SSAO_pass(){
   ssaofbo.unbind();
 }
 
-void RGLHandle::SSAOrad(float inc){
+void RParticleRenderer::SSAOrad(float inc){
   static float rad = 0.4f;
   rad += inc;
   glProgramUniform1f(ssaopr.id(),
@@ -386,26 +317,30 @@ void RGLHandle::SSAOrad(float inc){
 		     rad);
   cerr<<rad<<endl;
 }
-void RGLHandle::draw(){
+void RParticleRenderer::draw(){
   //glViewport(0,0,FWIDTH, FHEIGHT);
   //pr.setFlag("picking",1); //Uncomment for picking view
-
   geometry_pass();
   SSAO_pass();
   light_pass();
 
-  glDisable(GL_DEPTH_TEST);
-
-  
+  glDisable(GL_DEPTH_TEST);  
   fbo.draw();
-  glEnable(GL_BLEND);
-  glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-  textRenderer.draw();
-  glDisable(GL_BLEND);
+  RRenderer::display();
+  
 }
 
-void RGLHandle::drawText(const char* text, int x, int y){
-  textRenderer.setText(text, x,y);
+
+
+
+
+Uint8* RParticleRenderer::getPixels(){
+  
+  return fbo.getColorData();
+}
+
+glm::int2 RParticleRenderer::getSize(){
+  return fbo.getSize();
 }
 
 
@@ -462,25 +397,4 @@ void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO){
   };
   posVBO.initmem(sizeof(v), v);
   indicesVBO.initmem(sizeof(index), index);
-}
-
-void fill_box_vbo(VBO &boxVBO){
-  float v[] = {
-    0,0,0, 0,1,0,
-    1,0,0, 1,1,0,
-    1,0,1, 1,1,1,
-    0,0,1, 0,1,1,
-    0,1,0, 0,1,1,
-    1,1,0, 1,1,1,
-    1,0,0, 1,0,1,
-    0,0,0, 0,0,1,
-    0,1,0, 1,1,0,
-    0,1,1, 1,1,1,
-    0,0,1, 1,0,1,
-    0,0,0, 1,0,0
-  };
-
-  fori(0,72) v[i] -= 0.5f;
-    
-  boxVBO.initmem(sizeof(v), v);
 }

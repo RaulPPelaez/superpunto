@@ -119,7 +119,7 @@ void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size = {FWIDTH, 
   glCreateTextures(tp, 1, &tid);
   glBindTextureUnit(unit, tid);
   glTextureStorage2D(tid, 1, format[0], size.x, size.y); //Immutable size  
-  glClearTexSubImage(tid, 0, 0,0,0, size.x,size.y,1, format[1], format[2], 0);
+  //glClearTexSubImage(tid, 0, 0,0,0, size.x,size.y,1, format[1], format[2], 0);
   glTextureParameteri(tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTextureParameteri(tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
@@ -169,8 +169,8 @@ FBO::FBO(){
   glNamedFramebufferDrawBuffers(fid, 1, draw_buffer);
 
   RShader shs[2];
-  shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
-  shs[1].load("../src/shaders/quad.fs", GL_FRAGMENT_SHADER);
+  shs[0].charload(shaders_quad_vs , GL_VERTEX_SHADER);
+  shs[1].charload(shaders_quad_fs , GL_FRAGMENT_SHADER);
 
   pr.init(shs, 2);
   pr.setFlag("ctex", ctex.getUnit());
@@ -186,6 +186,7 @@ void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp){
 FBO::~FBO(){ glDeleteFramebuffers(1, &fid);}
 
 void FBO::draw(){
+  this->unbind();
   pr.use();
   vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -237,7 +238,7 @@ GBuffer::GBuffer(): FBO(){
   draw_buffer[2] = GL_COLOR_ATTACHMENT2;
 
   //Normal and linear depth encoded as alpha, for SSAO
-  normdtex.init(GL_RGBA16F, GL_RGBA, GL_FLOAT); //Color texture
+  normdtex.init(GL_RGBA32F, GL_RGBA, GL_FLOAT); //Color texture
   glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
 
   //Position texture for deferred shading
@@ -256,6 +257,7 @@ GBuffer::GBuffer(): FBO(){
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_T, GL_REPEAT);  
 
+  //glCheckNamedFrameBufferStatus(fid);
   printf("DONE!\n");
 }
 
@@ -356,6 +358,8 @@ void RShaderProgram::setFlag(const GLchar* flag, int val){
   glProgramUniform1i(pid, glGetUniformLocation(pid, flag), val);
 }
 
+
+
 RGLContext::RGLContext(){  }
 RGLContext::~RGLContext(){ SDL_GL_DeleteContext(context); }
 
@@ -367,7 +371,7 @@ void RGLContext::init(SDL_Window *& w){
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER,          1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,           24);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,          8);
+  //SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,          8);
   //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
   //SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
@@ -384,14 +388,24 @@ void RGLContext::init(SDL_Window *& w){
   glGetIntegerv(GL_MINOR_VERSION, &minor);
 
   printf("\tOpenGL version %d.%d available!\n", major, minor);
-  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  //glEnable(GL_BLEND);
-
+  
+   glEnable(GL_BLEND);
+   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+ 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   //glEnable(GL_FRAMEBUFFER_SRGB); 
-  //glEnable(GL_MULTISAMPLE);
+   glEnable(GL_MULTISAMPLE);
+   glEnable(GL_LINE_SMOOTH);
+   glEnable(GL_POLYGON_SMOOTH);
+   
 }
+
+
+
+
+
+
 
 

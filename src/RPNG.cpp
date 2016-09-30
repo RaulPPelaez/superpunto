@@ -58,7 +58,7 @@ bool savePNG(const char* fileName,
   row_pointers = new png_bytep[wx];
   
 
-  for(int i=0; i<wx; i++) row_pointers[i] = (png_bytep)px+(wx-i)*wy*4;
+  for(int i=0; i<wx; i++) row_pointers[i] = (png_bytep)px+(wy-i-1)*wx*4;
   png_write_image(png_ptr, row_pointers);
   png_write_end(png_ptr, info_ptr);
 

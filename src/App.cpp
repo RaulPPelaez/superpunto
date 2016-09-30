@@ -30,7 +30,7 @@ bool App::init(){
 
 bool App::read_input(){
   if(!file.get_config()){printf("INVALID FILE!\n"); return false;}
-  file.read_frames();
+  file.read_frames(cfg.read_color_mode);
   return true;
 }
 
@@ -46,7 +46,14 @@ bool App::initWindow(){
   return true;
 }
 bool App::initOpenGL(){
-  gl = new RGLHandle(file.maxN, 1.0f/file.maxScale, cfg);
+  switch(cfg.render_type){
+  case PARTICLES: 
+    gl = new RParticleRenderer(file.maxN, 1.0f/file.maxScale, cfg);
+    break;
+  case ARROWS:
+    gl = new RArrowRenderer(file.maxN, 1.0f/file.maxScale, cfg);
+    break;
+  }
   gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
   upload_frame(0);
 
@@ -99,6 +106,7 @@ void App::run(){
 void App::handle_events(){
   SDL_Event e;
   while(SDL_PollEvent(&e) !=0){
+    gl->handle_event(e);
     if(e.type == SDL_QUIT) w->close();
     if(e.type == SDL_KEYDOWN){
       IF_KEY(ESCAPE, w->close();)
@@ -118,10 +126,6 @@ void App::handle_events(){
       IF_KEY(1, gl->rotate_model(-0.1f,1,0,0);)
       IF_KEY(2, gl->rotate_model(-0.1f,0,1,0);)
       IF_KEY(3, gl->rotate_model(-0.1f,0,0,1);)
-
-	IF_KEY(8, gl->SSAOrad(+0.01);)
-	IF_KEY(9, gl->SSAOrad(-0.01);)
-
     }
     if(e.type == SDL_WINDOWEVENT){
       switch(e.window.event){
@@ -166,6 +170,8 @@ void App::screenshot(){
     to_string(counter)+string(".png");
   Uint8* pixels = gl->getPixels();
   glm::int2 s = gl->getSize();
+  cerr<<"Saving screenshot... shot_"<<counter<<".png"<<endl;
+  cerr<<s.x<<" "<<s.y<<endl;
   savePNG(fileName.c_str(), pixels, s.x, s.y);
   counter++;
 }
