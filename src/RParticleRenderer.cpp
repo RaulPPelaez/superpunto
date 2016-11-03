@@ -90,10 +90,16 @@ bool RParticleRenderer::init_shaders(){
 
   shs[0].charload(shaders_quad_vs, GL_VERTEX_SHADER);
   shs[1].charload(shaders_light_fs, GL_FRAGMENT_SHADER);
+  // shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
+  // shs[1].load("../src/shaders/light.fs", GL_FRAGMENT_SHADER);
+
   lightpr.init(shs, 2);
 
   shs[0].charload(shaders_quad_vs, GL_VERTEX_SHADER);
   shs[1].charload(shaders_ssao_fs, GL_FRAGMENT_SHADER);
+  // shs[0].load("../src/shaders/quad.vs", GL_VERTEX_SHADER);
+  // shs[1].load("../src/shaders/ssao.fs", GL_FRAGMENT_SHADER);
+
   ssaopr.init(shs, 2);
   
   shs[0].charload(shaders_line_vs, GL_VERTEX_SHADER);
@@ -112,6 +118,7 @@ bool RParticleRenderer::init_uniforms(){
   pr.use();
   uniMVP = glGetUniformLocation(pr.id(), "MVP");
   unimodel = glGetUniformLocation(pr.id(), "model");
+  uninormalmodel = glGetUniformLocation(pr.id(), "normal_model");
   pr.setFlag("picking",0);
   pr.setFlag("drawing_picked",0);
   glUniform1f(glGetUniformLocation(pr.id(), "pickscale"),
@@ -138,6 +145,18 @@ bool RParticleRenderer::init_uniforms(){
 	      1,1,1);
 
   linepr.unbind();
+
+
+
+
+  
+
+
+
+
+
+
+  
   printf("DONE!\n");
   return true;
 }
@@ -231,6 +250,8 @@ void RParticleRenderer::geometry_pass(){
   pr.use();
   glUniformMatrix4fv(uniMVP , 1, GL_FALSE, glm::value_ptr(MVP));
   glUniformMatrix4fv(unimodel , 1, GL_FALSE, glm::value_ptr(model));
+  glm::mat4 normal_model = transpose(inverse(model));
+  glUniformMatrix4fv(uninormalmodel , 1, GL_FALSE, glm::value_ptr(normal_model));
 
 
   spheres_vao.use();

@@ -1,17 +1,25 @@
 # Superpunto
 SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
+Now with SSAO and superb light effects!!
+
 #COMPILATION
 Run the Makefile using $ make
-
-Additionally you can define STATIC to include all the dependencies in the executable (-DSTATIC=yes). However, this option is not currently tested and is only recommended for distribution.
 
 
 Dependencies:
 
 1. SDL2 https://www.libsdl.org/ . In the official repositories of most modern distributions.
 
-2. OpenGL 4.5
+2. SDL2_ttf
+
+3. OpenGL 4.5
+
+4. libGLEW 1.13.0+ (default in the Ubuntu 16.04 repos)
+
+5. libPNG for the screenshots
+
+6. (Optional) avconv installed for recording, not having it will simply cause the recording button to do nothing.
 
 
 #USAGE

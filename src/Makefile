@@ -2,12 +2,12 @@ CXX=g++
 CC=$(CXX)
 
 #
-CFLAGS=  -std=c++11 -O2 -march=native -pipe -funroll-loops -I../third_party/include -g
+CFLAGS=  -std=c++11 -Ofast -march=native -pipe -funroll-loops -g #-I../third_party/include
 CXXFLAGS=$(CFLAGS)
 
 
-LDFLAGS= -L../third_party/lib
-LDLIBS= -lSDL2 -lSDL2_ttf -lGL ../third_party/glew.o -lpng
+LDFLAGS= #-L../third_party/lib
+LDLIBS= -lSDL2 -lSDL2_ttf -lGL -lpng -lGLEW #../third_party/glew.o 
 
 
 GLOBJS=RWindow.o RGL.o Camera.o  RTextRenderer.o RRenderer.o RParticleRenderer.o RArrowRenderer.o RBox.o

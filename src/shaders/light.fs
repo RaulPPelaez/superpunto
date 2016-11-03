@@ -9,19 +9,17 @@ uniform sampler2D ptex;
 uniform sampler2D SSAOtex;
 
 layout(location = 0) out vec4 c;
-
-
 struct Light{
   vec3 pos;
   vec3 color;
 };
 
-uniform Light light = {vec3(0, 100, 0), vec3(1, 1, 1)};
+uniform Light light = {vec3(0, 0, 0), vec3(1, 1, 1)};
 uniform vec3 viewPos;
 uniform float ambient = 0.3f;//*vec3(0.25f, 0.20725f, 0.20725f);
-uniform vec3 diffuseFactor = vec3(1.0f, 0.829f, 0.829f);
+uniform float diffuseFactor = 0.4;// vec3(1.0f, 0.829f, 0.829f);
 uniform float specularFactor = 0.1;//vec3(0.296648f, 0.296648f, 0.296648f);
-uniform float shininess = 32.0f;
+uniform float shininess = 16.0f;
 
 void main (){
 
@@ -41,8 +39,8 @@ void main (){
   }
   //c = vec4(Occlusion);
   // return;
-  float occ = pow (Occlusion, 1)*1.2f;
-  vec3 lighting = vec3(Color*ambient);
+  float occ = pow(Occlusion, 1.2)*1.6f;
+  vec3 lighting = vec3(0);//Color*ambient);
 
   vec3 viewDir = normalize(viewPos - FragPos);
 
@@ -59,9 +57,17 @@ void main (){
 
   vec3 specular = light.color*(spec*specularFactor);
 
+
+
+  // float dist = length(viewPos - FragPos);
+  // float attenuation = 1.0 / (1.0 + 0.0005 * dist + 0.00001 * dist * dist);
+
   lighting += diffuse + specular;
-  
+
+  lighting = lighting*occ + Color*ambient*occ;
+ 
   //  float z = Normal.w;
-  c = vec4(occ*lighting, 1.0f);
+  c = vec4(lighting, 1.0f);
+  //c = vec4(occ,occ,occ, 1.0f);
 
 }

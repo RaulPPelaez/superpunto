@@ -12,7 +12,7 @@ layout(location = 0) out float occ;
 const int NSAMPLES = 129;
 uniform vec4 points[NSAMPLES];
 /*This radius works well for radius 1 spheres*/
-uniform float radius = 0.015f;
+uniform float radius = 0.0515f;
 
 void main(){
   occ = 0.0;
@@ -38,7 +38,7 @@ void main(){
     /*The sample point is at dir*radius from this point*/
     vec3 sm = vec3(gl_FragCoord.xy/vec2(800.0f, 600.0f), z) + dir*radius;
     /*Mirror the points in the hidden hemisphere*/
-    if(dot(N, dir) <0.0) dir = -dir;
+    if(dot(N, dir)<0.0) dir = -dir;
     /*Recover the depth of the sample point*/
     float their_depth =
       textureLod(ndtex,
@@ -50,13 +50,13 @@ void main(){
       float delta = (z-their_depth);
       /*Occlude the pixel if the sample is closer*/
       /*This number works well for radius one spheres, depends on ZNEAR and ZFAR*/
-      if( delta>3.0005e-5 ) {occ += 2.0;}
+      if( delta>4.0005e-5 ) {occ += 1.0*smoothstep(0,1, radius/abs(delta));}
     }
 
   }
   
-  occ = (1.0f - occ/NSAMPLES);
-  if(occ<0.0f) occ=0.0f;
+  occ = (1.0 - occ/NSAMPLES);
+  if(occ<0.0) occ=0.0;
 
  
 }

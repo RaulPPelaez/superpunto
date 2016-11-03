@@ -10,6 +10,8 @@ ColorParser::ColorParser(ColorParserType tp, uint pid): palette_id(pid), tp(tp){
     palette.resize(1000,0);
     fori(0,palette.size())
       palette[i] = rand()%0xffFFff;
+    
+    palette[0] = 0xC0C0C0;
     palette[1] = 0xFF00;
     palette[2] = 0xFF00;
     palette[3] = 0xFF;
@@ -23,7 +25,7 @@ RColor ColorParser::getColor(uint id){
 
   switch(tp){
   case PALETTE:
-    return id2BGR(palette[(id+1)%palette.size()]);
+    return id2BGR(palette[(id)%palette.size()]);
     break;
   case HEXBGR:
     return id2BGR(id);
@@ -112,6 +114,7 @@ bool RFile::get_config(){
   if(N>maxN){maxN = N;}
   Natframe.push_back(N);
   switch(Nrows){
+    
   case 7:
     printf("\t7 rows, taking as XYZC VxVyVz\n\t%d frames\n\t%d superpuntos\n", Nframes, maxN);
     break;
