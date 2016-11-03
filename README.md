@@ -3,6 +3,8 @@ SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
 Now with SSAO and superb light effects!!
 
+![alt text](screenshots/shot_0.png "")
+
 #COMPILATION
 Run the Makefile using $ make
 
