@@ -1,5 +1,13 @@
-# Superpunto
+
+#Superpunto
 SFML/Modern OpenGL clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
+
+**PLEASE GO TO BRANCH SDL_OGL45 IF YOUR SYSTEM HAS OpenGL 4.5 AVAILABLE**
+
+SDL_OGL45 branch is a much better version of Superpunto, it has more capabilities and has better visuals. Use te master version only if you dont have access to OpenGL 4.5.
+
+You can check the suported OpenGL version using: glxinfo | grep OpenGL
+
 
 #COMPILATION
 Run the Makefile using $ make
