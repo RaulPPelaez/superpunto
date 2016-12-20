@@ -104,5 +104,7 @@ You can take screenshots and record some frames in a gif using:
 Run spunto -h to see a complete list of options in the current version.
 
 
+##ACKNOWLEDGEMENTS
 
+Acknowledgment is made to the Donors of the American Chemical Society Petroleum Research Fund (PRF# 54312-ND9) for support of this research.
 
