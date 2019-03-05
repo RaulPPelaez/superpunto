@@ -291,7 +291,7 @@ void RGLHandle::geometry_pass(){
 
   gBuffer.use();
   glEnable(GL_DEPTH_TEST);
-  glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0f);  
+  glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], cfg.bcolor[3]);  
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   
   view = cam.lookAt();

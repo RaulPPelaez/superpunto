@@ -84,8 +84,8 @@ bool RParticleRenderer::init_shaders(){
   RShader shs[2];
   shs[0].charload(shaders_geom_vs, GL_VERTEX_SHADER);
   shs[1].charload(shaders_geom_fs, GL_FRAGMENT_SHADER);
-  // shs[0].load("../src/shaders/geom.vs", GL_VERTEX_SHADER);
-  //shs[1].load("../src/shaders/geom.fs", GL_FRAGMENT_SHADER);
+  //shs[0].load("../src/shaders/geom.vs", GL_VERTEX_SHADER);
+  // shs[1].load("../src/shaders/geom.fs", GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
 
   shs[0].charload(shaders_quad_vs, GL_VERTEX_SHADER);
@@ -138,6 +138,12 @@ bool RParticleRenderer::init_uniforms(){
   
   //ssaofbo.bindColorTex(lightpr);
 
+  ssaopr.use();
+  glUniform1f(glGetUniformLocation(ssaopr.id(), "FWIDTH"), (float)FWIDTH);
+  glUniform1f(glGetUniformLocation(ssaopr.id(), "FHEIGHT"), (float) FHEIGHT);  
+  ssaopr.unbind();
+  
+
   linepr.use();
   glUniform1f(glGetUniformLocation(linepr.id(), "gscale"),
 	      this->gscale);
@@ -145,16 +151,6 @@ bool RParticleRenderer::init_uniforms(){
 	      1,1,1);
 
   linepr.unbind();
-
-
-
-
-  
-
-
-
-
-
 
   
   printf("DONE!\n");
@@ -198,9 +194,10 @@ int RParticleRenderer::pick(int x, int y, int pickindex){
   //Two colors identify the same index to gain precision,
   //"only" 255^3/2 differenciable objects 
   if(picked[pickindex]>=0) picked[pickindex] /=2;
-  //  cerr<<pixel[0]<<" "<<pixel[1]<<" "<<pixel[2]<<endl<<picked<<endl;
+  
+  //cerr<<pixel[0]<<" "<<pixel[1]<<" "<<pixel[2]<<endl<<picked[pickindex]<<endl;
   this->picking = false;
-  return picked[pickindex];
+  return picked[pickindex];  
 }
 void RParticleRenderer::render_picked(){
   if(picked[0]<0 && picked[1]<0) return;
@@ -259,7 +256,9 @@ void RParticleRenderer::geometry_pass(){
 
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL, particles.N);
   if(!picking) render_picked();
-  box.draw();
+  
+  if(!cfg.nobox) box.draw();
+  
   sphere_vbos[1].unbind(); //indices
   spheres_vao.unbind(); 
   pr.unbind();
@@ -341,6 +340,7 @@ void RParticleRenderer::SSAOrad(float inc){
 void RParticleRenderer::draw(){
   //glViewport(0,0,FWIDTH, FHEIGHT);
   //pr.setFlag("picking",1); //Uncomment for picking view
+  
   geometry_pass();
   SSAO_pass();
   light_pass();
@@ -350,7 +350,6 @@ void RParticleRenderer::draw(){
   RRenderer::display();
   
 }
-
 
 
 

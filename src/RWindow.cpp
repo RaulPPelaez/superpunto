@@ -1,8 +1,8 @@
 #include"RWindow.h"
 
 
-uint FWIDTH = 800;
-uint FHEIGHT = 600;
+uint FWIDTH = 1280;
+uint FHEIGHT = 720;
 
 RWindow::RWindow(string title, uint fw, uint fh){
   if(SDL_WasInit(SDL_INIT_VIDEO) == 0) SDL_Init(SDL_INIT_VIDEO);  

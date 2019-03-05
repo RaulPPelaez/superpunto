@@ -1,8 +1,8 @@
 CXX=g++
 CC=$(CXX)
 
-#
-CFLAGS=  -std=c++11 -Ofast -march=native -pipe -funroll-loops -g #-I../third_party/include
+#-march=native
+CFLAGS=  -std=c++11 -Ofast -pipe -funroll-loops -g -I . #-I../third_party/include
 CXXFLAGS=$(CFLAGS)
 
 
@@ -17,15 +17,18 @@ OBJS= spunto.o App.o $(GLOBJS) RFile.o RPNG.o math_helper.o
 all:shaders spunto 
 
 #This transforms the sahder files into strings in a header file shaders.h so there are compiled with the rest of the code
+
 .PHONY: shaders
-shaders:
+shaders: 
 	echo "#ifndef SHADERS_H\n#define SHADERS_H" > shaders.h
 	ls shaders --hide=*~ | while read sh; do \
 		xxd -i "shaders/$$sh" | sed "s/\([0-9a-f]\)$$/\0, 0x00/" | sed "s/unsigned/const/g" >> shaders.h; \
 	done; \
 	echo " " >> shaders.h; 
 	echo "#endif" >> shaders.h;
-spunto:$(OBJS)
+spunto:$(OBJS) $(shaders)
+
+App.o: $(shaders)
 
 clean:
 	rm -f $(OBJS) shaders.h

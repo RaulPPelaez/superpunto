@@ -11,6 +11,9 @@ App::App(int argc, char *argv[]):
   file.name = argv[1];
   cfg.set_default();
   cfg.parse_args(argc, argv);
+  FWIDTH = cfg.FW;
+  FHEIGHT = cfg.FH;
+  
   init();
   run();
 }
@@ -29,8 +32,14 @@ bool App::init(){
 
 
 bool App::read_input(){
-  if(!file.get_config()){printf("INVALID FILE!\n"); return false;}
-  file.read_frames(cfg.read_color_mode);
+
+  if(cfg.binary_read_mode){    
+    file.read_frames_binary(cfg.read_color_mode);
+  }
+  else{    
+    if(!file.get_config()){printf("INVALID FILE!\n"); return false;}  
+    file.read_frames(cfg.read_color_mode);
+  }
   return true;
 }
 
@@ -41,7 +50,7 @@ bool App::initSDL(){
 bool App::initWindow(){
   printf("Starting graphic context...      \n");
   string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";  
-  w = new RWindow(title, FWIDTH, FHEIGHT);
+  w = new RWindow(title, cfg.FW, cfg.FH);
   printf("DONE!\n");
   return true;
 }
@@ -56,7 +65,6 @@ bool App::initOpenGL(){
   }
   gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
   upload_frame(0);
-
   return true;
 }
 
@@ -95,6 +103,7 @@ void App::run(){
   w->display();
 
   while(w->isOpen()){
+
     handle_events();
     if(w->ready_to_draw()){
       update();
@@ -131,22 +140,29 @@ void App::handle_events(){
       switch(e.window.event){
       case SDL_WINDOWEVENT_FOCUS_GAINED: visible = true; break;
       case SDL_WINDOWEVENT_FOCUS_LOST: visible = false; break;
-      case SDL_WINDOWEVENT_RESIZED:
-	FWIDTH = e.window.data1;
-	FHEIGHT = e.window.data2;
-	gl->handle_resize(); 
-	break;	
+       case SDL_WINDOWEVENT_RESIZED:
+       	FWIDTH = e.window.data1;
+       	FHEIGHT = e.window.data2;
+       	gl->handle_resize(); 
+       	break;	
       }
     }
     if(e.type == SDL_MOUSEBUTTONDOWN){
       int button = e.button.button == SDL_BUTTON_LEFT ? 0:1;
       int id = gl->pick(e.button.x, e.button.y, button);
       gl->picked[button] = id;
-      if(id>=0 && id<file.maxN)
+      float *ps = file.current.pos;
+      if(id>=0 && id<file.maxN){
 	cerr<<"Selected Superpunto: "<<id<<endl;
+	
+	cerr<<"\tLocation: ";
+	fori(0,3)
+	  cerr<<ps[3*gl->picked[button]+i] <<" ";
+	cerr<<endl;
+	
+      }
       if(gl->picked[0]>=0 && gl->picked[1] >=0){
 	cerr<<"\tDistance between "<<gl->picked[0]<<" and "<<gl->picked[1]<<": ";
-	float *ps = file.current.pos;
 	cerr<<"( ";
 	fori(0,3)
 	  cerr<<ps[3*gl->picked[1]+i]-ps[3*gl->picked[0]+i]<<" ";
@@ -171,7 +187,8 @@ void App::screenshot(){
   Uint8* pixels = gl->getPixels();
   glm::int2 s = gl->getSize();
   cerr<<"Saving screenshot... shot_"<<counter<<".png"<<endl;
-  cerr<<s.x<<" "<<s.y<<endl;
+  cerr<<"Size: "<<s.x<<" "<<s.x<<endl;
+  fori(0, FWIDTH*FHEIGHT) pixels[4*i+3] = 255;
   savePNG(fileName.c_str(), pixels, s.x, s.y);
   counter++;
 }

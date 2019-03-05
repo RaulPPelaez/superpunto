@@ -56,8 +56,8 @@ void RRenderer::display(){
   textRenderer.draw();
   glDisable(GL_BLEND);
   glEnable(GL_DEPTH_TEST);
-  
-  axis.draw();
+
+  if(!cfg.noaxis) axis.draw();
 
 }
 

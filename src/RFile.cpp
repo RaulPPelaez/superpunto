@@ -139,8 +139,10 @@ bool RFile::get_config(){
   return true;
 }
 
-bool RFile::read_frames(ColorParserType readColorMode){//bool readHexColor){
+bool RFile::read_frames(ColorParserType readColorMode){
 
+  
+  
   current_frame = 0;
   
   maxScale = 0.0f;  
@@ -193,6 +195,12 @@ bool RFile::read_frames(ColorParserType readColorMode){//bool readHexColor){
 	is>>temp[j];
       }
 
+      if(Nrows<4){
+	if(Nrows==1) temp[1] = 0.0;
+	if(Nrows==2) temp[2] = 0.0;
+	temp[3] = 0.5;
+	temp[4] = 0;
+      }
       if(Nrows==4){
 	swap(temp[3], temp[4]);
 	temp[3] = 1.0f;
@@ -237,6 +245,108 @@ bool RFile::read_frames(ColorParserType readColorMode){//bool readHexColor){
   return true;
 }
 
+
+bool RFile::read_frames_binary(ColorParserType readColorMode){
+  current_frame = 0;
+maxN = 0;
+  Superbin in(name);
+
+  Superbin::FileConfig fc = in.get_FileConfig();
+  Nframes = fc.nframes;
+  Nrows = fc.nrows;
+  cerr<<Nframes<<" "<<Nrows<<endl;
+  ColorParser cparser(readColorMode, palette_id);
+  
+  maxScale = 0.0f;  
+  /*Reserve space for all the file*/
+  Natframe.resize(Nframes);
+  pos.resize(Nframes);
+  if(Nrows>=6) vel.resize(Nframes);
+  scales.resize(Nframes);
+  colors.resize(Nframes);
+  msgs.resize(Nframes, " ");
+  Lbox.resize(Nframes, make_float3(0.0f));
+  max_dist.resize(Nframes, make_float3(0.0f));
+
+  vector<float> frame_data;
+  float temp[8];
+  string msg;
+  for(int frame =0; frame<Nframes; frame++){
+    printf("\rLoading data... %d%%   ",
+	   (int)(100.0f*(float)frame/(float) Nframes +0.5f));
+    fflush(stdout);
+
+    in.read_frame(msg, frame_data);
+    
+    parse_comment(msg, msgs[frame], (float*)&(Lbox[frame]));
+
+    int N  = frame_data.size()/Nrows;
+    Natframe[frame] = N;
+   
+    if(N>maxN) maxN = N;
+    
+    pos[frame].resize(3*N,0);
+    if(Nrows>=6) vel[frame].resize(3*N, 0);
+    scales[frame].resize( N,1);
+    colors[frame].resize(3*N,1);    //No need for this
+
+    
+    
+    fori(0, N){      
+      forj(0,Nrows){
+	temp[j] = frame_data[i*Nrows+j];
+      }
+      if(Nrows<4){
+	if(Nrows==1) temp[1] = 0.0;
+	if(Nrows==2) temp[2] = 0.0;
+	temp[3] = 0.5;
+	temp[4] = 0;
+      }
+      if(Nrows==4){
+	swap(temp[3], temp[4]);
+	temp[3] = 1.0f;
+      }
+      if(Nrows==6){
+	//X Y Z R C Vx Vy Vz
+	swap(temp[5], temp[7]); //Vx->Vz
+	swap(temp[4], temp[6]); //C->Vy
+	swap(temp[3], temp[5]); //R->Vx 
+
+	temp[4] = 0.0f; //Default color
+      }
+      if(Nrows==7){
+	swap(temp[6], temp[7]); //Vy->Vz
+	swap(temp[5], temp[6]); //Vx->Vy
+	swap(temp[4], temp[5]); //C->Vx
+	swap(temp[3], temp[4]); //R->C
+	temp[3] = 1.0f; //Default radius
+      }
+
+      ((RColor*)(colors[frame].data()))[i] = cparser.getColor(temp[4]);
+      
+
+      forj(0,3){
+	pos[frame][3*i+j] = temp[j];
+	((float*)&max_dist[frame])[j] =
+	  Rmax(((float*)&max_dist[frame])[j], temp[0]);
+      }
+      if(Nrows>=6)
+	forj(0,3) vel[frame][3*i+j] = temp[5+j];
+      
+      scales[frame][i] = temp[3];
+      /*Keep record of the biggest particle*/
+      if(frame==0) if(temp[3]>maxScale) maxScale = temp[3];
+      
+    }
+
+  }
+
+  printf("\rLoading data... 100 %%   \nDONE!\n");
+  
+  return true;
+
+
+}
 
 
 float get_flag(std::string flag, std::string &line){
@@ -284,6 +394,7 @@ bool RConfig::parse_args(int argc, char *argv[]){
     }
     if(argv[i][0]!='-') continue;
     if(strcmp(argv[i],"--record")==0) record_movie = true;
+
     if(strcmp(argv[i],"--palette")==0) palette_id = atoi(argv[i+1]);
     if(strcmp(argv[i],"--frames-between-screenshots")==0) frames_between_screenshots = atoi(argv[i+1]);
     if(strcmp(argv[i],"--RGB")==0) read_color_mode=HEXBGR;//readHexColor = true;
@@ -298,6 +409,13 @@ bool RConfig::parse_args(int argc, char *argv[]){
       bcolor[1] = stod( argv[i+2]);
       bcolor[2] = stod( argv[i+3]);
     }
+    if(strcmp(argv[i],"--resolution")==0){
+      FW = atoi( argv[i+1]);
+      FH = atoi( argv[i+2]);      
+    }
+    if(strcmp(argv[i],"--binary")==0) binary_read_mode = true;
+    if(strcmp(argv[i],"--noaxis")==0) noaxis = true;
+    if(strcmp(argv[i],"--nobox")==0) nobox = true;
     if(strcmp(argv[i],"--use-font")==0) fontName = std::string(argv[i+1]);
     
   }
@@ -313,7 +431,12 @@ void RConfig::print_help(){
   printf("\t  --palette X : Change the color palette\n");
   printf("\t  --RGB : Read colors as hex values in BGR (as integers) (0xFF=red=255). Overrides palette\n");
   printf("\t  --renderer [render=arrows,particles]: Rendering mode.\n");
+  printf("\t  --nobox : Do not render the bounding box.\n");
+  printf("\t  --noaxis : Do not render axis labels.\n");
+  printf("\t  --binary : Read the file in binary SuperIO format.\n");
 
+  printf("\t  --resolution X Y : Set the resolution (AKA window size). Default is 800x800\n");
+  
   printf("\n\x1b[1m Controls:\x1b[0m\n");
   printf("  Movement:\n");
   printf("\t Move with WASD, E and Q to tilt and Shift/Ctrl to go up/Down\n");
@@ -326,7 +449,8 @@ void RConfig::print_help(){
   printf("\t Press M to play the frames at 60 FPS, M again to pause\n");
   printf("\t Press C to take a screenshot in png\n\t Press L to play and record to a mp4 until L is pressed again\n");
   printf("  Others:\n");
-  printf("\t Press h to print this help page\n");
+  printf("\t Press h to print this help page\n");  
+  
 }
 
 
@@ -339,7 +463,13 @@ void RConfig::set_default(){
   //readHexColor = false;
   read_color_mode=PALETTE;
   render_type = PARTICLES;
+
+  noaxis = false;
+  nobox = false;
   
+  binary_read_mode = false;
+  FW = 800;
+  FH = 600;
 }
 
 

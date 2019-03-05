@@ -2,7 +2,9 @@
 #define RGL_H
 #include "header.h"
 #include "RFile.h"
-#include<glm/gtx/compatibility.hpp>
+
+#include"glm/gtx/compatibility.hpp"
+
 #include<vector>
 using namespace std;
 
@@ -150,6 +152,7 @@ class FBO{
 class GBuffer: public FBO{
  public:
   GBuffer();
+  ~GBuffer();
   float* getDepthData();
 
   void bindSamplers(RShaderProgram &apr);

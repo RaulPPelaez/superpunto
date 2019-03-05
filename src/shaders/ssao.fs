@@ -7,6 +7,8 @@
 // uniform sampler2D ptex;  //Position buffer
  uniform sampler2D noisetex; //4x4 noise texture
 
+uniform float FWIDTH;
+uniform float FHEIGHT;
 layout(location = 0) out float occ;
 
 const int NSAMPLES = 129;
@@ -26,7 +28,7 @@ void main(){
 
   /*Create a random rotated base to randomize directions*/
   vec3 rv = texture(noisetex,
-		    ivec2(gl_FragCoord.xy/vec2(800.0f, 600.0f)/4.0f)).xyz;
+		    ivec2(gl_FragCoord.xy/vec2(FWIDTH, FHEIGHT)/4.0f)).xyz;
   vec3 tangent = normalize(rv - N*dot(rv, N));
   vec3 bitan = cross(N, tangent);
   mat3 TBN = mat3(tangent, bitan, N);
@@ -36,7 +38,7 @@ void main(){
     /*Rotate the direction*/
     vec3 dir = TBN*points[i].xyz;
     /*The sample point is at dir*radius from this point*/
-    vec3 sm = vec3(gl_FragCoord.xy/vec2(800.0f, 600.0f), z) + dir*radius;
+    vec3 sm = vec3(gl_FragCoord.xy/vec2(FWIDTH, FHEIGHT), z) + dir*radius;
     /*Mirror the points in the hidden hemisphere*/
     if(dot(N, dir)<0.0) dir = -dir;
     /*Recover the depth of the sample point*/

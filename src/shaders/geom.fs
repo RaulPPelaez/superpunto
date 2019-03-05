@@ -20,7 +20,7 @@ void main() {
     int r = (id*2)%256;
     int g = (id*2)/256%256;
     int b = (id*2)/(256*256);
-    outColor = vec4(r/256.0f,g/256.0f,b/256.0f, 1.0f);       
+    outColor = vec4(r/256.0f,g/256.0f,b/256.0f, 1.0f);
   }
   else if(drawing_picked){
     outColor = vec4(1.0f-Color, 1.0f);
@@ -28,7 +28,8 @@ void main() {
   else{
     outColor = vec4(Color,1);
     outColor.w = 1.0f;
-  } 
+  }
+  
   //float z = Pos.z;
   float z = 2.0f*gl_FragCoord.z-1.0f;
   positionBuffer = Pos;

@@ -183,7 +183,10 @@ void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp){
 }
 
 
-FBO::~FBO(){ glDeleteFramebuffers(1, &fid);}
+FBO::~FBO(){
+  glDeleteFramebuffers(1, &fid);
+  delete[] draw_buffer;
+}
 
 void FBO::draw(){
   this->unbind();
@@ -208,9 +211,15 @@ glm::vec4 FBO::getPixel(int x, int y){
 Uint8* FBO::getColorData(){
   int cdatasize = ctex.getSize().x*ctex.getSize().y*4;  
   if(cdata.size() != cdatasize) cdata.resize(cdatasize);
+  
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   glReadPixels(0,0, FWIDTH,FHEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, (void *)cdata.data());
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  
+  // std::fill(cdata.begin(), cdata.end(), 0);
+  // fori(0,FWIDTH*FHEIGHT) cdata[4*i+3] = 255;
+  // fori(0,FWIDTH*FHEIGHT) cdata[4*i] = 255;
+
   return cdata.data();
 }
 
@@ -223,6 +232,9 @@ void FBO::bindColorTex(RShaderProgram &apr){
   apr.setFlag("ctex"    , ctex.getUnit()); 
 }
 
+GBuffer::~GBuffer(){
+  delete[] draw_buffer;
+}
 GBuffer::GBuffer(): FBO(){
   printf("\t\tInit GBuffer...     ");
   //Depth texture
@@ -389,8 +401,8 @@ void RGLContext::init(SDL_Window *& w){
 
   printf("\tOpenGL version %d.%d available!\n", major, minor);
   
-   glEnable(GL_BLEND);
-   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  // glEnable(GL_BLEND);
+  // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
  
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);

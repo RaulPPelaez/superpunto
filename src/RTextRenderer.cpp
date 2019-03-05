@@ -71,6 +71,9 @@ void RTextRenderer::draw(){
   glUniform1f(glGetUniformLocation(pr->id(), "fontsize_multiplicator"), size_factor);
   glUniform2f(glGetUniformLocation(pr->id(), "size"), size.x, size.y);
   glUniform2f(glGetUniformLocation(pr->id(), "pos"), pos.x, pos.y);
+  glUniform1f(glGetUniformLocation(pr->id(), "FWIDTH"), (float)FWIDTH);
+  glUniform1f(glGetUniformLocation(pr->id(), "FHEIGHT"), (float) FHEIGHT);
+
   dummy_vao->use();
   glDrawArrays(GL_TRIANGLE_STRIP,0,4);
   //dummy_vao.unbind();
