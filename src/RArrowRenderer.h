@@ -5,7 +5,7 @@
 class RArrowRenderer: public RRenderer{
 public:
   RArrowRenderer(int maxN, float gscale, RConfig cfg);
-  ~RArrowRenderer();
+  ~RArrowRenderer(){}
 
   void update() override;
   void draw() override;

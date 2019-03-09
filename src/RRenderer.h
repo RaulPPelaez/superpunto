@@ -2,6 +2,7 @@
 #define RRENDERER_H
 
 #include"RFile.h"
+#include"System.h"
 #include"RGL.h"
 #include"RTextRenderer.h"
 #include"RBox.h"
@@ -11,67 +12,69 @@
 #include <glm/gtc/type_ptr.hpp>
 #include"RWindow.h"
 
-#define FOV glm::radians(45.0f)
-#define ZNEAR 0.1f
-#define ZFAR 10000.0f
+
+namespace superpunto{
+  class RAxis{
+  public:
+    RAxis(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w, glm::mat4 *MVP, glm::vec3 origin);
+    void draw(glm::vec3 campos);
+
+
+  private:
+    RTextRenderer Xtext, Ytext, Ztext;
+    RShaderProgram pr;
+    glm::mat4 *MVP;
+    float axislength;
+    glm::vec3 *campos;
+    glm::vec3 origin;
+    VAO dummy_vao;
+    std::shared_ptr<System> sys;
+    std::shared_ptr<RWindow> w;
+  };
 
 
 
-class RAxis{
- public:
-  RAxis(glm::mat4 *MVP, glm::vec3 *campos, glm::vec3 origin, RConfig cfg);
-  void draw();
+  class RRenderer{
+  public:
+    using Camera = FreeCamera;
+  protected:
 
+    std::shared_ptr<System> sys;
+    std::shared_ptr<Camera> cam;
+    float gscale;
+    RBox box;
+    RAxis axis;
+    glm::mat4 MVP, model, view, proj;
+    RTextRenderer textRenderer;
+    ParticleData particles; //Current particle data in CPU
+    std::shared_ptr<RWindow> w;
+    
+  public:
+    RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w, std::shared_ptr<Camera> cam, float gscale);
 
- private:
-  RTextRenderer Xtext, Ytext, Ztext;
-  RShaderProgram pr;
-  glm::mat4 *MVP;
-  float axislength;
-  glm::vec3 *campos;
-  glm::vec3 origin;
-  VAO dummy_vao;
-};
-
-
-
-class RRenderer{
-protected:
-  RConfig cfg;
+    virtual void handle_event(SDL_Event &e);
   
-  RAxis axis;
-  RBox box;
-  glm::mat4 MVP, model, view, proj;
-  RTextRenderer textRenderer;
-  float gscale;
-  ParticleData particles; //Current particle data in CPU
+    virtual void update();
+    virtual void draw() = 0;
+    void display();
+    virtual void drawText(const char* text, int x, int y);
+    virtual void handle_resize(uint fw, uint fh);
+    virtual void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
   
-public:
-  RRenderer(RConfig cfg, float gscale);
-
-  virtual void handle_event(SDL_Event &e);
+    virtual bool upload_instances(ParticleData pdata) = 0;
   
-  virtual void update();
-  virtual void draw() = 0;
-  void display();
-  virtual void drawText(const char* text, int x, int y);
-  virtual void handle_resize();
-  virtual void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-  
-  virtual bool upload_instances(ParticleData pdata) = 0;
-  
-  virtual int pick(int x, int y, int pickindex);
+    virtual int pick(int x, int y, int pickindex);
 
-  virtual Uint8 *getPixels();
-  virtual glm::int2 getSize();
+    virtual Uint8 *getPixels();
+    virtual glm::int2 getSize();
 
-  FreeCamera cam;
-  int picked[2];  
-
-};
+    int picked[2];
+    float znear = 0.1;
+    float zfar = 10000;
+  };
 
 
 
-
+}
 
 #endif

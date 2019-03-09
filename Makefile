@@ -5,5 +5,6 @@ all:
 clean:
 	rm -f bin/spunto
 	$(MAKE) -C src/ clean
-redo:
-	$(MAKE) -C src/ redo 
+
+redo: clean all
+

@@ -1,192 +1,139 @@
 #ifndef RFILE_H
 #define RFILE_H
 
-#include"header.h"
+#include"defines.h"
+#include"System.h"
+#include<memory>
 #include<vector>
 #include<string>
 #include<fstream>
 #include<stdio.h>
 #include<sstream>
 #include<iostream>
-using namespace std;
 #include"math_helper.h"
+#include"superIO.h"
+#include<thread>
+#include<future>
+#include<atomic>
+namespace superpunto{
 
-
-
-
-
-typedef unsigned int uint;
-
-
-
-
-class Superbin{  
-public:
-  enum SMODE {SREAD, SWRITE};
-  struct FileConfig2{
-    unsigned int nrows;
-    unsigned int nframes;
-    unsigned int maxN;
-    std::vector<int> N;
+  typedef unsigned int uint;
+  
+  struct RColor{
+    float r,g,b;
   };
 
 
-  struct FileConfig{
-    unsigned int nframes;
-    unsigned int nrows;
-  };
+  class ColorParser{
+  public:
+    ColorParser(ColorParserType tp, uint pid=923302100);
 
-  
-  Superbin(string fileName){
-    f.open(fileName, ios::in | ios::binary);
-    mode = SREAD;
-    this->read_header();    
-  }
-  Superbin(string fileName, int nframes, int nrows){
-    finfo.nframes = nframes;
-    finfo.nrows = nrows;
-    f.open(fileName, ios::out | ios::binary);
-    mode = SWRITE;
-    this->print_header();
-  }
-  ~Superbin(){ f.close();}
-
-  void close(){f.close();}
-  void print_frame(const char *msg, const float *data, int Np){
-    string str(msg);
-    print_frame(str, data, Np);
-  }
-  void print_frame(const string &msg, const float *data, int Np){
-    if(mode == SREAD){cout<<"INVALID USE OF WRITE OBJECT!!!!"<<endl; return;}
-    int msize = msg.size();
-    f.write((char *)&msize, sizeof(int));
-    f.write(msg.c_str(), msize+1);
-    f.write((char *)&Np, sizeof(int));
-    f.write((char *)&data[0], Np*finfo.nrows*sizeof(float));
-
-  }
-  void read_frame(string &comment, vector<float> &data){
-    if(mode == SWRITE){cout<<"INVALID USE OF READ OBJECT!!!!"<<endl; return;}
-
-    int msize;
-    f.read((char *)&msize, sizeof(int));
-    char buf[msize+1];
-    f.read(buf, msize+1);
-    comment = string(buf);
-    int Np;
-    f.read((char *)&Np, sizeof(int));
-    data.resize(Np*finfo.nrows);
-    f.read((char *)&data[0], Np*finfo.nrows*sizeof(float));
-  }
-  
-  FileConfig get_FileConfig(){
-    return this->finfo;
-  }
-  
-private:
-  void print_header(){
-    f.write((char *)&finfo.nframes, sizeof(int));
-    f.write((char *)&finfo.nrows, sizeof(int));
-  }
-  void read_header(){
-    f.read((char *)&finfo.nframes, sizeof(int));
-    f.read((char *)&finfo.nrows, sizeof(int));    
-  }
-  fstream f;
-  FileConfig finfo;
-  SMODE mode;
-};
-
-
-
-
-
-
-
-enum ColorParserType{PALETTE, RANGE, HEXBGR, DEFAULT};
-
-struct RColor{
-  float r,g,b;
-};
-
-
-class ColorParser{
-public:
-  ColorParser(ColorParserType tp, uint pid=923302100);
-
-  RColor getColor(uint id);
+    RColor getColor(uint id);
    
-  uint palette_id;//=923302100; //1 is also cool
-
-
-private:
-  RColor id2BGR(uint id);
-  ColorParserType tp;
-  vector<uint> palette;
-
-};
+  private:
+    RColor id2BGR(uint id);
+    ColorParserType tp;
+    std::vector<uint> palette;
+    uint palette_id;
+  };
 
 
 
-struct ParticleData{
-  float *pos=nullptr, *scales=nullptr, *colors=nullptr;
-  float *vel=nullptr; //for arrows
-  uint N=0;
-  float3 L;
-};
+  struct ParticleData{
+    const float *pos=nullptr, *scales=nullptr, *colors=nullptr;
+    const float *vel=nullptr; //for arrows
+    uint N=0;
+    float3 L;
+    std::string msg;
+    int frame = -1;
+  };
 
-struct RFile{
-  const char *name;
-  uint Nrows;
-  uint Nframes;
-  uint maxN;
-  uint current_frame;
+  struct RFile{
+  private:
+    std::shared_ptr<System> sys;
 
-  vector<int> Natframe;
+    superIO::superFile in;
+    uint maxN;
+    float maxScale;
+    
+    uint current_frame;
+
+    std::atomic<uint> storedFrames;
   
-  vector<vector<float>> pos, vel, scales, colors;
-  vector<float3> Lbox;
-  vector<float3> max_dist;
-  vector<string> msgs;
-  float maxScale;
-
-  ParticleData current;
+    std::vector<int> Natframe;
   
-  bool set_frame(int frame);
-  bool set_next_frame();
-  bool set_previous_frame();
+    std::vector<std::vector<float>> pos, vel, scales, colors;
+    std::vector<float3> Lbox;
+    std::vector<float3> max_dist;
+    std::vector<std::string> msgs;        
 
-  bool get_config();
-  bool iscomment(std::string line);
-  bool read_frames(ColorParserType read_color_mode);
-  bool read_frames_binary(ColorParserType read_color_mode);
-  void parse_comment(std::string line, std::string &msg, float *L);
-};
+    ParticleData current;
 
-
-enum RenderType{PARTICLES, ARROWS, NONE};
-
-struct RConfig{
-  bool record_movie;
-  bool play;
-  int frames_between_screenshots;
-  float bcolor[3];
-  std::string fontName;
-
-  RenderType render_type;
+    void readAllFrames();
+    void readAllFramesAsync(std::future<void> futureObject){
+      while(futureObject.wait_for(std::chrono::nanoseconds(1)) == std::future_status::timeout
+	    and readNextFrame()){}
+    }
   
-  //bool readHexColor;
-  ColorParserType read_color_mode;
-  bool binary_read_mode;
-  bool noaxis, nobox;
-  int FW, FH; //input Resolution
+    bool readNextFrame();
   
-  bool parse_args(int argc, char *argv[]);
-  void print_help();
-  void set_default();
-};
+    bool iscomment(std::string line);
+    void parse_comment(std::string line, std::string &msg, float *L);
+    void parseRowNumbers(float *row_numbers, int numberColumns);
 
-string read_file(const char *fileName);
+    std::atomic<bool> end_of_file;
+    bool asyncRead = true;
+
+    std::thread readThread;
+    std::promise<void> exitSignal;
+    
+  public:
+    RFile(std::shared_ptr<System> sys):
+      sys(sys),
+      in(sys->getInputOptions().readFile){
+      if(!in.good()){
+	sys->log<System::CRITICAL>("[File] Could not open file %s!", sys->getInputOptions().readFile.c_str());
+      }
+      storedFrames.store(0);
+      end_of_file.store(false);
+      readNextFrame();
+      if(asyncRead){
+	auto future = exitSignal.get_future();
+	readThread = std::thread(&RFile::readAllFramesAsync, this, std::move(future));	
+      }
+      else{
+	sys->log<System::CRITICAL>("[File] Could not open file %s!", sys->getInputOptions().readFile.c_str());
+      }
+      setFrame(0);
+    }
+    ~RFile(){
+      if(asyncRead){
+	exitSignal.set_value();
+	readThread.join();
+      }
+	
+    }
+    void setFrame(int frame);
+    void setNextFrame();
+    void setPreviousFrame();
 
 
+    ParticleData getCurrentFrameData(){
+      return current;
+    }
+    ParticleData getFrameData(uint frame){
+      uint old_frame = current_frame;
+      setFrame(frame);
+      auto current = getCurrentFrameData();
+      setFrame(old_frame);
+      return current;
+    }
+
+    float3 getMaxDist(){ return max_dist[current_frame];}
+    float getMaxScale(){ return maxScale;}
+  };
+
+  std::string read_file(const char *fileName);
+
+}
 #endif

@@ -1,36 +1,42 @@
 CXX=g++
 CC=$(CXX)
 
+MAXLOGLEVEL=5
+
 #-march=native
-CFLAGS=  -std=c++11 -Ofast -pipe -funroll-loops -g -I . #-I../third_party/include
+CFLAGS=  -std=c++11 -Ofast -pipe -funroll-loops -g -I . -DMAXLOGLEVEL=$(MAXLOGLEVEL) #-I../third_party/include
 CXXFLAGS=$(CFLAGS)
 
 
 LDFLAGS= #-L../third_party/lib
-LDLIBS= -lSDL2 -lSDL2_ttf -lGL -lpng -lGLEW #../third_party/glew.o 
+LDLIBS= -lSDL2 -lSDL2_ttf -lGL -lpng -lGLEW -lpthread  #../third_party/glew.o 
 
 
-GLOBJS=RWindow.o RGL.o Camera.o  RTextRenderer.o RRenderer.o RParticleRenderer.o RArrowRenderer.o RBox.o
+GLOBJS=RWindow.o RGL.o Camera.o  RTextRenderer.o RRenderer.o RParticleRenderer.o RBox.o # RArrowRenderer.o
 
-OBJS= spunto.o App.o $(GLOBJS) RFile.o RPNG.o math_helper.o
+OBJS= main.o App.o $(GLOBJS) RFile.o RPNG.o math_helper.o System.o
 
-all:shaders spunto 
+all:shaders main
+	mv main spunto
 
-#This transforms the sahder files into strings in a header file shaders.h so there are compiled with the rest of the code
+#This transforms the shader files into strings in a header file shaders.h so there are compiled with the rest of the code
+.NOTPARALLEL:
 
-.PHONY: shaders
-shaders: 
+shaders: shaders.h
+shaders.h: shaders/*
 	echo "#ifndef SHADERS_H\n#define SHADERS_H" > shaders.h
 	ls shaders --hide=*~ | while read sh; do \
 		xxd -i "shaders/$$sh" | sed "s/\([0-9a-f]\)$$/\0, 0x00/" | sed "s/unsigned/const/g" >> shaders.h; \
 	done; \
 	echo " " >> shaders.h; 
 	echo "#endif" >> shaders.h;
-spunto:$(OBJS) $(shaders)
 
-App.o: $(shaders)
+
+main:$(OBJS) 
+
+App.o: 
 
 clean:
-	rm -f $(OBJS) shaders.h
+	rm -f $(OBJS)  spunto  shaders.h
 
 redo: clean all

@@ -1,52 +1,50 @@
 #ifndef APP_H
 #define APP_H
 
-#include"header.h"
+#include"defines.h"
 #include"RWindow.h"
 #include"RRenderer.h"
-#include"RParticleRenderer.h"
-#include"RArrowRenderer.h"
 #include"RFile.h"
-#include<vector>
-#include<string>
-#include<iostream>
+#include<memory>
+#include"System.h"
+#include"Camera.h"
 
-using namespace std;
-
-
-class App{
-public:
-  App(int argc, char *argv[]);
-  ~App();
-  bool init();
-  void run();
+namespace superpunto{
+  class App{
+  public:
+    App(std::shared_ptr<System>, int argc, char *argv[]);
+    ~App();
+    void run();
   
-private:
-  bool read_input();
-  bool initSDL();
-  bool initWindow();
-  bool initOpenGL();
-  
-  void upload_frame(int frame);
-  void upload_next_frame();
-  void upload_previous_frame();
+  private:
+    void read_input();
+    void initWindow();
+    void initOpenGL();
 
-  void update();
-  void handle_events();
 
-  void draw();
+    void setFrame(int frame);
+    void setNextFrame();
+    void setPreviousFrame();
 
-  void screenshot();
-  void movieAddFrame();
+    void update();
+    void handle_events();
 
-  RRenderer *gl;
-  RWindow *w;
-  RConfig cfg;
-  RFile file;
+    void draw();
 
-  
-  bool visible;
+    void screenshot();
+    void movieAddFrame();
 
-};
+    std::shared_ptr<RRenderer> gl;
+    using Camera = FreeCamera;
+    std::shared_ptr<FreeCamera> cam;
+    std::shared_ptr<RWindow> w;
+    std::shared_ptr<RFile> file;    
+    std::shared_ptr<System> sys;
 
+    int current_frame = -1;
+    bool visible;
+    bool play = false;
+    bool record_movie = false;
+  };
+}
 #endif

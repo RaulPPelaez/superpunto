@@ -1,229 +1,207 @@
 #include "App.h"
 #include"RPNG.h"
-uint palette_id=923302100; //1 is also cool 
+#include"RParticleRenderer.h"
+//#include"RArrowRenderer.h"
 
 
 
-App::App(int argc, char *argv[]):
-  w(nullptr),
-  gl(nullptr)
-{
-  file.name = argv[1];
-  cfg.set_default();
-  cfg.parse_args(argc, argv);
-  FWIDTH = cfg.FW;
-  FHEIGHT = cfg.FH;
-  
-  init();
-  run();
-}
-App::~App(){
-  delete w;
-  delete gl;
-}
-
-bool App::init(){
-  read_input();
-  initSDL();
-  initOpenGL();
-  visible = true;
-  return true;
-}
+namespace superpunto{
 
 
-bool App::read_input(){
 
-  if(cfg.binary_read_mode){    
-    file.read_frames_binary(cfg.read_color_mode);
+  App::App(std::shared_ptr<System> sys, int argc, char *argv[]):
+    visible(true),
+    sys(sys)
+  {  
+
+    auto op = sys->getInputOptions();
+    file = std::make_shared<RFile>(sys);
+    //if(op.binary_read_mode) file->read_frames_binary(op.read_color_mode);
+    initWindow();
+    initOpenGL();
   }
-  else{    
-    if(!file.get_config()){printf("INVALID FILE!\n"); return false;}  
-    file.read_frames(cfg.read_color_mode);
+  App::~App(){
   }
-  return true;
-}
 
-bool App::initSDL(){
-  initWindow();
-  return true;
-}
-bool App::initWindow(){
-  printf("Starting graphic context...      \n");
-  string title = "Superpunto v2.0 WIP! -- "+to_string(file.Nframes)+" frames loaded -- ";  
-  w = new RWindow(title, cfg.FW, cfg.FH);
-  printf("DONE!\n");
-  return true;
-}
-bool App::initOpenGL(){
-  switch(cfg.render_type){
-  case PARTICLES: 
-    gl = new RParticleRenderer(file.maxN, 1.0f/file.maxScale, cfg);
-    break;
-  case ARROWS:
-    gl = new RArrowRenderer(file.maxN, 1.0f/file.maxScale, cfg);
-    break;
+
+  void App::initWindow(){
+    sys->log<System::DEBUG>("Starting graphic context...");
+    std::string title = "Superpunto v"+std::to_string(SUPERPUNTO_MAJOR)+"."+std::to_string(SUPERPUNTO_MINOR)+"!";
+    auto op = sys->getInputOptions();
+    w = std::make_shared<RWindow>(sys, title, op.target_FW, op.target_FH);        
   }
-  gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
-  upload_frame(0);
-  return true;
-}
+  void App::initOpenGL(){
+    auto op = sys->getInputOptions();
+    //gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale, 0));
+    cam = std::make_shared<Camera>();
+    auto data = file->getCurrentFrameData();
 
-void App::upload_frame(int frame){
-  if(!file.set_frame(frame)) return;
-  gl->upload_instances(file.current);
-  gl->drawText(
-	       (file.msgs[file.current_frame]+
-		string(" -- ")+to_string(file.current_frame)).c_str(),
-	       0, 0);
-}
-void App::upload_next_frame(){
-  if(!file.set_next_frame()) return;
-  gl->upload_instances(file.current);
-  gl->drawText(
-	       (file.msgs[file.current_frame]+
-		string(" -- ")+to_string(file.current_frame)).c_str(),
-	       0, 0);
+    float3 maxDist = file->getMaxDist();
+    float maxScale = file->getMaxScale();
+    sys->log<System::DEBUG>("[App] Max radius in frame 0: %g", maxScale);
+    cam->warp(glm::vec3(0, (maxDist.y+1.0f)*6.0f/maxScale, 0));
     
-}
-void App::upload_previous_frame(){
-  if(!file.set_previous_frame()) return;
-  gl->upload_instances(file.current);
-  gl->drawText(
-	       (file.msgs[file.current_frame]+
-		string(" -- ")+to_string(file.current_frame)).c_str(),
-	       0, 0);
+    switch(op.render_type){
+    case RenderType::PARTICLES:     
+      gl = std::make_shared<RParticleRenderer>(sys, w, cam, 1.0f/maxScale);
+      break;
+    // case RenderType::ARROWS:
+    //   gl = std::make_shared<RArrowRenderer>(sys, cam);
+    //   break;
+    default:
+      sys->log<System::CRITICAL>("Invalid Rederer selected");
+    }
+    setFrame(0);
+  }
 
-}
+  void App::setFrame(int frame){
+    file->setFrame(frame);
+    auto current = file->getCurrentFrameData();
+    current_frame = current.frame;
+    gl->upload_instances(current);
+    gl->drawText(
+		 (current.msg+
+		  std::string(" -- ")+std::to_string(current_frame)).c_str(),
+		 0, 0);
+  }
+  void App::setNextFrame(){
+    setFrame(current_frame+1);
+  }
 
+  void App::setPreviousFrame(){
+    if(current_frame>0)
+      setFrame(current_frame-1);
+  }
 
-void App::run(){
-  SDL_Delay(100);
-  //This **appears** to fix the damn glitching screen bug, nvm is OS's fail
-  w->display();
-  w->display();
+  void App::run(){
+    SDL_Delay(100);
+    //This **appears** to fix the damn glitching screen bug, nvm is OS's fail
+    w->display();
+    w->display();
 
-  while(w->isOpen()){
+    while(w->isOpen()){
 
-    handle_events();
-    if(w->ready_to_draw()){
-      update();
-      draw();
+      handle_events();
+      if(w->ready_to_draw()){
+	update();
+	draw();
+      }
     }
   }
-}
 
-void App::handle_events(){
-  SDL_Event e;
-  while(SDL_PollEvent(&e) !=0){
-    gl->handle_event(e);
-    if(e.type == SDL_QUIT) w->close();
-    if(e.type == SDL_KEYDOWN){
-      IF_KEY(ESCAPE, w->close();)
-      IF_KEY(LALT, gl->cam.set_origin();)
-      IF_KEY(SPACE, upload_next_frame();)
-      IF_KEY(r, upload_previous_frame();)
-      IF_KEY(b, upload_frame(0);)
-      IF_KEY(t, upload_frame(file.Nframes-1);)
-      IF_KEY(m, cfg.play = !cfg.play;)
-      IF_KEY(h, cfg.print_help();)
-      IF_KEY(c, this->screenshot();)
-      IF_KEY(l, cfg.record_movie = !cfg.record_movie; cfg.play = !cfg.play;)	
+  void App::handle_events(){
+    SDL_Event e;
+    while(SDL_PollEvent(&e) !=0){
+      gl->handle_event(e);
+      if(e.type == SDL_QUIT) w->close();
+      if(e.type == SDL_KEYDOWN){
+	IF_KEY(ESCAPE, w->close();)
+	  IF_KEY(LALT, cam->set_origin();)
+	  IF_KEY(SPACE, setNextFrame();)
+	  IF_KEY(r, setPreviousFrame();)
+	  IF_KEY(b, setFrame(0);)
+	  IF_KEY(t, setFrame(-1);)
+	  IF_KEY(m, play = !play;)
+	  IF_KEY(h, sys->printHelp();)
+	  IF_KEY(c, this->screenshot();)
+	  IF_KEY(l, record_movie = !record_movie; play = !play;)	
 
-      IF_KEY(4, gl->rotate_model(0.1f,1,0,0);)
-      IF_KEY(5, gl->rotate_model(0.1f,0,1,0);)
-      IF_KEY(6, gl->rotate_model(0.1f,0,0,1);)
-      IF_KEY(1, gl->rotate_model(-0.1f,1,0,0);)
-      IF_KEY(2, gl->rotate_model(-0.1f,0,1,0);)
-      IF_KEY(3, gl->rotate_model(-0.1f,0,0,1);)
-    }
-    if(e.type == SDL_WINDOWEVENT){
-      switch(e.window.event){
-      case SDL_WINDOWEVENT_FOCUS_GAINED: visible = true; break;
-      case SDL_WINDOWEVENT_FOCUS_LOST: visible = false; break;
-       case SDL_WINDOWEVENT_RESIZED:
-       	FWIDTH = e.window.data1;
-       	FHEIGHT = e.window.data2;
-       	gl->handle_resize(); 
-       	break;	
+	  IF_KEY(4, gl->rotate_model(0.1f,1,0,0);)
+	  IF_KEY(5, gl->rotate_model(0.1f,0,1,0);)
+	  IF_KEY(6, gl->rotate_model(0.1f,0,0,1);)
+	  IF_KEY(1, gl->rotate_model(-0.1f,1,0,0);)
+	  IF_KEY(2, gl->rotate_model(-0.1f,0,1,0);)
+	  IF_KEY(3, gl->rotate_model(-0.1f,0,0,1);)
+	  }
+      if(e.type == SDL_WINDOWEVENT){
+	switch(e.window.event){
+	case SDL_WINDOWEVENT_FOCUS_GAINED: visible = true; break;
+	case SDL_WINDOWEVENT_FOCUS_LOST: visible = false; break;
+	case SDL_WINDOWEVENT_RESIZED:
+	   int fw = e.window.data1;
+	   int fh = e.window.data2;
+	   gl->handle_resize(fw,fh);
+	   w->handle_resize(fw,fh); 
+	   break;	
+	}
       }
-    }
-    if(e.type == SDL_MOUSEBUTTONDOWN){
-      int button = e.button.button == SDL_BUTTON_LEFT ? 0:1;
-      int id = gl->pick(e.button.x, e.button.y, button);
-      gl->picked[button] = id;
-      float *ps = file.current.pos;
-      if(id>=0 && id<file.maxN){
-	cerr<<"Selected Superpunto: "<<id<<endl;
-	
-	cerr<<"\tLocation: ";
-	fori(0,3)
-	  cerr<<ps[3*gl->picked[button]+i] <<" ";
-	cerr<<endl;
-	
-      }
-      if(gl->picked[0]>=0 && gl->picked[1] >=0){
-	cerr<<"\tDistance between "<<gl->picked[0]<<" and "<<gl->picked[1]<<": ";
-	cerr<<"( ";
-	fori(0,3)
-	  cerr<<ps[3*gl->picked[1]+i]-ps[3*gl->picked[0]+i]<<" ";
-	cerr<<")"<<endl;
-      }
+      if(e.type == SDL_MOUSEBUTTONDOWN){
+	int button = e.button.button == SDL_BUTTON_LEFT ? 0:1;
+	int id = gl->pick(e.button.x, e.button.y, button);
+	gl->picked[button] = id;
+	auto current = file->getCurrentFrameData();
+	const float *ps = current.pos;
+	if(id>=0 && id<current.N){
+	  float3 pi = {ps[3*gl->picked[button]], ps[3*gl->picked[button]+1], ps[3*gl->picked[button]+2]};
+	  sys->log<System::MESSAGE>("Selected Superpunto: %d , at %g %g %g", id, pi.x, pi.y, pi.z);
+	}
+	if(gl->picked[0]>=0 && gl->picked[1] >=0){
+	  float rij[3];
+	  fori(0,3) rij[i] = ps[3*gl->picked[1]+i]-ps[3*gl->picked[0]+i];
+	  sys->log<System::MESSAGE>("Distance between %d and %d: %f %f %f ; Modulus: %g",
+				    gl->picked[0],
+				    gl->picked[1],
+				    rij[0], rij[1], rij[2],
+				    sqrt(rij[0]*rij[0]+rij[1]*rij[1]+rij[2]*rij[2]));
+	}
 
       
+      }
     }
   }
-}
 
-void App::screenshot(){
-  static int counter = 0;
-  static bool init = false;
+  void App::screenshot(){
+    static int counter = 0;
+    static bool init = false;
 
-  if(!init){
-    int sysret = system("mkdir -p screenshots");
-    init = true;
+    if(!init){
+      int sysret = system("mkdir -p screenshots");
+      init = true;
+    }
+    std::string fileName = std::string("screenshots/shot_")+
+      std::to_string(counter)+std::string(".png");
+    Uint8* pixels = gl->getPixels();
+    glm::int2 s = gl->getSize();
+    sys->log<System::MESSAGE>("Saving screenshot... %s", fileName.c_str());
+    sys->log<System::MESSAGE>("Size: %dx%d",s.x, s.x);
+    
+    fori(0, w->getResolution().x*w->getResolution().y) pixels[4*i+3] = 255;
+    savePNG(fileName.c_str(), pixels, s.x, s.y);
+    counter++;
   }
-  std::string fileName = string("screenshots/shot_")+
-    to_string(counter)+string(".png");
-  Uint8* pixels = gl->getPixels();
-  glm::int2 s = gl->getSize();
-  cerr<<"Saving screenshot... shot_"<<counter<<".png"<<endl;
-  cerr<<"Size: "<<s.x<<" "<<s.x<<endl;
-  fori(0, FWIDTH*FHEIGHT) pixels[4*i+3] = 255;
-  savePNG(fileName.c_str(), pixels, s.x, s.y);
-  counter++;
-}
+ 
 
-void App::movieAddFrame(){
-  static FILE* fp = nullptr;
-  static bool init = false;
-  if(!init){
-    int rate = 16;
-    int bitrate = 24000;
-    string movie_fileName("movie.mp4");
-    string cmd = string("avconv -loglevel panic -y -f rawvideo -s ");
-    cmd += to_string(FWIDTH) + string("x") + to_string(FHEIGHT);
-    cmd += string(" -pix_fmt rgba -r ") + to_string(rate);
-    cmd += string(" -i - -vf vflip -an -b:v ") + to_string(bitrate) +
-      string("k ");
-    cmd += movie_fileName;
-    cerr<<"Encoding video with command:"<<endl;
-    cerr<<cmd<<endl;
-    fp = popen(cmd.c_str(), "w");
-    init = true;
+  void App::movieAddFrame(){
+    static FILE* fp = nullptr;
+    static bool init = false;
+    if(!init){
+      int rate = 16;
+      int bitrate = 24000;
+      std::string movie_fileName("movie.mp4");
+      std::string cmd = std::string("avconv -loglevel panic -y -f rawvideo -s ");
+      cmd += std::to_string(w->getResolution().x) + std::string("x") + std::to_string(w->getResolution().y);
+      cmd += std::string(" -pix_fmt rgba -r ") + std::to_string(rate);
+      cmd += std::string(" -i - -vf vflip -an -b:v ") + std::to_string(bitrate) +
+	std::string("k ");
+      cmd += movie_fileName;
+      sys->log<System::MESSAGE>("Encoding video with command: %s", cmd.c_str());      
+      fp = popen(cmd.c_str(), "w");
+      init = true;
+    }
+    Uint8* pixels = gl->getPixels();
+    glm::int2 s = gl->getSize();
+    fwrite(pixels, s.x*s.y*4, 1, fp);
   }
-  Uint8* pixels = gl->getPixels();
-  glm::int2 s = gl->getSize();
-  fwrite(pixels, s.x*s.y*4, 1, fp);
-}
-void App::update(){
-  if(visible) gl->update();
-  if(cfg.record_movie) movieAddFrame();
-  if(cfg.play) upload_next_frame();
-}
-void App::draw(){
+  void App::update(){
+    if(visible) gl->update();
+    if(record_movie) movieAddFrame();
+    if(play) setNextFrame();
+  }
+  void App::draw(){
     w->update_fps();
     gl->draw();
     w->display();
+  }
+
+
 }
-
-

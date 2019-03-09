@@ -4,9 +4,10 @@
 #include<stdlib.h>
 #include<string.h>
 
-
-bool savePNG(const char* fileName,
-	     unsigned char* px, int wx, int wy,
-	     int ctype = PNG_COLOR_TYPE_RGB_ALPHA);
+namespace superpunto{
+  bool savePNG(const char* fileName,
+	       unsigned char* px, int wx, int wy,
+	       int ctype = PNG_COLOR_TYPE_RGB_ALPHA);
+}
 
 #endif

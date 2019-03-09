@@ -1,8 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "header.h"
-
+#include "defines.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -10,8 +9,8 @@
 #include <glm/gtc/quaternion.hpp>
 
 
-
-class FreeCamera{
+namespace superpunto{
+  class FreeCamera{
   public:
     FreeCamera();
 
@@ -29,10 +28,11 @@ class FreeCamera{
     
     glm::mat4 view;
     glm::vec3 pos, up, front, right;
-    GLfloat yaw, pitch, roll;
+    float yaw, pitch, roll;
     
     float mult;
     float cspeed;
-};
-
+    float mouse_sensitivity;
+  };
+}
 #endif
