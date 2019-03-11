@@ -18,8 +18,11 @@ namespace superpunto{
 	}
       }
       //If no valid file was found
-      if(!good_file)
-	log<System::CRITICAL>("[System] ERROR! No valid input provided");     
+      if(!good_file){
+	printHelp();
+	log<System::CRITICAL>("[System] ERROR! No valid input provided");
+
+      }
     }
     
     fori(0,m_argc){
