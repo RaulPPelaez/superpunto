@@ -93,7 +93,7 @@ The column color can be treated in two ways:
 
 
 
-#OPTIONS AND CONTROLS
+# OPTIONS AND CONTROLS
 
 **Options:**
 
