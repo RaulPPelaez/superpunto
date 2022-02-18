@@ -5,7 +5,7 @@ Now with SSAO and superb light effects!!
 
 ![alt text](screenshots/shot_0.png "")
 
-#COMPILATION
+# COMPILATION
 Run the Makefile using $ make
 
 
@@ -23,8 +23,13 @@ Dependencies:
 
 6. (Optional) avconv installed for recording, not having it will simply cause the recording button to do nothing.
 
+## In Fedora 35:
 
-#USAGE
+```bash 
+$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel
+```
+
+# USAGE
 Use with $ ./spunto inputfile [opts]
 
 run ./spunto -h for information about the available options and controls.
@@ -71,7 +76,7 @@ If some of the columns are missing, this is the behavior according to the number
 	7: XYZCVxVyVz -> r=1
 	8: XYZRCVxVyVz
 
-#COLORS
+# COLORS
 
 The column color can be treated in two ways:
 
