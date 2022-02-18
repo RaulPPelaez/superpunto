@@ -19,7 +19,7 @@ namespace superpunto{
     bool record_movie = false;
     int frames_between_screenshots = 2;
     float bcolor[3] = {0,0,0};
-    std::string fontName = std::string("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf");
+    std::string fontName = std::string("/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf");
     std::string readFile = std::string("/dev/stdin");
     RenderType render_type = RenderType::PARTICLES;  
     ColorParserType read_color_mode = ColorParserType::PALETTE;

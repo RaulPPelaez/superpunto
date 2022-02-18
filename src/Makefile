@@ -24,7 +24,7 @@ all:shaders main
 
 shaders: shaders.h
 shaders.h: shaders/*
-	echo "#ifndef SHADERS_H\n#define SHADERS_H" > shaders.h
+	printf "#ifndef SHADERS_H\n#define SHADERS_H\n" > shaders.h
 	ls shaders --hide=*~ | while read sh; do \
 		xxd -i "shaders/$$sh" | sed "s/\([0-9a-f]\)$$/\0, 0x00/" | sed "s/unsigned/const/g" >> shaders.h; \
 	done; \
