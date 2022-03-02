@@ -23,10 +23,18 @@ Dependencies:
 
 6. (Optional) avconv installed for recording, not having it will simply cause the recording button to do nothing.
 
+7. xxd.  
+
 ## In Fedora 35:
 
 ```bash 
-$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel
+$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel vim-common
+```
+
+## In Ubuntu 20:
+
+```bash 
+$ sudo apt install libsdl2-dev libsdl2-ttf-dev libpng-dev libglew-dev ffmpeg
 ```
 
 # USAGE

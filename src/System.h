@@ -10,6 +10,11 @@
 
 #define SUPERPUNTO_MAJOR 3
 #define SUPERPUNTO_MINOR 0
+#define xSPUNTOSTR(s) SPUNTOSTR(s)
+#define SPUNTOSTR(s) #s
+#ifndef USEFONT
+#define USEFONT /usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf
+#endif
 
 namespace superpunto{
   enum class ColorParserType{PALETTE, RANGE, HEXBGR, DEFAULT};
@@ -19,7 +24,7 @@ namespace superpunto{
     bool record_movie = false;
     int frames_between_screenshots = 2;
     float bcolor[3] = {0,0,0};
-    std::string fontName = std::string("/usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf");
+    std::string fontName = xSPUNTOSTR(USEFONT);
     std::string readFile = std::string("/dev/stdin");
     RenderType render_type = RenderType::PARTICLES;  
     ColorParserType read_color_mode = ColorParserType::PALETTE;

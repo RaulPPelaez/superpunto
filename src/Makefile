@@ -1,10 +1,12 @@
 CXX=g++
 CC=$(CXX)
 
+FONTNAME=$(shell fc-list | grep DejaVuSansMono.ttf | cut -d: -f1)
+
 MAXLOGLEVEL=5
 
 #-march=native
-CFLAGS=  -std=c++11 -Ofast -pipe -funroll-loops -g -I . -DMAXLOGLEVEL=$(MAXLOGLEVEL) #-I../third_party/include
+CFLAGS=  -std=c++11 -Ofast -pipe -funroll-loops -g -I . -DMAXLOGLEVEL=$(MAXLOGLEVEL) -DUSEFONT=$(FONTNAME) #-I../third_party/include
 CXXFLAGS=$(CFLAGS)
 
 

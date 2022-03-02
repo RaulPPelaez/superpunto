@@ -40,7 +40,7 @@ namespace superpunto{
     if(!font){
       this->font = TTF_OpenFont(fontName, size);
     }
-    if(!font) sys->log<System::ERROR>("[TextRenderer] Could not load font!!");
+    if(!font) sys->log<System::ERROR>("[TextRenderer] Could not load font %s!!", fontName);
 
     return true;
   }
