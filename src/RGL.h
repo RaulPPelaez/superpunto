@@ -5,7 +5,8 @@
 #include"System.h"
 #include"glm/gtx/compatibility.hpp"
 
-#include<vector>
+#include <vector>
+#include<array>
 
 namespace superpunto{
 
