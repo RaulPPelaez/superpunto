@@ -3,9 +3,8 @@
 
 namespace superpunto{
   FreeCamera::FreeCamera(){
-    this->pos   = glm::vec3(0, 130, 0); 
+    this->pos   = glm::vec3(0, 130, 0);
     this->right = glm::vec3(-1, 0, 0);
-    //  this->up = glm::vec3(0,-1.0/sqrt(2.0),-1.0/sqrt(2.0));
     this->up    = glm::vec3(0, 0.0f, -1.0f);
     this->front = glm::cross(right,up);
     int mx, my;
@@ -32,7 +31,7 @@ namespace superpunto{
 
   void FreeCamera::update(){
     const Uint8 *keystate = SDL_GetKeyboardState(NULL);
-  
+
     if(KEYSTATE(A)) this->pos += this->right*cspeed*mult;
     if(KEYSTATE(D)) this->pos -= this->right*cspeed*mult;
     if(KEYSTATE(W)) this->pos += this->front*cspeed*mult;
@@ -63,20 +62,20 @@ namespace superpunto{
     zero_mpos = mpos;
   }
   void FreeCamera::updateCameraVectors(){
-    
+
     glm::quat q1 = glm::angleAxis(glm::radians(pitch), right);
     glm::mat4 rot1 = glm::mat4_cast(q1);
-    up =  glm::normalize(glm::mat3(rot1)*up);  
-  
-  
+    up =  glm::normalize(glm::mat3(rot1)*up);
+
+
     glm::quat q2 = glm::angleAxis(glm::radians(yaw), up);
     glm::mat4 rot2 = glm::mat4_cast(q2);
     right = glm::normalize(glm::mat3(rot2)*right);
-	
+
     front = glm::normalize(glm::cross(right,up));
     glm::quat q3 = glm::angleAxis(glm::radians(roll), front);
     glm::mat4 rot3 = glm::mat4_cast(q3);
-  
+
     right =  glm::normalize(glm::mat3(rot3)*right);
     up =  glm::normalize(glm::cross(front,right));
 
@@ -84,7 +83,7 @@ namespace superpunto{
     pitch = 0;
     roll = 0;
 
-  
+
   }
 
 
@@ -93,6 +92,6 @@ namespace superpunto{
     SDL_GetMouseState(&mx, &my);
     zero_mpos = glm::ivec2(mx,my);
     mpos = zero_mpos;
-  }	
+  }
 
 }
