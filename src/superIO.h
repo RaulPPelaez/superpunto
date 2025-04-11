@@ -311,16 +311,15 @@ public:
   }
 
   inline bool iscomment(const char *line, size_t size, char comment = '#') {
-    char firstC = '\0';
-    for (uint i = 0; i < size; i++)
-      if (!isspace(line[i])) {
-        firstC = line[i];
-        break;
+    if (!line || size == 0)
+      return false;
+
+    for (size_t i = 0; i < size; i++) {
+      if (!isspace(static_cast<unsigned char>(line[i]))) {
+        return line[i] == comment;
       }
-    if (firstC == comment) {
-      return true;
     }
-    return false;
+    return false; // line was all spaces
   }
 
   inline void write(const char *str, size_t size) {
