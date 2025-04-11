@@ -48,6 +48,7 @@ void DataLayout::init() { init(0, 0, GL_UNSIGNED_INT, 0); }
 VBO::VBO() {
   glCreateBuffers(1, &vid);
   initialized = meminit = false;
+  CheckGLError("Error in init VBO");
 }
 VBO::~VBO() { glDeleteBuffers(1, &vid); }
 void VBO::reset() {
@@ -70,11 +71,16 @@ void VBO::init(GLenum type, GLbitfield flags) {
   this->flags = flags;
   initialized = true;
   layout.init();
+  CheckGLError("Error in init VBO");
 }
 
 bool VBO::initmem(GLenum type, GLbitfield flags, GLsizeiptr size,
                   const void *data) {
-  glBufferStorage(type, size, data, flags);
+  this->tp = type;
+  this->flags = flags;
+  glNamedBufferStorage(this->vid, size, data, flags);
+  CheckGLError("Error in initmem VBO (DSA)");
+  meminit = true;
   return true;
 }
 bool VBO::initmem(GLsizeiptr size, const void *data) {
@@ -82,6 +88,7 @@ bool VBO::initmem(GLsizeiptr size, const void *data) {
     return false;
   glNamedBufferStorage(this->vid, size, data, this->flags);
   meminit = true;
+  CheckGLError("Error in initmem VBO");
   return true;
 }
 bool VBO::upload(GLenum type, GLintptr offset, GLsizeiptr size,
@@ -104,10 +111,7 @@ void VBO::unbind() { glBindBuffer(tp, 0); }
 
 VAO::VAO() {
   glCreateVertexArrays(1, &vid);
-  if (vid == 0) {
-    std::cerr << "Error creating VAO" << std::endl;
-    return;
-  }
+  CheckGLError("Error in VAO Creation");
 }
 VAO::~VAO() { glDeleteVertexArrays(1, &vid); }
 
@@ -122,6 +126,7 @@ void VAO::set_attrib(uint attrib, const VBO &vbo, GLint binding) {
   glVertexAttribDivisor(attrib, dl.divisor);
   this->unbind();
   glBindBuffer(GL_ARRAY_BUFFER, 0);
+  CheckGLError("Error in set_attrib VAO");
 }
 void VAO::use() { glBindVertexArray(vid); }
 void VAO::unbind() { glBindVertexArray(0); }
