@@ -1,22 +1,36 @@
 #version 450
 
+layout(location = 0) in vec3 in_pos;
+layout(location = 1) in vec3 in_color;
 
-const vec3 v[3] =
-  vec3[3]( vec3(1, 0,0),
-	   vec3(0,1,0),
-	   vec3(0,0,1));
-
-
-out vec3 dir;
-out vec3 c;
-out int axis;
 uniform mat4 MVP;
-uniform float axislength = 1.0f;
-uniform vec3 origin;
 
-void main () {
-  axis = gl_VertexID;
-  gl_Position =  MVP*vec4(origin, 1.0);
-  dir = axislength*v[gl_VertexID];
-  c = vec3(gl_VertexID==0?1:0, gl_VertexID==1?1:0, gl_VertexID==2?1:0);
+out vec3 C;
+
+void main() {
+    gl_Position = MVP * vec4(in_pos, 1.0);
+    C = in_color;
 }
+
+// #version 450
+
+// // Outputs to geometry shader
+// out vec3 basePos;
+// out vec3 direction;
+// flat out int axisID;
+
+// uniform vec3 origin;
+// uniform float axislength;
+
+// void main() {
+//     // Axis directions: X, Y, Z
+//     vec3 axes[3] = vec3[](
+//         vec3(1.0, 0.0, 0.0), // X
+//         vec3(0.0, 1.0, 0.0), // Y
+//         vec3(0.0, 0.0, 1.0)  // Z
+//     );
+
+//     axisID = gl_VertexID;
+//     direction = axes[gl_VertexID] * axislength;
+//     basePos = origin;
+// }

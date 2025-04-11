@@ -16,8 +16,8 @@
 namespace superpunto{
   class RAxis{
   public:
-    RAxis(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w, glm::mat4 *MVP, glm::vec3 origin);
-    void draw(glm::vec3 campos);
+    RAxis(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w);
+    void draw(const glm::mat4& viewMatrix, const glm::mat4& model, const glm::ivec2& resolution);
 
 
   private:
@@ -27,9 +27,11 @@ namespace superpunto{
     float axislength;
     glm::vec3 *campos;
     glm::vec3 origin;
-    VAO dummy_vao;
+    VAO dummy_vao, vao;
+    VBO vbo;
     std::shared_ptr<System> sys;
     std::shared_ptr<RWindow> w;
+
   };
 
 
@@ -48,21 +50,21 @@ namespace superpunto{
     RTextRenderer textRenderer;
     ParticleData particles; //Current particle data in CPU
     std::shared_ptr<RWindow> w;
-    
+
   public:
     RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w, std::shared_ptr<Camera> cam, float gscale);
 
     virtual void handle_event(SDL_Event &e);
-  
+
     virtual void update();
     virtual void draw() = 0;
     void display();
     virtual void drawText(const char* text, int x, int y);
     virtual void handle_resize(uint fw, uint fh);
     virtual void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
-  
+
     virtual bool upload_instances(ParticleData pdata) = 0;
-  
+
     virtual int pick(int x, int y, int pickindex);
 
     virtual Uint8 *getPixels();
