@@ -8,7 +8,6 @@ layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 normalDepth;
 layout(location = 2) out vec3 positionBuffer;
 
-
 uniform bool picking;
 uniform bool drawing_picked;
 
@@ -16,7 +15,7 @@ uniform float znear;
 uniform float zfar;
 void main() {
   if(picking){
-    //id*2 to gain precision, "only" 255^3/2 differenciable objects 
+    //id*2 to gain precision, "only" 255^3/2 differenciable objects
     int r = (id*2)%256;
     int g = (id*2)/256%256;
     int b = (id*2)/(256*256);
@@ -29,8 +28,6 @@ void main() {
     outColor = vec4(Color,1);
     outColor.w = 1.0f;
   }
-  
-  //float z = Pos.z;
   float z = 2.0f*gl_FragCoord.z-1.0f;
   positionBuffer = Pos;
   /*Linearized depth encoded between 0 and 1*/
@@ -38,4 +35,4 @@ void main() {
   normalDepth = vec4(normalize(Normal),
 		     (linearDepth-znear)/(zfar-znear));
 
-}   
+}

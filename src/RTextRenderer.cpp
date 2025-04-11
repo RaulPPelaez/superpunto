@@ -1,4 +1,6 @@
 #include"RTextRenderer.h"
+#include"resources.h"
+
 namespace superpunto{
   std::shared_ptr<RShaderProgram> RTextRenderer::pr;
   std::shared_ptr<VAO> RTextRenderer::dummy_vao;
@@ -11,7 +13,7 @@ namespace superpunto{
     font(nullptr), w(w){
     instance_counter++;
   }
-  
+
   RTextRenderer::~RTextRenderer(){
     if(instance_counter) instance_counter--;
     TTF_CloseFont(font);
@@ -23,7 +25,7 @@ namespace superpunto{
 	dummy_vao.reset();
 	TTF_Quit();
       }
-      
+
     }
   }
 #include"shaders.h"
@@ -37,10 +39,12 @@ namespace superpunto{
       pr->init(shs, 2);
       dummy_vao = std::make_shared<VAO>();
     }
+    this->font = TTF_OpenFont(("../resources/" + std::string(fontName)).c_str(), size);
     if(!font){
-      this->font = TTF_OpenFont(fontName, size);
+      sys->log<System::ERROR>("[TextRenderer] Could not load font %s!!", fontName);
+      const char* error = TTF_GetError();
+      sys->log<System::ERROR>("[TextRenderer] TTF Error: %s", error);
     }
-    if(!font) sys->log<System::ERROR>("[TextRenderer] Could not load font %s!!", fontName);
 
     return true;
   }
@@ -48,7 +52,7 @@ namespace superpunto{
     pos.x = x;
     pos.y = y;
     this->size_factor = sf;
-  
+
     SDL_Color color = {255, 255, 255, 0};
     SDL_Surface *surf =
       TTF_RenderText_Blended(this->font, text, color);
@@ -71,7 +75,7 @@ namespace superpunto{
   }
 
   void RTextRenderer::handle_resize(uint fw, uint fh){
-    
+
     this->size = glm::vec2(tex.getSize().x/(float)fw, tex.getSize().y/(float)fh);
     pr->use();
     glUniform2f(glGetUniformLocation(pr->id(), "size"), size.x, size.y);
@@ -103,4 +107,3 @@ namespace superpunto{
 
 
 }//
-

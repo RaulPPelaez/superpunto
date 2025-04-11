@@ -4,10 +4,8 @@
 #include<cstring>
 #include"defines.h"
 #include<cstdio>
+#include <glad/glad.h>
 #include<SDL2/SDL.h>
-#define GL3_PROTOTYPES 1
-#include"GL/glew.h"
-
 #define SUPERPUNTO_MAJOR 3
 #define SUPERPUNTO_MINOR 0
 #define xSPUNTOSTR(s) SPUNTOSTR(s)
@@ -26,7 +24,7 @@ namespace superpunto{
     float bcolor[3] = {0,0,0};
     std::string fontName = xSPUNTOSTR(USEFONT);
     std::string readFile = std::string("/dev/stdin");
-    RenderType render_type = RenderType::PARTICLES;  
+    RenderType render_type = RenderType::PARTICLES;
     ColorParserType read_color_mode = ColorParserType::PALETTE;
     bool binary_read_mode = false;
     bool noaxis = false, nobox = false;
@@ -54,7 +52,7 @@ namespace superpunto{
     System(int argc, char *argv[]): m_argc(argc), m_argv(argv){
       printWelcome();
       parseArguments();
-    
+
     }
 
     Options getInputOptions(){ return options; }
@@ -91,8 +89,8 @@ namespace superpunto{
 	  va_start(args, fmt);
 	  fprintf(stderr, "\e[92m[MESSAGE] \e[0m");
 	  vfprintf(stderr, fmt, args);
-	  fprintf(stderr, "\n");    
-	}    
+	  fprintf(stderr, "\n");
+	}
 	if(level==STDERR){
 	  va_list args;
 	  va_start(args, fmt);
@@ -111,18 +109,18 @@ namespace superpunto{
 	  va_start(args, fmt);
 	  fprintf(stderr, "\e[96m[ DEBUG ] \e[0m");
 	  vfprintf(stderr, fmt, args);
-	  fprintf(stderr, "\n");     
+	  fprintf(stderr, "\n");
 	}
 	if(level>=DEBUG1 && level<=DEBUG7){
 	  va_list args;
 	  va_start(args, fmt);
 	  fprintf(stderr, "\e[96m[ DEBUG ] \e[0m");
 	  vfprintf(stderr, fmt, args);
-	  fprintf(stderr, "\n");     
+	  fprintf(stderr, "\n");
 	}
       }
     }
-  
+
     int getargc(){ return this->m_argc;}
     const char ** getargv(){return (const char **)this->m_argv;}
 
