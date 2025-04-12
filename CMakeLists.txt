@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.20)
 project(spunto LANGUAGES CXX C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Set C++ standard and basic compiler flags
@@ -80,3 +80,8 @@ endforeach()
 add_executable(spunto src/main.cpp)
 target_include_directories(spunto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf OpenGL::OpenGL OpenGL::GLU OpenGL::GLX pthread png resources::rc GLEW::GLEW)
+
+install(TARGETS spunto
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+)
