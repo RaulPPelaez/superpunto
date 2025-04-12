@@ -66,6 +66,7 @@ jobs:
 
     - name: Configure and install using system libraries
       run: |
+        cd $GITHUB_WORKSPACE
         rm -rf build
         mkdir build && cd build
         cmake -DCMAKE_VERBOSE_MAKEFILE=yes..
