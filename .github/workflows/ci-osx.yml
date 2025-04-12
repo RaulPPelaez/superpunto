@@ -1,0 +1,88 @@
+name: macOS Bundle
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types: [published]
+    
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          brew install cmake sdl2 sdl2_ttf glew libpng dylibbundler
+
+      - name: Configure and build
+        run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target spunto -j$(sysctl -n hw.ncpu)
+
+      - name: Create .app bundle
+        run: |
+          mkdir -p Superpunto.app/Contents/MacOS
+          mkdir -p Superpunto.app/Contents/Resources
+
+          cp build/spunto Superpunto.app/Contents/MacOS/
+
+          cat > Superpunto.app/Contents/Info.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key>
+            <string>Superpunto</string>
+            <key>CFBundleExecutable</key>
+            <string>spunto</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.example.superpunto</string>
+            <key>CFBundleVersion</key>
+            <string>1.0</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Run spunto -h to verify app works
+        run: ./Superpunto.app/Contents/MacOS/spunto -h
+          
+      - name: Bundle dependencies
+        run: |
+          dylibbundler -od -b -x Superpunto.app/Contents/MacOS/spunto -d Superpunto.app/Contents/Frameworks/ -p @executable_path/../Frameworks/
+
+      - name: Create drag-and-drop .dmg
+        run: |
+          mkdir dmg-root
+          cp -r Superpunto.app dmg-root/
+          ln -s /Applications dmg-root/Applications
+
+          hdiutil create Superpunto.dmg -volname "Superpunto" -srcfolder dmg-root -ov -format UDZO
+
+      - name: Upload .dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Superpunto.dmg
+          path: Superpunto.dmg
+
+      - name: Mount and test the .dmg
+        run: |
+          hdiutil attach Superpunto.dmg -mountpoint /Volumes/Superpunto -nobrowse
+          /Volumes/Superpunto/Superpunto.app/Contents/MacOS/spunto -h
+          hdiutil detach /Volumes/Superpunto
+
+      - name: Upload DMG to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Superpunto.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

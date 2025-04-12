@@ -40,6 +40,15 @@ cp spunto-x86_64.AppImage ~/.local/bin/spunto
 ```
 Then you can run it from anywhere.
 
+### MacOS
+**One-line install**  
+You can copy paste this command in your terminal, after which the command "spunto" will be available.
+```bash
+mkdir -p ~/Applications && cd /tmp && curl -L https://github.com/RaulPPelaez/superpunto/releases/latest/download/Superpunto.dmg -o Superpunto.dmg && hdiutil attach Superpunto.dmg -mountpoint /Volumes/Superpunto -nobrowse && cp -R /Volumes/Superpunto/Superpunto.app ~/Applications/ && ln -sf ~/Applications/Superpunto.app/Contents/MacOS/spunto ~/.local/bin/spunto && hdiutil detach /Volumes/Superpunto
+```
+This command will download the latest `Superpunto.dmg` file and install the app in the `~/Applications` folder. It will also create a symbolic link to the executable in `~/.local/bin/`, a folder that is included in the PATH for latest macOS versions.
+
+Prebuilt dmg files are generated automatically for each release. You can download the latest version from the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
 
 ### Building from Source
 
