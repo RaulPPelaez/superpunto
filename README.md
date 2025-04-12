@@ -118,28 +118,15 @@ $ ./spunto inputfile [opts]
 The inputfile should have the following structure:
 
 	#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment as in this example. All three L must be provided
-
 	X1 Y1 Z1 r1 c1 #You can comment here aswell. If your file has more than
-	
 	X2 ...         # 5 columns, the rest will be ignored!
-
 	.
-
 	.
-
-	.
-
-	\# frame=2
-
+	# frame=2
 	X1 Y1 Z1 r1 c1
-
 	.
-
 	.
-
-	.
-
-	\# frame = 3
+	# frame = 3
 
 r1 is the size of the superpunto. 
 
