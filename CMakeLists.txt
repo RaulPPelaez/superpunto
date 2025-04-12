@@ -33,6 +33,13 @@ if (NOT TARGET SDL2::SDL2 AND DEFINED SDL2_LIBRARIES)
     INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
   )
 endif()
+# Define the SDL2::Core target
+# This is a workaround for FindSDL2_ttf.cmake
+add_library(SDL2::Core INTERFACE IMPORTED)
+set_target_properties(SDL2::Core PROPERTIES
+  INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
+  INTERFACE_LINK_LIBRARIES "${SDL2_LIBRARIES}"
+)
 find_package(SDL2_ttf REQUIRED)
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED OpenGL)
@@ -82,13 +89,13 @@ foreach(SOURCE ${SOURCES})
   target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   add_dependencies(${LIB_NAME} generate_shaders)
   list(APPEND LIB_LIST ${LIB_NAME})
-  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
+  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2::TTF OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
 endforeach()
 
 # Create the spunto executable using main.cpp
 add_executable(spunto src/main.cpp)
 target_include_directories(spunto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
+target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2::TTF OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
 
 install(TARGETS spunto
   RUNTIME DESTINATION bin
