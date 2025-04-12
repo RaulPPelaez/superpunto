@@ -49,3 +49,7 @@ jobs:
     - name: Make sure file is in there
       run: ls -l /usr/local/bin/spunto
       shell: bash -l {0}
+
+    - name: Run help
+      run: spunto -h
+      shell: bash -l {0}

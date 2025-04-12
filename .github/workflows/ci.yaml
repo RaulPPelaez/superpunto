@@ -56,3 +56,7 @@ jobs:
     - name: Make sure binary is there
       run: ls -l $CONDA_PREFIX/bin/spunto
       shell: micromamba-shell {0}
+      
+    - name: Run help
+      run: $CONDA_PREFIX/bin/spunto -h
+      shell: micromamba-shell {0}

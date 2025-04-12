@@ -35,3 +35,7 @@ jobs:
       - name: Make sure AppImage is there
         run: ls -l build/spunto-x86_64.AppImage
         
+      - name: Run AppImage
+        run: |
+          chmod +x build/spunto-x86_64.AppImage
+          ./build/spunto-x86_64.AppImage -h
