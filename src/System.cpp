@@ -6,25 +6,6 @@ namespace superpunto{
   void System::parseArguments(){
     options.readFile = "/dev/stdin";
 
-    //Look for the file, in stdin or in a given filename
-    if(isatty(STDIN_FILENO)){ //If there is no pipe
-      bool good_file = false;
-      fori(1,m_argc){
-	auto in = std::ifstream(m_argv[i]); //There must be a filename somewhere in the cli
-	if(in.good()){
-	  good_file = true;
-	  options.readFile = m_argv[i];
-	  break;
-	}
-      }
-      //If no valid file was found
-      if(!good_file){
-	printHelp();
-	log<System::CRITICAL>("[System] ERROR! No valid input provided");
-
-      }
-    }
-
     fori(0,m_argc){
       if(strcmp(m_argv[i] , "-h")==0){
 	printHelp();
@@ -57,6 +38,25 @@ namespace superpunto{
       if(strcmp(m_argv[i],"--use-font")==0) options.fontName = std::string(m_argv[i+1]);
 
     }
+        //Look for the file, in stdin or in a given filename
+    if(isatty(STDIN_FILENO)){ //If there is no pipe
+      bool good_file = false;
+      fori(1,m_argc){
+	auto in = std::ifstream(m_argv[i]); //There must be a filename somewhere in the cli
+	if(in.good()){
+	  good_file = true;
+	  options.readFile = m_argv[i];
+	  break;
+	}
+      }
+      //If no valid file was found
+      if(!good_file){
+	printHelp();
+	log<System::CRITICAL>("[System] ERROR! No valid input provided");
+
+      }
+    }
+
   }
 
   void System::printHelp(){
