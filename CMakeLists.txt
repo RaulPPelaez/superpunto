@@ -36,6 +36,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/third_party)
 
 set(SOURCES
   src/App.cpp
+  src/MovieRecorder.cpp
   src/RParticleRenderer.cpp
   src/RWindow.cpp
   src/Camera.cpp

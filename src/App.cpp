@@ -2,7 +2,7 @@
 #include "RPNG.h"
 #include "RParticleRenderer.h"
 // #include"RArrowRenderer.h"
-
+#include <filesystem>
 namespace superpunto {
 
 App::App(std::shared_ptr<System> sys, int argc, char *argv[])
@@ -89,7 +89,9 @@ void App::handle_events() {
       IF_KEY(m, play = !play;)
       IF_KEY(h, sys->printHelp();)
       IF_KEY(c, this->screenshot();)
-      IF_KEY(l, record_movie = !record_movie; play = !play;)
+      // IF_KEY(l, record_movie = !record_movie; play = !play;)
+      IF_KEY(l, record_movie = !record_movie; play = !play;
+             if (!record_movie) movieStop();)
 
       IF_KEY(4, gl->rotate_model(0.1f, 1, 0, 0);)
       IF_KEY(5, gl->rotate_model(0.1f, 0, 1, 0);)
@@ -144,9 +146,16 @@ void App::handle_events() {
 void App::screenshot() {
   static int counter = 0;
   static bool init = false;
-
   if (!init) {
-    int sysret = system("mkdir -p screenshots");
+    std::string folderName = "screenshots";
+    std::filesystem::path folderPath(folderName);
+    if (!std::filesystem::exists(folderPath)) {
+      std::filesystem::create_directory(folderPath);
+      sys->log<System::MESSAGE>("Created folder: %s", folderName.c_str());
+    } else {
+      sys->log<System::MESSAGE>("Folder already exists: %s",
+                                folderName.c_str());
+    }
     init = true;
   }
   std::string fileName = std::string("screenshots/shot_") +
@@ -155,33 +164,34 @@ void App::screenshot() {
   glm::int2 s = gl->getSize();
   sys->log<System::MESSAGE>("Saving screenshot... %s", fileName.c_str());
   sys->log<System::MESSAGE>("Size: %dx%d", s.x, s.x);
-
   fori(0, w->getResolution().x * w->getResolution().y) pixels[4 * i + 3] = 255;
   savePNG(fileName.c_str(), pixels, s.x, s.y);
   counter++;
 }
 
 void App::movieAddFrame() {
-  static FILE *fp = nullptr;
-  static bool init = false;
-  if (!init) {
-    int rate = 16;
-    int bitrate = 24000;
-    std::string movie_fileName("movie.mp4");
-    std::string cmd = std::string("avconv -loglevel panic -y -f rawvideo -s ");
-    cmd += std::to_string(w->getResolution().x) + std::string("x") +
-           std::to_string(w->getResolution().y);
-    cmd += std::string(" -pix_fmt rgba -r ") + std::to_string(rate);
-    cmd += std::string(" -i - -vf vflip -an -b:v ") + std::to_string(bitrate) +
-           std::string("k ");
-    cmd += movie_fileName;
-    sys->log<System::MESSAGE>("Encoding video with command: %s", cmd.c_str());
-    fp = popen(cmd.c_str(), "w");
-    init = true;
+  if (!movie) {
+    glm::ivec2 res = gl->getSize();
+    sys->log<System::MESSAGE>("Recording movie...");
+    movie = std::make_unique<MovieRecorder>(sys, res.x, res.y, "movie");
+    if (!movie->isOpen()) {
+      sys->log<System::ERROR>("Failed to open movie file.");
+      return;
+    }
   }
-  Uint8 *pixels = gl->getPixels();
-  glm::int2 s = gl->getSize();
-  fwrite(pixels, s.x * s.y * 4, 1, fp);
+  if (movie && movie->isOpen()) {
+    sys->log<System::DEBUG>("Adding frame to movie...");
+    Uint8 *pixels = gl->getPixels();
+    movie->writeFrame(pixels);
+  }
+}
+
+void App::movieStop() {
+  if (movie) {
+    sys->log<System::MESSAGE>("Finalizing movie...");
+    movie->close();
+    movie.reset(); // destroys the object
+  }
 }
 void App::update() {
   if (visible)

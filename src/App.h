@@ -8,7 +8,7 @@
 #include "System.h"
 #include "defines.h"
 #include <memory>
-
+#include "MovieRecorder.h"
 namespace superpunto {
 class App {
 public:
@@ -32,6 +32,7 @@ private:
 
   void screenshot();
   void movieAddFrame();
+  void movieStop();
 
   std::shared_ptr<RRenderer> gl;
   using Camera = FreeCamera;
@@ -39,7 +40,7 @@ private:
   std::shared_ptr<RWindow> w;
   std::shared_ptr<RFile> file;
   std::shared_ptr<System> sys;
-
+  std::unique_ptr<MovieRecorder> movie;
   int current_frame = -1;
   bool visible;
   bool play = false;
