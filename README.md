@@ -1,108 +1,166 @@
+# Superpunto
+SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
-#Superpunto
-SFML/Modern OpenGL clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
+With SSAO and superb light effects!!
 
-**PLEASE GO TO BRANCH SDL_OGL45 IF YOUR SYSTEM HAS OpenGL 4.5 AVAILABLE**
-
-SDL_OGL45 branch is a much better version of Superpunto, it has more capabilities and has better visuals. Use te master version only if you dont have access to OpenGL 4.5.
-
-You can check the suported OpenGL version using: glxinfo | grep OpenGL
+![alt text](screenshots/shot_0.png "")
 
 
-#COMPILATION
-Run the Makefile using $ make
+## Installation
 
-Additionally you can define STATIC to include all the dependencies in the executable (-DSTATIC=yes). However, this option is not currently tested and is only recommended for distribution.
+There are several ways to install and run the project, depending on your operating system and preferences. Below are the instructions for each platform.
+
+### Linux (AppImage)
+
+Prebuilt AppImages are generated automatically for each release. You can download the latest version from the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
+
+To run:
+
+```bash
+chmod +x spunto-x86_64.AppImage
+./spunto-x86_64.AppImage
+```
+Runs on most Linux distributions (glibc ≥ 2.31)
+
+You can place the AppImage somewhere in your PATH for easier access:
+
+```bash
+sudo cp spunto-x86_64.AppImage ~/.local/bin/spunto
+```
+Then you can run it from anywhere.
 
 
-Dependencies:
+### Building from Source
 
-1. SFML-2.0+ (2.3 recommended) and its dependencies. Only libsfml-graphics, libsfml-system and libsfml-window are required
+If you prefer to build the project yourself, there are multiple supported options:
 
-2. OpenGL 3.0+ (3.3+ recommended)
+#### Get the Source Code
 
-You can grab a compiled version (**no need for SFML and its dependencies in your system**) in "releases".
+```bash
+git clone https://github.com/RaulPPelaez/superpunto.git
+cd superpunto
+```
+#### Dependencies
+Make sure you have the following dependencies installed:
+- CMake
+- C++ Compiler (g++, clang++)
+- OpenGL 4.5
+- SDL2
+- SDL2_ttf
+- libGLEW
+- libPNG
+- (Optional) ffmpeg for recording
 
-Known to work in Ubuntu 14/15. You can install SFML by $ apt-get install libsfml-dev
+You can install these dependencies using your package manager. For example, on Ubuntu:
 
-You can also compile it yourself from https://github.com/SFML/SFML
+```bash
+$ sudo apt install cmake g++ libsdl2-dev libsdl2-ttf-dev libglew-dev libpng-dev ffmpeg
+```
+Or in Fedora:
+```bash 
+$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel
+```
+Or use the provided `environment.yml` file to create a [Conda](https://github.com/conda-forge/miniforge) environment:
 
-#USAGE
+```bash
+conda env create -f environment.yml
+conda activate spunto-env
+```
+
+### Build the Project
+
+Superpunto is built using CMake. You can build it in a separate directory:
+
+```bash
+mkdir build
+cd build
+cmake ..
+make -j install
+```
+If you want to install it system-wide, you will need to run the `make install` command with `sudo`:
+
+```bash
+sudo make install
+```
+
+If using conda, you must instruct CMake to use the conda paths:
+
+```bash
+cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..
+```
+
+#### Additional Compilation Options
+
+**Build the AppImage**  
+
+If you want to build the AppImage, you can do so by adding the `-DBUILD_APPIMAGE=ON` option to the CMake command:
+
+```bash
+cmake -DBUILD_APPIMAGE=ON ..
+```
+
+# USAGE
 Use with $ ./spunto inputfile [opts]
 
-run ./spunto -h for information about the available options and controls.
+**Run ./spunto -h for information about the available options and controls.**
 
 
-inputfile should have the following structure:
->\#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment with Lx=X;Ly=Y;Lz=Z; as in this example
+## Input File
+The inputfile should have the following structure:
 
->X1 Y1 Z1 r1 c1 #You can comment here aswell! If your file has more than
-   
->X2 ...         #5 columns, the rest will be ignored!
+	#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment as in this example. All three L must be provided
 
->.
+	X1 Y1 Z1 r1 c1 Vx Vy Vz#You can comment here aswell! If your file has more than
+	
+	X2 ...         #8 columns, the rest will be ignored!
 
->.
+	.
 
->.
+	.
 
->\# frame=2
+	.
 
->X1 Y1 Z1 r1 c1
+	\# frame=2
 
->.
+	X1 Y1 Z1 r1 c1 Vx Vy Vz
 
->.
+	.
 
->.
+	.
 
->\# frame = 3
+	.
+
+	\# frame = 3
 
 r1 is the size of the superpunto.
 
 c1 is its color.
 
-both of these parameters are optional, if you only set 4 columns, the 4th will be interpreted as the color.
+Vxyz are the sizes of the arrows if --renderer arrows is selected.
 
-If you generate a movie, use gif2mp4 to convert it to mp4.
+If some of the columns are missing, this is the behavior according to the number of columns:
 
-#COLORS
-**Using palette** (Default)
+	3: XYZ ->r=1, c=0, Vxyz=0
+	4: XYZC -> r=1, Vxyz=0
+	5: XYZRC -> Vxyz=0
+	6: XYZVxVyVz -> r=1, c=0
+	7: XYZCVxVyVz -> r=1
+	8: XYZRCVxVyVz
 
-The colors are selected using C++ rand(), setting the initial seed to a constant called palette, this constant defines a color palette with colors randomly distributed between 0 (black) and 255^3(white). You can change the palette seed using the --palette option. By default palette=923302100. The generated color palette contains 1000 colors.
+### About colors
 
-**In the file, the colors are specified** from one of the 1000 available using an integer number between 0 and 1000 (higher values will be reduced to this range).
+The column color can be treated in two ways:
 
-**Using RGB id** (by passing the flag --RGB when running spunto)
+**Default** or using --palette X
 
-if --RGB is present the color column is interpreted as a RGB hexadecimal value, written as an integer.
-So full red (0xff0000) would be 255 and white(0xFFffFF) would be 16777215.
+	The colors are selected using C++ rand(), setting the initial seed to a constant given by --palette (or 923302100 by default), this constant defines a color palette with colors randomly distributed between 0 (black) and 255^3(white). The generated color palette contains 1000 colors.
+
+	The exceptions are id=0 -> red, id=1 ->green, id=2 -> blue
 
 
-#CONTROLS
-You can move around using:
+**RGB** by using --RGB
 
-1. WASD for moving in your XY plane
-2. LSHIFT and Lctrl to go up and down
-3. E and Q to roll
-4. Keep LAlt pressed to look around using the mouse
-5. Move faster/slower using + -
-6. Numbers 1-6 to rotate the system in the X, Y o Z axis 
-
-You can go through time using:
-
-1. Space/R to go to the next/previous frame
-2. Press M to autoplay the frames at 30 FPS
-3. Press T to go to the last frame
-4. Press B to go to the last frame
-
-You can take screenshots and record some frames in a gif using:
-
-1. Press L or start using --record to take a screenshot every frame, these will be converted to gif at exit. You can move around while recording
-2. Press C to take a single screenshot.
-
-Run spunto -h to see a complete list of options in the current version.
-
+	The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
 
 ##ACKNOWLEDGEMENTS
 

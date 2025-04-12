@@ -3,76 +3,37 @@
 
 #include "defines.h"
 
-#include <GL/gl.h>
-#include <SFML/Window.hpp>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
+namespace superpunto {
+class FreeCamera {
+public:
+  FreeCamera();
 
+  void warp(glm::vec3 np);
+  glm::vec3 get_view();
+  glm::mat4 lookAt();
 
-class FreeCamera{
-  public:
-   FreeCamera(){
-	  this-> pos = glm::vec3(0, 10, -10); 
-	  this->right = glm::vec3(-1,0,0);
-	  this->up = glm::vec3(0,-1.0/sqrt(2.0),-1.0/sqrt(2.0));
-	  this->front =(glm::cross(right,up));
-	  
-	  zero_mpos = sf::Vector2i(FWIDTH/2, FHEIGHT/2);
-	    sf::Mouse::setPosition(zero_mpos);				
+  void reset_camera_view();
 
-	  yaw = 0;
-	  pitch = 0;
-	  roll=0;
-	  this->mult = 1;
-	  this->updateCameraVectors();
-	}
+  void update();
+  void process_mouse();
+  void updateCameraVectors();
+  void set_origin();
 
-    glm::vec3 get_view(){return pos+front;}
-    glm::mat4 lookAt(){return this->view = glm::lookAt(pos, pos+front, up);}
+  glm::ivec2 zero_mpos;
+  glm::ivec2 mpos;
 
-    void update();
-    void process_mouse();
+  glm::mat4 view;
+  glm::vec3 pos, up, front, right;
+  float yaw, pitch, roll;
 
-    void updateCameraVectors();
-
-    sf::Vector2i zero_mpos;
-    sf::Vector2i mpos;
-    
-    glm::mat4 view;
-    glm::vec3 pos, up, front, right;
-    GLfloat yaw, pitch, roll;
-    
-    float mult;
+  float mult;
+  float cspeed;
+  float mouse_sensitivity;
 };
-/*
-class FreeCamera: public Camera{
-  public:
-    FreeCamera():Camera(){this->mult = 1;}
-
-    virtual void process_mouse();
-    virtual void updateCameraVectors();
-
- };
- */
- 
- /*
- class FPSCamera: public Camera{
-  public:
-    FPSCamera(){
-		this->pos   = glm::vec3(0.0f, 10.0f,  -1.0f);
-		this->up = glm::vec3(0.0f, 1.0f,  0.0f);
-	}
-
-    virtual void process_mouse();
-    virtual void updateCameraVectors();
-
- };
-*/
-
-
-
+} // namespace superpunto
 #endif

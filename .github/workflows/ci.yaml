@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ SDL_OGL45 ]
+  pull_request:
+    branches: [ SDL_OGL45 ]
+  schedule:
+    # Run every Sunday at midnight
+    - cron:  '0 0 * * 0'
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Latest supported versions
+          - name: Linux
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        
+    - name: Show dependency file
+      run: cat environment.yml
+      
+    - name: Install Mamba
+      uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: environment.yml
+        cache-environment: false
+        cache-downloads: true
+        generate-run-shell: true
+
+    - name: List environment
+      run: |
+        micromamba list
+      shell: micromamba-shell {0}
+
+    - name: Configure and compile the library using Conda
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..
+        make -j all install
+      shell: micromamba-shell {0}
+
+    - name: Make sure binary is there
+      run: ls -l $CONDA_PREFIX/bin/spunto
+      shell: micromamba-shell {0}
+      
+    - name: Run help
+      run: $CONDA_PREFIX/bin/spunto -h
+      shell: micromamba-shell {0}
