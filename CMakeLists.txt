@@ -53,7 +53,6 @@ add_executable(tohex tools/tohex.cpp)
 file(GLOB SHADER_FILES "${PROJECT_SOURCE_DIR}/src/shaders/*")
 set(GENERATED_FILES ${CMAKE_BINARY_DIR}/shaders.h)
 
-# This is the key fix - use add_custom_command with OUTPUT instead of tying to POST_BUILD
 add_custom_command(
     OUTPUT ${GENERATED_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Running tohex..."
