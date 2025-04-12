@@ -3,10 +3,10 @@
 
 namespace superpunto{
   FreeCamera::FreeCamera(){
-    this->pos   = glm::vec3(0, 130, 0);
-    this->right = glm::vec3(-1, 0, 0);
-    this->up    = glm::vec3(0, 0.0f, -1.0f);
-    this->front = glm::cross(right,up);
+    this->pos   = glm::vec3(-130, -130, -130);         // Behind the origin, looking forward
+    this->right = glm::vec3(1, 0, 0);            // X = right
+    this->up    = glm::vec3(0, 0, 1);            // Z = up
+    this->front = glm::vec3(0, 1, 0);            // Y = forward
     int mx, my;
     SDL_GetMouseState(&mx, &my);
     zero_mpos = glm::ivec2(mx,my);
@@ -61,29 +61,22 @@ namespace superpunto{
     pitch =-(float)( (zero_mpos.y - mpos.y) ) * mouse_sensitivity;
     zero_mpos = mpos;
   }
-  void FreeCamera::updateCameraVectors(){
 
+  void FreeCamera::updateCameraVectors(){
     glm::quat q1 = glm::angleAxis(glm::radians(pitch), right);
     glm::mat4 rot1 = glm::mat4_cast(q1);
     up =  glm::normalize(glm::mat3(rot1)*up);
-
-
     glm::quat q2 = glm::angleAxis(glm::radians(yaw), up);
     glm::mat4 rot2 = glm::mat4_cast(q2);
     right = glm::normalize(glm::mat3(rot2)*right);
-
     front = glm::normalize(glm::cross(right,up));
     glm::quat q3 = glm::angleAxis(glm::radians(roll), front);
     glm::mat4 rot3 = glm::mat4_cast(q3);
-
     right =  glm::normalize(glm::mat3(rot3)*right);
     up =  glm::normalize(glm::cross(front,right));
-
     yaw= 0;
     pitch = 0;
     roll = 0;
-
-
   }
 
 

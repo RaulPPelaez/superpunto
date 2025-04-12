@@ -14,7 +14,7 @@ RRenderer::RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> in_w,
       glm::perspective(op.fov, resolution.x / (float)resolution.y, znear, zfar);
   model = glm::mat4();
   view = cam->lookAt();
-  rotate_model(M_PI / 4.0f, 1.0f, 0.0f, 0.0f);
+  rotate_model(M_PI / 4.0f, 0.0f, 0.0f, 1.0f);
 
   MVP = proj * view * model;
 }
