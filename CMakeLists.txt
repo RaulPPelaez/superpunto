@@ -34,14 +34,6 @@ if (NOT TARGET SDL2::SDL2 AND DEFINED SDL2_LIBRARIES)
   )
 endif()
 find_package(SDL2_ttf REQUIRED)
-if(NOT TARGET SDL2_ttf::SDL2_ttf AND DEFINED SDL2_TTF_LIBRARIES)
-  add_library(SDL2_ttf::SDL2_ttf UNKNOWN IMPORTED)
-  set_target_properties(
-    SDL2_ttf::SDL2_ttf PROPERTIES
-    IMPORTED_LOCATION "${SDL2_TTF_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${SDL2_TTF_INCLUDE_DIRS}"
-  )
-endif()
 find_package(PNG REQUIRED)
 find_package(OpenGL REQUIRED OpenGL)
 message(STATUS "OpenGL include dirs: ${OPENGL_INCLUDE_DIRS}")
