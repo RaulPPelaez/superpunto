@@ -1,0 +1,36 @@
+name: Build AppImage
+
+on:
+  push:
+    branches: [ SDL_OGL45 master ]
+  pull_request:
+    branches: [ SDL_OGL45 master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake g++ make \
+            libglew-dev libsdl2-dev libsdl2-ttf-dev \
+            libpng-dev libgl1-mesa-dev libglu1-mesa-dev \
+            wget
+
+      - name: Configure with CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_APPIMAGE=ON
+
+      - name: Build AppImage
+        run: |
+          cd build
+          make appimage
+
+      - name: Make sure AppImage is there
+        run: ls -l build/spunto-x86_64.AppImage
+        

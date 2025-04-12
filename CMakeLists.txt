@@ -5,6 +5,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_APPIMAGE "Enable AppImage packaging" ON)
+
 # Define application-specific compile definitions
 set(MAXLOGLEVEL 5)
 add_compile_definitions(MAXLOGLEVEL=${MAXLOGLEVEL})
@@ -85,3 +87,48 @@ install(TARGETS spunto
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
 )
+
+set(LINUXDEPLOY ${CMAKE_BINARY_DIR}/linuxdeploy)
+set(APPIMAGETOOL ${CMAKE_BINARY_DIR}/appimagetool)
+
+if(BUILD_APPIMAGE)
+  if(NOT EXISTS ${LINUXDEPLOY})
+    file(DOWNLOAD
+      https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+      ${LINUXDEPLOY}
+      SHOW_PROGRESS
+    )
+    execute_process(COMMAND chmod +x ${LINUXDEPLOY})
+  endif()
+
+  if(NOT EXISTS ${APPIMAGETOOL})
+    file(DOWNLOAD
+      https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+      ${APPIMAGETOOL}
+      SHOW_PROGRESS
+    )
+    execute_process(COMMAND chmod +x ${APPIMAGETOOL})
+  endif()
+
+  set(APPDIR "${CMAKE_BINARY_DIR}/AppDir")
+add_custom_target(appimage
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${APPDIR}/usr/bin
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:spunto> ${APPDIR}/usr/bin/
+  COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/resources/spunto.desktop
+    ${CMAKE_SOURCE_DIR}/resources/spunto.png
+    ${APPDIR}/
+
+  COMMAND ${CMAKE_COMMAND} -E env NO_STRIP=1
+    ${LINUXDEPLOY}
+    --appdir=${APPDIR}
+    --desktop-file=${APPDIR}/spunto.desktop
+    --icon-file=${APPDIR}/spunto.png
+    --output appimage
+
+  DEPENDS spunto
+  COMMENT "Packaging AppImage with linuxdeploy (strip disabled)"
+)
+
+
+endif()
