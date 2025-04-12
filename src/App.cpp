@@ -189,7 +189,7 @@ void App::movieAddFrame() {
 void App::movieStop() {
   if (movie) {
     sys->log<System::MESSAGE>("Finalizing movie...");
-    movie.reset(); // destroys the object
+    movie.reset();
   }
 }
 void App::update() {
