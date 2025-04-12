@@ -4,7 +4,7 @@
 #include<cstring>
 #include"defines.h"
 #include<cstdio>
-#include <glad/glad.h>
+#include<GL/glew.h>
 #include<SDL2/SDL.h>
 #define SUPERPUNTO_MAJOR 3
 #define SUPERPUNTO_MINOR 0

@@ -405,7 +405,8 @@ void RGLContext::init(SDL_Window *w) {
     SDL_GL_SetSwapInterval(1);
 
   // Setup OpenGL
-  int version = gladLoadGLLoader(SDL_GL_GetProcAddress);
+  glewExperimental = GL_TRUE;
+  GLenum version = glewInit();
   if (!version) {
     printf("Unable to load OpenGL\n");
   }

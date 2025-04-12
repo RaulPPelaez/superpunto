@@ -29,8 +29,7 @@ pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
 find_package(OpenGL REQUIRED OpenGL GLX)
 message(STATUS "OpenGL include dirs: ${OPENGL_INCLUDE_DIRS}")
 include_directories(${OPENGL_INCLUDE_DIRS})
-find_package(Glad REQUIRED)
-glad_add_library(glad_gl_core_45 SHARED API gl:core=4.5)
+find_package(GLEW REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/src/third_party)
 
@@ -74,10 +73,10 @@ foreach(SOURCE ${SOURCES})
   target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   add_dependencies(${LIB_NAME} generate_shaders)
   list(APPEND LIB_LIST ${LIB_NAME})
-  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2_ttf OpenGL::OpenGL OpenGL::GLU OpenGL::GLX pthread png resources::rc glad_gl_core_45 glad)
+  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2_ttf OpenGL::OpenGL OpenGL::GLU OpenGL::GLX pthread png resources::rc GLEW::GLEW)
 endforeach()
 
 # Create the spunto executable using main.cpp
 add_executable(spunto src/main.cpp)
 target_include_directories(spunto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf OpenGL::OpenGL OpenGL::GLU OpenGL::GLX pthread png resources::rc glad_gl_core_45 glad)
+target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf OpenGL::OpenGL OpenGL::GLU OpenGL::GLX pthread png resources::rc GLEW::GLEW)
