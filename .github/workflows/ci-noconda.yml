@@ -39,8 +39,6 @@ jobs:
 
     - name: Configure and install using system libraries
       run: |
-        cd ..
-        rm -rf build
         mkdir build && cd build
         cmake -DCMAKE_VERBOSE_MAKEFILE=yes..
         sudo make -j all install
