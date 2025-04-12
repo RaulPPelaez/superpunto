@@ -107,10 +107,12 @@ cmake -DBUILD_APPIMAGE=ON ..
 ```
 
 # USAGE
-Use with $ ./spunto inputfile [opts]
+Run with 
+```bash
+$ ./spunto inputfile [opts]
+```
 
-**Run ./spunto -h for information about the available options and controls.**
-
+**Run `spunto -h` for information about the available options and controls.**
 
 ## Input File
 The inputfile should have the following structure:
