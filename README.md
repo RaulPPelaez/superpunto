@@ -128,9 +128,7 @@ The inputfile should have the following structure:
 	.
 	# frame = 3
 
-r1 is the size of the superpunto. 
-
-c1 is its color.
+The columns correspond to the three dimensional coordinates of each particle (XYZ), the radius (r) and the color (c).
 
 If some of the columns are missing, this is the behavior according to the number of columns:
 
