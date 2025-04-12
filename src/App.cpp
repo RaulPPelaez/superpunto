@@ -89,7 +89,6 @@ void App::handle_events() {
       IF_KEY(m, play = !play;)
       IF_KEY(h, sys->printHelp();)
       IF_KEY(c, this->screenshot();)
-      // IF_KEY(l, record_movie = !record_movie; play = !play;)
       IF_KEY(l, record_movie = !record_movie; play = !play;
              if (!record_movie) movieStop();)
 
