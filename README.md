@@ -2,7 +2,11 @@
 
 Superpunto is a fast sphere visualizer with superb light effects. Via a simple format (similar to the XYZ format) one can visualize the trajectories of a large number of spherical particles in an interactive way.
 
-![alt text](screenshots/shot_0.png "")
+
+<p align="center">
+  <img src="screenshots/shot_0.png" alt="Screenshot 0" width="45%"/>
+  <img src="screenshots/shot_4.png" alt="Screenshot 4" width="45%"/>
+</p>
 
 Superpunto was born as a SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
