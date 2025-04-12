@@ -50,6 +50,9 @@ jobs:
           </plist>
           EOF
 
+      - name: Run spunto -h to verify app works
+        run: ./Superpunto.app/Contents/MacOS/spunto -h
+          
       - name: Bundle dependencies
         run: |
           dylibbundler -od -b -x Superpunto.app/Contents/MacOS/spunto -d Superpunto.app/Contents/Frameworks/ -p @executable_path/../Frameworks/
