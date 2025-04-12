@@ -5,7 +5,8 @@ on:
     branches: [ SDL_OGL45 ]
   pull_request:
     branches: [ SDL_OGL45  ]
-
+  release:
+    types: [published]
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -39,3 +40,17 @@ jobs:
         run: |
           chmod +x build/spunto-x86_64.AppImage
           ./build/spunto-x86_64.AppImage -h
+
+      - name: Upload AppImage artifact (CI use only)
+        uses: actions/upload-artifact@v3
+        with:
+          name: spunto-AppImage
+          path: build/*.AppImage
+
+      - name: Upload AppImage to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: build/*.AppImage
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
