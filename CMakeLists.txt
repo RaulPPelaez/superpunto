@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
-project(spunto LANGUAGES CXX C)
+project(spunto LANGUAGES CXX)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # Set C++ standard and basic compiler flags
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(BUILD_APPIMAGE "Enable AppImage packaging" ON)
+option(BUILD_APPIMAGE "Enable AppImage packaging" OFF)
 
 # Define application-specific compile definitions
 set(MAXLOGLEVEL 5)
