@@ -36,11 +36,15 @@ jobs:
           sudo apt-get install -y libpng-dev libglew-dev libsdl2-dev libsdl2-ttf-dev libfontconfig1-dev
           sudo apt-get install -y libgl1-mesa-dev libglx0 libglx-dev
           sudo apt-get install -y cmake gcc g++
-
+      shell: bash -l {0}
+      
     - name: Configure and install using system libraries
       run: |
         mkdir build && cd build
         cmake -DCMAKE_VERBOSE_MAKEFILE=yes..
         sudo make -j all install
+      shell: bash -l {0}
       
-      
+    - name: Make sure file is in there
+      run: ls -l /usr/local/bin/spunto
+      shell: bash -l {0}
