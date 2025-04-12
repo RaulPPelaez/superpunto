@@ -103,7 +103,6 @@ if(BUILD_APPIMAGE)
     file(DOWNLOAD
       https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
       ${LINUXDEPLOY}
-      SHOW_PROGRESS
     )
     execute_process(COMMAND chmod +x ${LINUXDEPLOY})
   endif()
@@ -112,7 +111,6 @@ if(BUILD_APPIMAGE)
     file(DOWNLOAD
       https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
       ${APPIMAGETOOL}
-      SHOW_PROGRESS
     )
     execute_process(COMMAND chmod +x ${APPIMAGETOOL})
   endif()
