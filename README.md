@@ -80,6 +80,11 @@ Or in Fedora:
 ```bash 
 $ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel
 ```
+Or in MacOS:
+```bash
+brew install cmake sdl2 sdl2_ttf glew libpng
+```
+
 Or use the provided `environment.yml` file to create a [Conda](https://github.com/conda-forge/miniforge) environment:
 
 ```bash
