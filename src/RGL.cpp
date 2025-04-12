@@ -406,9 +406,10 @@ void RGLContext::init(SDL_Window *w) {
 
   // Setup OpenGL
   glewExperimental = GL_TRUE;
-  GLenum version = glewInit();
-  if (!version) {
-    printf("Unable to load OpenGL\n");
+  GLenum err = glewInit();
+  if (err != GLEW_OK) {
+    sys->log<System::ERROR>("Error initializing GLEW: %s", glewGetErrorString(err));
+    return;
   }
   int major, minor;
   glGetIntegerv(GL_MAJOR_VERSION, &major);
