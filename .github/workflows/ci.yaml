@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ SDL_OGL45 ]
+    branches: [ master ]
   pull_request:
-    branches: [ SDL_OGL45 ]
+    branches: [ master ]
   schedule:
     # Run every Sunday at midnight
     - cron:  '0 0 * * 0'

@@ -2,9 +2,9 @@ name: Build AppImage
 
 on:
   push:
-    branches: [ SDL_OGL45 ]
+    branches: [ master ]
   pull_request:
-    branches: [ SDL_OGL45  ]
+    branches: [ master  ]
   release:
     types: [published]
 jobs:
