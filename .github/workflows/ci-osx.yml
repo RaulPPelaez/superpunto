@@ -70,3 +70,9 @@ jobs:
         with:
           name: Superpunto.dmg
           path: Superpunto.dmg
+
+      - name: Mount and test the .dmg
+        run: |
+          hdiutil attach Superpunto.dmg -mountpoint /Volumes/Superpunto -nobrowse
+          /Volumes/Superpunto/Superpunto.app/Contents/MacOS/spunto -h
+          hdiutil detach /Volumes/Superpunto
