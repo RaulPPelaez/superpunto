@@ -161,7 +161,3 @@ The column color can be treated in two ways:
 **RGB** by using --RGB
 
 	The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
-
-##ACKNOWLEDGEMENTS
-
-UAMMD was developed at the Departamento de Física Teórica de la Materia Condensada of Universidad Autónoma de Madrid (UAM) under supervision of Rafael Delgado-Buscalioni. Acknowledgment is made to the Donors of the American Chemical Society Petroleum Research Fund (PRF# 54312-ND9) for support of this research and to Spanish MINECO projects FIS2013- 47350-C05-1-R and FIS2013-50510-EXP.
