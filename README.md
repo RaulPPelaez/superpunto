@@ -1,10 +1,10 @@
 # Superpunto
-SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
-With SSAO and superb light effects!!
+Superpunto is a fast sphere visualizer with superb light effects. Via a simple format (similar to the XYZ format) one can visualize the trajectories of a large number of spherical particles in an interactive way.
 
 ![alt text](screenshots/shot_0.png "")
 
+Superpunto was born as a SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
 ## Installation
 
@@ -149,3 +149,9 @@ The column color can be treated in two ways:
 **RGB** by using --RGB
 
 	The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
+
+
+## Selecting spheres
+
+Clicking one sphere with the left mouse button will highlight it and print its coordinates. Clicking a second one with the right click will print its coordinates too, in addition to the distance between both.
+
