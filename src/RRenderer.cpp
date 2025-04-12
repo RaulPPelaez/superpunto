@@ -12,11 +12,7 @@ RRenderer::RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> in_w,
   auto resolution = w->getResolution();
   proj =
       glm::perspective(op.fov, resolution.x / (float)resolution.y, znear, zfar);
-  model = glm::mat4();
-  view = cam->lookAt();
-  rotate_model(M_PI / 4.0f, 0.0f, 0.0f, 1.0f);
-
-  MVP = proj * view * model;
+  this->reset_model();
 }
 
 void RRenderer::handle_resize(uint fw, uint fh) {
@@ -30,6 +26,13 @@ void RRenderer::handle_resize(uint fw, uint fh) {
 void RRenderer::rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
   model = glm::rotate(model, angle, glm::vec3(x, y, z));
 }
+
+  void RRenderer::reset_model() {
+    model = glm::mat4();
+    view = cam->lookAt();
+    rotate_model(M_PI / 4.0f, 0.0f, 0.0f, 1.0f);
+    MVP = proj * view * model;
+  }
 
 void RRenderer::update() {
   view = cam->lookAt();

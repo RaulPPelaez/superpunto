@@ -2,26 +2,32 @@
 #include <SDL2/SDL.h>
 
 namespace superpunto {
+
 FreeCamera::FreeCamera() {
+  int mx, my;
+  SDL_GetMouseState(&mx, &my);
+  zero_mpos = glm::ivec2(mx, my);
+  this->mult = 1;
+  mpos = zero_mpos;
+  cspeed = 0.6;
+  mouse_sensitivity = 0.25;
+  this->reset_camera_view();
+}
+
+void FreeCamera::reset_camera_view() {
   this->pos = glm::vec3(-130, -130, -130); // Behind the origin, looking forward
   this->right = glm::vec3(1, 0, 0);        // X = right
   this->up = glm::vec3(0, 0, 1);           // Z = up
   this->front = glm::vec3(0, 1, 0);        // Y = forward
-  int mx, my;
-  SDL_GetMouseState(&mx, &my);
-  zero_mpos = glm::ivec2(mx, my);
-  mpos = zero_mpos;
-
-  yaw = 0;
-  pitch = 0;
-  roll = 0;
-  this->mult = 1;
+  this->yaw = 0;
+  this->pitch = 0;
+  this->roll = 0;
   this->updateCameraVectors();
-  cspeed = 0.6;
-  mouse_sensitivity = 0.25;
 }
 void FreeCamera::warp(glm::vec3 np) { this->pos = np; }
+
 glm::vec3 FreeCamera::get_view() { return pos + front; }
+
 glm::mat4 FreeCamera::lookAt() {
   return this->view = glm::lookAt(pos, pos + front, up);
 }
@@ -65,7 +71,6 @@ void FreeCamera::update() {
 }
 
 void FreeCamera::process_mouse() {
-
   SDL_GetMouseState(&mpos[0], &mpos[1]);
   yaw = (float)((zero_mpos.x - mpos.x)) * mouse_sensitivity;
   pitch = -(float)((zero_mpos.y - mpos.y)) * mouse_sensitivity;

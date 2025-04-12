@@ -10,7 +10,6 @@ App::App(std::shared_ptr<System> sys, int argc, char *argv[])
 
   auto op = sys->getInputOptions();
   file = std::make_shared<RFile>(sys);
-  // if(op.binary_read_mode) file->read_frames_binary(op.read_color_mode);
   initWindow();
   initOpenGL();
 }
@@ -25,16 +24,15 @@ void App::initWindow() {
 }
 void App::initOpenGL() {
   auto op = sys->getInputOptions();
-  // gl->cam.warp(glm::vec3(0, (file.max_dist[0].y+1.0f)*6.0f/file.maxScale,
-  // 0));
   cam = std::make_shared<Camera>();
   auto data = file->getCurrentFrameData();
 
   float3 maxDist = file->getMaxDist();
   float maxScale = file->getMaxScale();
   sys->log<System::DEBUG>("[App] Max radius in frame 0: %g", maxScale);
-  cam->warp(glm::vec3(0, (maxDist.y + 1.0f) * 6.0f / maxScale, 0));
-
+  this->initial_camera_position =
+      glm::vec3(0, (maxDist.y + 1.0f) * 6.0f / maxScale, 0);
+  cam->warp(initial_camera_position);
   switch (op.render_type) {
   case RenderType::PARTICLES:
     gl = std::make_shared<RParticleRenderer>(sys, w, cam, 1.0f / maxScale);
@@ -99,6 +97,8 @@ void App::handle_events() {
       IF_KEY(1, gl->rotate_model(-0.1f, 1, 0, 0);)
       IF_KEY(2, gl->rotate_model(-0.1f, 0, 1, 0);)
       IF_KEY(3, gl->rotate_model(-0.1f, 0, 0, 1);)
+      IF_KEY(0, cam->reset_camera_view(); gl->reset_model();
+             cam->warp(initial_camera_position);)
     }
     if (e.type == SDL_WINDOWEVENT) {
       switch (e.window.event) {

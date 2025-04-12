@@ -61,7 +61,8 @@ namespace superpunto{
     void display();
     virtual void drawText(const char* text, int x, int y);
     virtual void handle_resize(uint fw, uint fh);
-    virtual void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+    void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
+    void reset_model();
 
     virtual bool upload_instances(ParticleData pdata) = 0;
 

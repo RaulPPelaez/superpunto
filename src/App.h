@@ -44,6 +44,7 @@ private:
   bool visible;
   bool play = false;
   bool record_movie = false;
+  glm::vec3 initial_camera_position;
 };
 } // namespace superpunto
 #endif

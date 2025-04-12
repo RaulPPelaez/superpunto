@@ -17,6 +17,8 @@ public:
   glm::vec3 get_view();
   glm::mat4 lookAt();
 
+  void reset_camera_view();
+
   void update();
   void process_mouse();
   void updateCameraVectors();
