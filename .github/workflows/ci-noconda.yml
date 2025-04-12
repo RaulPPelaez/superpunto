@@ -33,9 +33,10 @@ jobs:
     - name: Install dependencies using system package manager
       run: |
           sudo apt-get update
-          sudo apt-get install -y libpng-dev libglew-dev libsdl2-dev libsdl2-ttf-dev libfontconfig1-dev
-          sudo apt-get install -y libgl1-mesa-dev libglx0 libglx-dev
-          sudo apt-get install -y cmake gcc g++
+          sudo apt-get install -y \
+            cmake g++ make \
+            libglew-dev libsdl2-dev libsdl2-ttf-dev \
+            libpng-dev libgl1-mesa-dev libglu1-mesa-dev
       shell: bash -l {0}
       
     - name: Configure and install using system libraries
