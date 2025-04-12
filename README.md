@@ -32,7 +32,7 @@ Runs on most Linux distributions (glibc ≥ 2.31)
 You can place the AppImage somewhere in your PATH for easier access:
 
 ```bash
-sudo cp spunto-x86_64.AppImage ~/.local/bin/spunto
+cp spunto-x86_64.AppImage ~/.local/bin/spunto
 ```
 Then you can run it from anywhere.
 
