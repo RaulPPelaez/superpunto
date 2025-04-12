@@ -74,7 +74,7 @@ conda env create -f environment.yml
 conda activate spunto-env
 ```
 
-### Build the Project
+**Compile**  
 
 Superpunto is built using CMake. You can build it in a separate directory:
 
