@@ -110,9 +110,9 @@ The inputfile should have the following structure:
 
 	#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment as in this example. All three L must be provided
 
-	X1 Y1 Z1 r1 c1 Vx Vy Vz#You can comment here aswell! If your file has more than
+	X1 Y1 Z1 r1 c1 #You can comment here aswell. If your file has more than
 	
-	X2 ...         #8 columns, the rest will be ignored!
+	X2 ...         # 5 columns, the rest will be ignored!
 
 	.
 
@@ -122,7 +122,7 @@ The inputfile should have the following structure:
 
 	\# frame=2
 
-	X1 Y1 Z1 r1 c1 Vx Vy Vz
+	X1 Y1 Z1 r1 c1
 
 	.
 
@@ -132,20 +132,14 @@ The inputfile should have the following structure:
 
 	\# frame = 3
 
-r1 is the size of the superpunto.
+r1 is the size of the superpunto. 
 
 c1 is its color.
 
-Vxyz are the sizes of the arrows if --renderer arrows is selected.
-
 If some of the columns are missing, this is the behavior according to the number of columns:
 
-	3: XYZ ->r=1, c=0, Vxyz=0
-	4: XYZC -> r=1, Vxyz=0
-	5: XYZRC -> Vxyz=0
-	6: XYZVxVyVz -> r=1, c=0
-	7: XYZCVxVyVz -> r=1
-	8: XYZRCVxVyVz
+	3: XYZ ->r=1, c=0
+	4: XYZC -> r=1
 
 ### About colors
 
