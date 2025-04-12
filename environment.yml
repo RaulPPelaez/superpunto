@@ -9,7 +9,6 @@ dependencies:
   - sdl2_ttf
   - glew
   - libpng
-  - libpng-devel
   - pkg-config
   - zlib
   - libopengl-devel
