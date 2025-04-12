@@ -114,9 +114,9 @@ bool RParticleRenderer::init_shaders() {
 bool RParticleRenderer::init_uniforms() {
   sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");
   pr.use();
-  uniMVP = glGetUniformLocation(pr.id(), "MVP");
-  unimodel = glGetUniformLocation(pr.id(), "model");
-  uninormalmodel = glGetUniformLocation(pr.id(), "normal_model");
+  this->uniMVP = glGetUniformLocation(pr.id(), "MVP");
+  this->unimodel = glGetUniformLocation(pr.id(), "model");
+  this->uninormalmodel = glGetUniformLocation(pr.id(), "normal_model");
   pr.setFlag("picking", 0);
   pr.setFlag("drawing_picked", 0);
   glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
@@ -244,10 +244,7 @@ void RParticleRenderer::geometry_pass() {
   spheres_vao.use();
   sphere_vbos[1].use(); // indices
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL,
-                           particles.N);
-  //glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL, 10);
-
-  //glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
+                          particles.N);
   if (!picking)
     render_picked();
 
@@ -322,7 +319,6 @@ void RParticleRenderer::draw() {
   geometry_pass();
   SSAO_pass();
   light_pass();
-
 
   fbo.draw();
   RRenderer::display();
