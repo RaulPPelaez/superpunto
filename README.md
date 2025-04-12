@@ -10,7 +10,14 @@ With SSAO and superb light effects!!
 
 There are several ways to install and run the project, depending on your operating system and preferences. Below are the instructions for each platform.
 
-### Linux (AppImage)
+### Linux or Windows under WSL (AppImage)
+
+**One-line install**  
+You can copy paste this command in your terminal, after which the command "spunto" will be available.
+```bash
+mkdir -p ~/.local/bin && curl -L https://github.com/RaulPPelaez/superpunto/releases/latest/download/spunto-x86_64.AppImage -o ~/.local/bin/spunto && chmod +x ~/.local/bin/spunto
+```
+This command will download the latest AppImage, make it executable and store it under `~/.local/bin/`, a folder that is included in the PATH for most distros.
 
 Prebuilt AppImages are generated automatically for each release. You can download the latest version from the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
 
