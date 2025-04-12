@@ -2,9 +2,9 @@ name: CI-noconda
 
 on:
   push:
-    branches: [ SDL_OGL45 master ]
+    branches: [ SDL_OGL45 ]
   pull_request:
-    branches: [ SDL_OGL45 master ]
+    branches: [ SDL_OGL45 ]
   schedule:
     # Run every Sunday at midnight
     - cron:  '0 0 * * 0'
