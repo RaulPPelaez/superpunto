@@ -63,7 +63,7 @@ jobs:
           hdiutil create Superpunto.dmg -volname "Superpunto" -srcfolder dmg-root -ov -format UDZO
 
       - name: Upload .dmg artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Superpunto.dmg
           path: Superpunto.dmg
