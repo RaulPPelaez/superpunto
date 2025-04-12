@@ -25,6 +25,14 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 # Find required packages
 find_package(SDL2 REQUIRED)
+if (NOT TARGET SDL2::SDL2 AND DEFINED SDL2_LIBRARIES)
+        add_library(SDL2::SDL2 UNKNOWN IMPORTED)
+        set_target_properties(
+            SDL2::SDL2 PROPERTIES
+            IMPORTED_LOCATION "${SDL2_LIBRARIES}"
+            INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIRS}"
+        )
+endif()
 find_package(PkgConfig REQUIRED)
 find_package(PNG REQUIRED)
 pkg_check_modules(SDL2_TTF REQUIRED SDL2_ttf)
