@@ -82,13 +82,13 @@ foreach(SOURCE ${SOURCES})
   target_include_directories(${LIB_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
   add_dependencies(${LIB_NAME} generate_shaders)
   list(APPEND LIB_LIST ${LIB_NAME})
-  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread png resources::rc GLEW::GLEW)
+  target_link_libraries(${LIB_NAME} PRIVATE SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
 endforeach()
 
 # Create the spunto executable using main.cpp
 add_executable(spunto src/main.cpp)
 target_include_directories(spunto PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread png resources::rc GLEW::GLEW)
+target_link_libraries(spunto PRIVATE ${LIB_LIST} SDL2::SDL2 SDL2_ttf::SDL2_ttf OpenGL::GL OpenGL::GLU pthread PNG::PNG resources::rc GLEW::GLEW)
 
 install(TARGETS spunto
   RUNTIME DESTINATION bin
