@@ -42,7 +42,7 @@ jobs:
           ./build/spunto-x86_64.AppImage -h
 
       - name: Upload AppImage artifact (CI use only)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: spunto-AppImage
           path: build/*.AppImage
