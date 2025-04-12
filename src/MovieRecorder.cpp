@@ -1,42 +1,51 @@
 #include "MovieRecorder.h"
+#include "RPNG.h"
+#include "System.h"
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
+
+namespace fs = std::filesystem;
 
 namespace superpunto {
 
 MovieRecorder::MovieRecorder(std::shared_ptr<System> sys, int width, int height,
-                             const std::string &baseFilename,
-                             int framerate, int bitrate)
-    : width(width), height(height) {
-  static int file_counter = 0;
-  std::string filename =
-      baseFilename + "_" + std::to_string(file_counter++) + ".mp4";
-  std::string cmd = "ffmpeg -loglevel panic -y -f rawvideo -s " +
-                    std::to_string(width) + "x" + std::to_string(height) +
-                    " -pix_fmt rgba -r " + std::to_string(framerate) +
-                    " -i - -vf vflip -an -b:v " + std::to_string(bitrate) +
-                    "k " + "\"" + filename + "\"";
-  sys->log<System::MESSAGE>("Encoding video with command: %s", cmd.c_str());
-  ffmpeg = ::popen(cmd.c_str(), "w");
-  if (!ffmpeg) {
-    sys->log<System::ERROR>("Failed to open ffmpeg process.");
+                             const std::string &baseFilename, int framerate,
+                             int /*bitrate*/)
+    : sys(sys), width(width), height(height), framerate(framerate),
+      baseFilename(baseFilename) {
+
+  static int folderCounter = 0;
+  std::ostringstream folderName;
+  folderName << baseFilename << "_" << folderCounter++;
+  outputDir = folderName.str();
+
+  try {
+    fs::create_directories(outputDir);
+    sys->log<System::MESSAGE>("Recording frames to: %s",
+                              outputDir.string().c_str());
+    sys->log<System::MESSAGE>("You may use this command to convert to mp4:\n"
+                              "ffmpeg -r %d -i %s/frame_%%05d.png -c:v libx264 "
+                              "-pix_fmt yuv420p %s.mp4",
+                              framerate, outputDir.string().c_str(),
+                              outputDir.string().c_str());
+  } catch (const std::exception &e) {
+    sys->log<System::WARNING>("Failed to create output directory: %s",
+                              e.what());
   }
 }
 
-MovieRecorder::~MovieRecorder() { close(); }
+bool MovieRecorder::isOpen() const { return fs::exists(outputDir); }
 
-bool MovieRecorder::isOpen() const { return ffmpeg != nullptr; }
+void MovieRecorder::writeFrame(const Uint8 *pixels) {
+  if (!isOpen())
+    return;
 
-void MovieRecorder::writeFrame(const void *pixels) {
-  if (isOpen()) {
-    std::fwrite(pixels, width * height * 4, 1, ffmpeg);
-  }
-}
+  std::ostringstream filename;
+  filename << outputDir.string() << "/frame_" << std::setw(5)
+           << std::setfill('0') << frameCounter++ << ".png";
 
-void MovieRecorder::close() {
-  if (ffmpeg) {
-    std::fflush(ffmpeg);
-    ::pclose(ffmpeg);
-    ffmpeg = nullptr;
-  }
+  savePNG(filename.str().c_str(), pixels, width, height);
 }
 
 } // namespace superpunto

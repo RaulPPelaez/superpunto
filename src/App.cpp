@@ -175,7 +175,8 @@ void App::movieAddFrame() {
     sys->log<System::MESSAGE>("Recording movie...");
     movie = std::make_unique<MovieRecorder>(sys, res.x, res.y, "movie");
     if (!movie->isOpen()) {
-      sys->log<System::ERROR>("Failed to open movie file.");
+      sys->log<System::WARNING>("Failed to open movie file.");
+      record_movie = false;
       return;
     }
   }
@@ -189,7 +190,6 @@ void App::movieAddFrame() {
 void App::movieStop() {
   if (movie) {
     sys->log<System::MESSAGE>("Finalizing movie...");
-    movie->close();
     movie.reset(); // destroys the object
   }
 }
