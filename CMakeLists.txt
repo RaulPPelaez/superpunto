@@ -56,7 +56,7 @@ set(GENERATED_FILES ${CMAKE_BINARY_DIR}/shaders.h)
 add_custom_command(
     OUTPUT ${GENERATED_FILES}
     COMMAND ${CMAKE_COMMAND} -E echo "Running tohex..."
-    COMMAND $<TARGET_FILE:tohex> ${SHADER_FILES} -o ${GENERATED_FILES}
+    COMMAND $<TARGET_FILE:tohex> ${SHADER_FILES}
     DEPENDS ${SHADER_FILES} tohex
     COMMENT "Generating shader files"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
