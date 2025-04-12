@@ -1,49 +1,112 @@
 # Superpunto
 SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://punto.sourceforge.net/ )
 
-Now with SSAO and superb light effects!!
+With SSAO and superb light effects!!
 
 ![alt text](screenshots/shot_0.png "")
 
-# COMPILATION
-Run the Makefile using $ make
+
+## Installation
+
+There are several ways to install and run the project, depending on your operating system and preferences. Below are the instructions for each platform.
+
+### Linux (AppImage)
+
+Prebuilt AppImages are generated automatically for each release. You can download the latest version from the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
+
+To run:
+
+```bash
+chmod +x spunto-x86_64.AppImage
+./spunto-x86_64.AppImage
+```
+Runs on most Linux distributions (glibc ≥ 2.31)
+
+You can place the AppImage somewhere in your PATH for easier access:
+
+```bash
+sudo cp spunto-x86_64.AppImage ~/.local/bin/spunto
+```
+Then you can run it from anywhere.
 
 
-Dependencies:
+### Building from Source
 
-1. SDL2 https://www.libsdl.org/ . In the official repositories of most modern distributions.
+If you prefer to build the project yourself, there are multiple supported options:
 
-2. SDL2_ttf
+#### Get the Source Code
 
-3. OpenGL 4.5
+```bash
+git clone https://github.com/RaulPPelaez/superpunto.git
+cd superpunto
+```
+#### Dependencies
+Make sure you have the following dependencies installed:
+- CMake
+- C++ Compiler (g++, clang++)
+- OpenGL 4.5
+- SDL2
+- SDL2_ttf
+- libGLEW
+- libPNG
+- (Optional) ffmpeg for recording
 
-4. libGLEW 1.13.0+ (default in the Ubuntu 16.04 repos)
+You can install these dependencies using your package manager. For example, on Ubuntu:
 
-5. libPNG for the screenshots
-
-6. (Optional) avconv installed for recording, not having it will simply cause the recording button to do nothing.
-
-7. xxd.  
-
-## In Fedora 35:
-
+```bash
+$ sudo apt install cmake g++ libsdl2-dev libsdl2-ttf-dev libglew-dev libpng-dev ffmpeg
+```
+Or in Fedora:
 ```bash 
-$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel vim-common
+$ sudo dnf install SDL2-devel SDL2_ttf-devel libpng-devel libGLEW ffmpeg glew-devel
+```
+Or use the provided `environment.yml` file to create a [Conda](https://github.com/conda-forge/miniforge) environment:
+
+```bash
+conda env create -f environment.yml
+conda activate spunto-env
 ```
 
-## In Ubuntu 20:
+### Build the Project
 
-```bash 
-$ sudo apt install libsdl2-dev libsdl2-ttf-dev libpng-dev libglew-dev ffmpeg
+Superpunto is built using CMake. You can build it in a separate directory:
+
+```bash
+mkdir build
+cd build
+cmake ..
+make -j install
+```
+If you want to install it system-wide, you will need to run the `make install` command with `sudo`:
+
+```bash
+sudo make install
+```
+
+If using conda, you must instruct CMake to use the conda paths:
+
+```bash
+cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..
+```
+
+#### Additional Compilation Options
+
+**Build the AppImage**  
+
+If you want to build the AppImage, you can do so by adding the `-DBUILD_APPIMAGE=ON` option to the CMake command:
+
+```bash
+cmake -DBUILD_APPIMAGE=ON ..
 ```
 
 # USAGE
 Use with $ ./spunto inputfile [opts]
 
-run ./spunto -h for information about the available options and controls.
+**Run ./spunto -h for information about the available options and controls.**
 
 
-inputfile should have the following structure:
+## Input File
+The inputfile should have the following structure:
 
 	#Lx=X;Ly=Y;Lz=Z; Comments are used to separate frames, you can force the size of the simulation box starting the comment as in this example. All three L must be provided
 
@@ -84,7 +147,7 @@ If some of the columns are missing, this is the behavior according to the number
 	7: XYZCVxVyVz -> r=1
 	8: XYZRCVxVyVz
 
-# COLORS
+### About colors
 
 The column color can be treated in two ways:
 
@@ -99,37 +162,5 @@ The column color can be treated in two ways:
 
 	The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
 
-
-
-# OPTIONS AND CONTROLS
-
-**Options:**
-
-	--record :  Makes a movie of all the frames in file and generates a .mp4
-	--frames-between-screenshots X : Number of frames skipped between screenshots when recording (default = 2)
-	--background R G B : Background color in RGB, default R=G=B=0.0
-	--palette X : Change the color palette
-	--RGB : Read colors as hex values in BGR (as integers) (0xFF=red=255). Overrides palette
-	--renderer [render=arrows,particles]: Rendering mode.
-	
-**Controls:**
-	
-Movement:
-	
-	Move with WASD, E and Q to tilt and Shift/Ctrl to go up/Down
-	Use +/- to increase/decrease the speed
-	Look around holding ALT and moving the mouse
-	Rotate the world in XYZ using 123/456
-	Frame control:
-	Press Space to go to the next frame, R to the previous
-	Press T to go to the last frame, B takes you to the first one
-	Press M to play the frames at 60 FPS, M again to pause
-	Press C to take a screenshot in png
-	Press L to play and record to a mp4 until L is pressed again
-	
-**Others:**
-
-	Press h to print this help page
-	
 
 
