@@ -1,0 +1,55 @@
+name: CI-noconda
+
+on:
+  push:
+    branches: [ SDL_OGL45 ]
+  pull_request:
+    branches: [ SDL_OGL45 ]
+  schedule:
+    # Run every Sunday at midnight
+    - cron:  '0 0 * * 0'
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Latest supported versions
+          - name: Linux
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+
+    - name: Install dependencies using system package manager
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake g++ make \
+            libglew-dev libsdl2-dev libsdl2-ttf-dev \
+            libpng-dev libgl1-mesa-dev libglu1-mesa-dev
+      shell: bash -l {0}
+      
+    - name: Configure and install using system libraries
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes ..
+        sudo make -j all install
+      shell: bash -l {0}
+      
+    - name: Make sure file is in there
+      run: ls -l /usr/local/bin/spunto
+      shell: bash -l {0}
+
+    - name: Run help
+      run: spunto -h
+      shell: bash -l {0}

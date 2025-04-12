@@ -1,0 +1,19 @@
+name: spunto-env
+channels:
+  - conda-forge
+dependencies:
+  - cmake>=3.20
+  - gxx
+  - gcc
+  - sdl2<3
+  - sdl2_ttf
+  - glew
+  - libpng
+  - pkg-config
+  - zlib
+  - libopengl-devel
+  - libopengl
+  - libgl-devel
+  - libglx-devel
+  - jinja2
+  - fontconfig
