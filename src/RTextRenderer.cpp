@@ -53,8 +53,11 @@ bool RTextRenderer::setText(const char *text, int x, int y, float sf) {
   pos.x = x;
   pos.y = y;
   this->size_factor = sf;
-
-  SDL_Color color = {255, 255, 255, 0};
+  auto op = sys->getInputOptions();
+  // Make the color opossite to the background
+  auto color = SDL_Color{static_cast<Uint8>(255 - op.bcolor[0] * 255),
+			 static_cast<Uint8>(255 - op.bcolor[1] * 255),
+			 static_cast<Uint8>(255 - op.bcolor[2] * 255), 0};
   SDL_Surface *raw_surf = TTF_RenderText_Blended(this->font, text, color);
   SDL_Surface *surf =
       SDL_ConvertSurfaceFormat(raw_surf, SDL_PIXELFORMAT_RGBA32, 0);
