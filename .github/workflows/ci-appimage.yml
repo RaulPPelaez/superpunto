@@ -12,11 +12,12 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
           sudo apt-get update
+          sudo apt-get upgrade -y
           sudo apt-get install -y \
             cmake g++ make \
             libglew-dev libsdl2-dev libsdl2-ttf-dev \
@@ -29,7 +30,7 @@ jobs:
       - name: Build AppImage
         run: |
           cd build
-          make appimage
+          make -j appimage
 
       - name: Make sure AppImage is there
         run: ls -l build/spunto-x86_64.AppImage
