@@ -5,7 +5,9 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
+  release:
+    types: [published]
+    
 jobs:
   build-macos:
     runs-on: macos-latest
@@ -76,3 +78,11 @@ jobs:
           hdiutil attach Superpunto.dmg -mountpoint /Volumes/Superpunto -nobrowse
           /Volumes/Superpunto/Superpunto.app/Contents/MacOS/spunto -h
           hdiutil detach /Volumes/Superpunto
+
+      - name: Upload DMG to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Superpunto.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
