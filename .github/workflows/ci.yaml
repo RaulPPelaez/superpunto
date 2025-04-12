@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run every Sunday at midnight
+    - cron:  '0 0 * * 0'
+
+defaults:
+  run:
+    shell: bash -l {0}
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Latest supported versions
+          - name: Linux
+    steps:
+    - name: Check out
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: recursive
+        
+    - name: Show dependency file
+      run: cat environment.yml
+      
+    - name: Install Mamba
+      uses: mamba-org/setup-micromamba@v2
+      with:
+        environment-file: environment.yml
+        cache-environment: false
+        cache-downloads: true
+        generate-run-shell: true
+
+    - name: List environment
+      run: |
+        micromamba list
+      shell: micromamba-shell {0}
+
+    - name: Configure and compile the library using Conda
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX ..
+        make -j all install
+      shell: micromamba-shell {0}
+
+    - name: Make sure binary is there
+      run: ls -l $CONDA_PREFIX/bin/spunto
+      shell: micromamba-shell {0}
+
+    - name: Install dependencies using system package manager
+      run: |
+          sudo apt-get update
+          sudo apt-get install -y libpng-dev libglew-dev libsdl2-dev libsdl2-ttf-dev libfontconfig1-dev
+          sudo apt-get install -y libgl1-mesa-dev libglx0 libglx-dev
+          sudo apt-get install -y cmake gcc g++
+
+    - name: Configure and install using system libraries
+      run: |
+        rm -rf build
+        mkdir build && cd build
+        cmake -DCMAKE_VERBOSE_MAKEFILE=yes..
+        sudo make -j all install
+      
+      
