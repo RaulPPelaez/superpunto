@@ -1,6 +1,7 @@
 #include "RTextRenderer.h"
 #include "glm/glm.hpp"
 #include "resources.h"
+#include "shaders.h"
 
 namespace superpunto {
 std::shared_ptr<RShaderProgram> RTextRenderer::pr;
@@ -18,7 +19,6 @@ RTextRenderer::~RTextRenderer() {
     instance_counter--;
   TTF_CloseFont(font);
   font = NULL;
-
   if (instance_counter == 0) {
     if (TTF_WasInit()) {
       pr.reset();
@@ -27,7 +27,6 @@ RTextRenderer::~RTextRenderer() {
     }
   }
 }
-#include "shaders.h"
 bool RTextRenderer::setFont(const char *fontName, int size) {
   if (!TTF_WasInit()) {
     TTF_Init();
@@ -38,8 +37,10 @@ bool RTextRenderer::setFont(const char *fontName, int size) {
     pr->init(shs, 2);
     dummy_vao = std::make_shared<VAO>();
   }
-  this->font =
-      TTF_OpenFont(("../resources/" + std::string(fontName)).c_str(), size);
+  auto fontFile = superpunto_resources::getResourceFile("resources/" + std::string(fontName));
+  this->fontFileContents = std::string(fontFile.begin(), fontFile.end());
+  auto surface = SDL_RWFromConstMem(fontFileContents.c_str(), fontFile.size());
+  this->font = TTF_OpenFontRW(surface, 1, size);
   if (!font) {
     sys->log<System::ERROR>("[TextRenderer] Could not load font %s!!",
                             fontName);

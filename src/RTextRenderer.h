@@ -9,7 +9,7 @@
 #include "RWindow.h"
 namespace superpunto{
 
-  class RTextRenderer{    
+  class RTextRenderer{
   public:
     RTextRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w);
     ~RTextRenderer();
@@ -18,7 +18,7 @@ namespace superpunto{
     void handle_resize(uint fw, uint fh);
     bool move(int x, int y);
     void draw();
-  
+
   private:
     std::shared_ptr<System> sys;
     static std::shared_ptr<RShaderProgram> pr;
@@ -29,6 +29,7 @@ namespace superpunto{
     TTF_Font *font;
     static int instance_counter;
     std::shared_ptr<RWindow> w;
+    std::string fontFileContents;
   };
 
 
