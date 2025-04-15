@@ -35,12 +35,13 @@ public:
 
   void init(GLenum type, GLbitfield flags, const DataLayout &dl);
   void init(GLenum type, GLbitfield flags);
-  void *map(GLenum usage = GL_WRITE_ONLY);
-  void unmap();
+  void *map(GLenum usage = GL_WRITE_ONLY) const;
+  void unmap() const;
   bool initmem(GLenum type, GLbitfield flags, GLsizeiptr size,
                const void *data);
   bool initmem(GLsizeiptr size, const void *data);
-  bool upload(GLenum type, GLintptr offset, GLsizeiptr size, const void *data);
+  bool upload(GLenum type, GLintptr offset, GLsizeiptr size,
+              const void *data) const;
   bool upload(GLintptr offset, GLsizeiptr size, const void *data);
 
   uint id() const { return this->vid; }
