@@ -206,7 +206,10 @@ bool RTex::upload(const void *data) {
   return true;
 }
 void RTex::resize(GLuint wx, GLuint wy) {
-  glDeleteTextures(1, &tid);
+  if (wx == size.x && wy == size.y)
+    return;
+  System::log<System::DEBUG>(
+      "[RTex] Texture %d resized to %d x %d", tid, wx, wy);
   init(format[0], format[1], format[2], glm::int2(wx, wy));
   CheckGLError("Error at texture resize");
 }
