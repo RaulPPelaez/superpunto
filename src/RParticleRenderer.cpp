@@ -154,18 +154,13 @@ int RParticleRenderer::pick(int x, int y, int pickindex) {
   this->picking = true;
   geometry_pass();
   pr.use();
-  glm::vec4 pixel = gBuffer.getPixel(x, y);
-
-  this->picked[pickindex] =
-      pixel[0] + 256 * pixel[1] + 256 * 256 * pixel[2] - 1;
-
-  // Two colors identify the same index to gain precision,
-  //"only" 255^3/2 differenciable objects
-  if (picked[pickindex] >= 0)
-    picked[pickindex] /= 2;
-
   pr.setUniform<GLint>("picking", 0);
+  auto pixel = gBuffer.getPixel(x, y);
+  uint id = pixel.r + 256u * pixel.g + 256u * 256u * pixel.b +
+            256u * 256u * 256u * pixel.a;
+  picked[pickindex] = int(id) - 1;
   this->picking = false;
+  System::log<System::DEBUG>("Picked %d", pickindex);
   return picked[pickindex];
 }
 
