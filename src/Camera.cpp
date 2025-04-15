@@ -26,8 +26,6 @@ void FreeCamera::reset_camera_view() {
 }
 void FreeCamera::warp(glm::vec3 np) { this->pos = np; }
 
-glm::vec3 FreeCamera::get_view() { return pos + front; }
-
 glm::mat4 FreeCamera::lookAt() {
   // Recompute right and up based on the default world up
   return this->view = glm::lookAt(pos, pos + front, up);

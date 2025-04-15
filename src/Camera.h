@@ -14,7 +14,6 @@ public:
   FreeCamera();
 
   void warp(glm::vec3 np);
-  glm::vec3 get_view();
   glm::mat4 lookAt();
   glm::mat4 lookAt(glm::vec3 target);
 
