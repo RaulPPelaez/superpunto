@@ -51,6 +51,31 @@ VBO::VBO() {
   CheckGLError("Error in init VBO");
 }
 VBO::~VBO() { glDeleteBuffers(1, &vid); }
+VBO::VBO(VBO &&other) noexcept {
+  vid = other.vid;
+  tp = other.tp;
+  flags = other.flags;
+  layout = other.layout;
+  initialized = other.initialized;
+  meminit = other.meminit;
+
+  other.vid = 0; // prevent deletion
+}
+
+VBO &VBO::operator=(VBO &&other) noexcept {
+  if (this != &other) {
+    glDeleteBuffers(1, &vid); // cleanup current
+    vid = other.vid;
+    tp = other.tp;
+    flags = other.flags;
+    layout = other.layout;
+    initialized = other.initialized;
+    meminit = other.meminit;
+    other.vid = 0;
+  }
+  return *this;
+}
+
 void VBO::reset() {
   if (vid)
     glDeleteBuffers(1, &vid);
@@ -116,6 +141,23 @@ VAO::VAO() {
 VAO::~VAO() { glDeleteVertexArrays(1, &vid); }
 
 void VAO::set_attrib(uint attrib, const VBO &vbo, GLint binding) {
+// Move constructor
+VAO::VAO(VAO &&other) noexcept {
+  vid = other.vid;
+  other.vid = 0;
+}
+
+// Move assignment
+VAO &VAO::operator=(VAO &&other) noexcept {
+  if (this != &other) {
+    if (vid)
+      glDeleteVertexArrays(1, &vid);
+    vid = other.vid;
+    other.vid = 0;
+  }
+  return *this;
+}
+
   if (vbo.type() == GL_ELEMENT_ARRAY_BUFFER)
     return;
   DataLayout dl = vbo.get_layout();
