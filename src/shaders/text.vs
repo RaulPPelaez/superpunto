@@ -12,7 +12,6 @@ const vec2 v[4] =
 	   vec2(-1.0,  1.0),
 	   vec2( 1.0,  1.0));
 
-
 out vec2 vv;
 void main () {
   int id = gl_VertexID;
