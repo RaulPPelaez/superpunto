@@ -183,19 +183,18 @@ void RParticleRenderer::render_picked() {
     glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX, GL_UNSIGNED_INT,
                                         NULL, 1, picked[1]);
   if (picked[1] >= 0 && picked[0] >= 0) {
+    glm::vec3 pointA, pointB;
+    for (int i = 0; i < 3; ++i) {
+      pointA[i] = particles.pos[3 * picked[0] + i] * gscale;
+      pointB[i] = particles.pos[3 * picked[1] + i] * gscale;
+    }
     linepr.use();
-
-    float lineptr[6];
-    fori(0, 3) forj(0, 2) lineptr[i + 3 * j] = particles.pos[3 * picked[j] + i];
-
-    lines_vbo.upload(0, 6 * sizeof(float), (const void *)&lineptr[0]);
-    line_vao.use();
-    glLineWidth(3.3f);
+    dummy_vao.use();
     linepr.setUniform<glm::mat4>("MVP", MVP);
+    linepr.setUniform<glm::vec3>("pointA", pointA);
+    linepr.setUniform<glm::vec3>("pointB", pointB);
+    glLineWidth(5.3f);
     glDrawArrays(GL_LINES, 0, 2);
-    glLineWidth(1.0f);
-    pr.use();
-    spheres_vao.use();
   }
   pr.setUniform<GLfloat>("pickscale", 1.0f);
   pr.setUniform<GLint>("drawing_picked", 0);
