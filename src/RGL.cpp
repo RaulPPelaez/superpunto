@@ -1,5 +1,5 @@
 #include "RGL.h"
-#include<iostream>
+#include <iostream>
 
 namespace superpunto {
 const char *GetGLErrorStr(GLenum err) {
