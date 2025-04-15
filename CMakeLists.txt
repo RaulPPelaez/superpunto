@@ -53,6 +53,7 @@ set(SOURCES
   src/App.cpp
   src/MovieRecorder.cpp
   src/RParticleRenderer.cpp
+  src/LOD.cpp
   src/RWindow.cpp
   src/Camera.cpp
   src/RBox.cpp
@@ -61,6 +62,8 @@ set(SOURCES
   src/RRenderer.cpp
   src/math_helper.cpp
   src/RGL.cpp
+  src/RShaderProgram.cpp
+  src/icosphere.cpp
   src/RTextRenderer.cpp
   src/System.cpp)
 
