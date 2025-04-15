@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "System.h"
 #include <SDL2/SDL.h>
 
 namespace superpunto {
@@ -45,9 +46,19 @@ glm::mat4 FreeCamera::lookAt(glm::vec3 target) {
 
 #define KEYSTATE(KEY) keystate[SDL_SCANCODE_##KEY]
 
-void FreeCamera::update() {
-  const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+void FreeCamera::handle_event(SDL_Event &e) {
+  if (e.type == SDL_TEXTINPUT) {
+    const char *txt = e.text.text;
+    if (txt[0] == '+' && txt[1] == '\0') {
+      this->mult *= 1.05f;
+    } else if (txt[0] == '-' && txt[1] == '\0') {
+      this->mult *= 0.95f;
+    }
+  }
+}
 
+void FreeCamera::update() {
+    const Uint8 *keystate = SDL_GetKeyboardState(NULL);
   if (KEYSTATE(A))
     this->pos += this->right * cspeed * mult;
   if (KEYSTATE(D))
@@ -60,21 +71,17 @@ void FreeCamera::update() {
     this->pos += this->up * cspeed * mult;
   if (KEYSTATE(LCTRL))
     this->pos -= this->up * cspeed * mult;
-  if (KEYSTATE(KP_PLUS))
-    this->mult *= 1.05;
-  if (KEYSTATE(KP_MINUS))
-    this->mult *= 0.95;
-
   if (KEYSTATE(E))
     this->roll = 4 * cspeed;
   if (KEYSTATE(Q))
     this->roll = -4 * cspeed;
-
   if (KEYSTATE(P)) {
-    printf("up: %.3f, %.3f, %.3f  \n", up.x, up.y, up.z);
-    printf("right: %.3f, %.3f, %.3f  \n", right.x, right.y, right.z);
-    printf("pos: %.3f, %.3f, %.3f  \n", pos.x, pos.y, pos.z);
-    printf("front: %.3f, %.3f, %.3f  \n\n", front.x, front.y, front.z);
+    System::log<System::MESSAGE>("up: %.3f, %.3f, %.3f", up.x, up.y, up.z);
+    System::log<System::MESSAGE>("right: %.3f, %.3f, %.3f", right.x, right.y,
+                                 right.z);
+    System::log<System::MESSAGE>("pos: %.3f, %.3f, %.3f", pos.x, pos.y, pos.z);
+    System::log<System::MESSAGE>("front: %.3f, %.3f, %.3f", front.x, front.y,
+                                 front.z);
   }
   if (KEYSTATE(LALT))
     process_mouse();
