@@ -8,7 +8,7 @@ RRenderer::RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> in_w,
       textRenderer(sys, in_w), w(in_w) {
   picked[0] = picked[1] = -1;
   auto op = sys->getInputOptions();
-  textRenderer.setFont(op.fontName.c_str(),   int(op.target_FH / 10));
+  textRenderer.setFont(op.fontName.c_str(), int(op.target_FH / 10));
   auto resolution = w->getResolution();
   proj =
       glm::perspective(op.fov, resolution.x / (float)resolution.y, znear, zfar);
