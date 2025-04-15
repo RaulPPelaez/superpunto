@@ -302,12 +302,10 @@ GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
   glTextureParameteri(dtex, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glTextureParameteri(dtex, GL_TEXTURE_COMPARE_MODE, GL_NONE);
   glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
-
   // Rendering textures/buffers
   draw_buffer[0] = GL_COLOR_ATTACHMENT0;
   draw_buffer[1] = GL_COLOR_ATTACHMENT1;
   draw_buffer[2] = GL_COLOR_ATTACHMENT2;
-
   // Normal and linear depth encoded as alpha, for SSAO
   normdtex.init(GL_RGBA32F, GL_RGBA, GL_FLOAT, resolution); // Color texture
   glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
@@ -333,7 +331,6 @@ GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
     std::cerr << "[GBuffer] Framebuffer incomplete: 0x" << std::hex << status
               << std::endl;
   }
-
 }
 
 float *GBuffer::getDepthData() {
