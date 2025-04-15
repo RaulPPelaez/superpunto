@@ -110,17 +110,15 @@ void RParticleRenderer::init_shaders() {
   this->uniMVP = glGetUniformLocation(pr.id(), "MVP");
   this->unimodel = glGetUniformLocation(pr.id(), "model");
   this->uninormalmodel = glGetUniformLocation(pr.id(), "normal_model");
-  pr.setFlag("picking", 0);
-  pr.setFlag("drawing_picked", 0);
-  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
-  glUniform1f(glGetUniformLocation(pr.id(), "gscale"), this->gscale);
-  glUniform1f(glGetUniformLocation(pr.id(), "znear"), znear);
-  glUniform1f(glGetUniformLocation(pr.id(), "zfar"), zfar);
-  pr.unbind();
 
-
-  lightpr.setFlag("SSAOtex", ssaofbo.getTexUnit());
-
+void RParticleRenderer::init_uniforms() {
+  sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");
+  pr.setUniform<GLint>("picking", 0);
+  pr.setUniform<GLint>("drawing_picked", 0);
+  pr.setUniform<float>("pickscale", 1.0f);
+  pr.setUniform<float>("gscale", this->gscale);
+  pr.setUniform<float>("znear", znear);
+  pr.setUniform<float>("zfar", zfar);
   lightpr.setUniform<GLint>("ctex", gBuffer.getColorUnit());
   lightpr.setUniform<GLint>("ndtex", gBuffer.getNormalDepthUnit());
   lightpr.setUniform<GLint>("ptex", gBuffer.getPositionUnit());
@@ -128,17 +126,9 @@ void RParticleRenderer::init_shaders() {
   ssaopr.setUniform<GLint>("ndtex", gBuffer.getNormalDepthUnit());
   ssaopr.setUniform<GLint>("noisetex", gBuffer.getNoiseUnit());
   auto op = sys->getInputOptions();
-  ssaopr.use();
-  glUniform1f(glGetUniformLocation(ssaopr.id(), "FWIDTH"), (float)op.target_FW);
-  glUniform1f(glGetUniformLocation(ssaopr.id(), "FHEIGHT"),
-              (float)op.target_FH);
-  ssaopr.unbind();
-
-  linepr.use();
-  glUniform1f(glGetUniformLocation(linepr.id(), "gscale"), this->gscale);
-  glUniform3f(glGetUniformLocation(linepr.id(), "color"), 1, 1, 1);
-
-  linepr.unbind();
+  ssaopr.setUniform<float>("FWIDTH", (float)op.target_FW);
+  ssaopr.setUniform<float>("FHEIGHT", (float)op.target_FH);
+  linepr.setUniform<glm::vec3>("color", glm::vec3(1, 1, 1));
   CheckGLError("Error in init_uniforms");
 }
 
@@ -169,12 +159,11 @@ void RParticleRenderer::update() { RRenderer::update(); }
 int RParticleRenderer::pick(int x, int y, int pickindex) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   pr.use();
-  pr.setFlag("picking", 1);
+  pr.setUniform<GLint>("picking", 1);
   this->picking = true;
   pr.unbind();
   geometry_pass();
   pr.use();
-  pr.setFlag("picking", 0);
   pr.unbind();
   glm::vec4 pixel = gBuffer.getPixel(x, y);
 
@@ -186,6 +175,7 @@ int RParticleRenderer::pick(int x, int y, int pickindex) {
   if (picked[pickindex] >= 0)
     picked[pickindex] /= 2;
 
+  pr.setUniform<GLint>("picking", 0);
   this->picking = false;
   return picked[pickindex];
 }
@@ -194,10 +184,10 @@ void RParticleRenderer::render_picked() {
     return;
 
   glLineWidth(1.3f);
-  pr.setFlag("drawing_picked", 1);
-  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.3f);
   if (picked[0] >= 0)
     glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX, GL_UNSIGNED_INT,
+  pr.setUniform<GLint>("drawing_picked", 1);
+  pr.setUniform<GLfloat>("pickscale", 1.3f);
                                         NULL, 1, picked[0]);
   if (picked[1] >= 0)
     glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX, GL_UNSIGNED_INT,
@@ -209,19 +199,16 @@ void RParticleRenderer::render_picked() {
     fori(0, 3) forj(0, 2) lineptr[i + 3 * j] = particles.pos[3 * picked[j] + i];
 
     lines_vbo.upload(0, 6 * sizeof(float), (const void *)&lineptr[0]);
-    glUniformMatrix4fv(glGetUniformLocation(linepr.id(), "MVP"), 1, GL_FALSE,
-                       glm::value_ptr(MVP));
-    glUniformMatrix4fv(glGetUniformLocation(linepr.id(), "model"), 1, GL_FALSE,
-                       glm::value_ptr(model));
     line_vao.use();
     glLineWidth(3.3f);
+    linepr.setUniform<glm::mat4>("MVP", MVP);
     glDrawArrays(GL_LINES, 0, 2);
     glLineWidth(1.0f);
     pr.use();
     spheres_vao.use();
   }
-  glUniform1f(glGetUniformLocation(pr.id(), "pickscale"), 1.0f);
-  pr.setFlag("drawing_picked", 0);
+  pr.setUniform<GLfloat>("pickscale", 1.0f);
+  pr.setUniform<GLint>("drawing_picked", 0);
 }
 
 void RParticleRenderer::geometry_pass() {
@@ -231,8 +218,7 @@ void RParticleRenderer::geometry_pass() {
   glClearColor(cfg.bcolor[0], cfg.bcolor[1], cfg.bcolor[2], 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   pr.use();
-  glUniformMatrix4fv(uniMVP, 1, GL_FALSE, glm::value_ptr(MVP));
-  glUniformMatrix4fv(unimodel, 1, GL_FALSE, glm::value_ptr(model));
+  pr.setUniform<glm::mat4>("MVP", MVP);
   glm::mat4 normal_model = transpose(inverse(model));
   glUniformMatrix4fv(uninormalmodel, 1, GL_FALSE, glm::value_ptr(normal_model));
   spheres_vao.use();
@@ -255,9 +241,7 @@ void RParticleRenderer::light_pass() {
   fbo.use();
   glDisable(GL_DEPTH_TEST);
   lightpr.use();
-  glUniform3f(glGetUniformLocation(lightpr.id(), "viewPos"), cam->pos.x,
-              cam->pos.y, cam->pos.z);
-
+  lightpr.setUniform<glm::vec3>("viewPos", cam->pos);
   dummy_vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   dummy_vao.unbind();
@@ -284,10 +268,7 @@ void RParticleRenderer::SSAO_pass() {
       sample *= scale;
       points[i] = sample;
     }
-    /*Upload the sample points*/
-    glProgramUniform4fv(ssaopr.id(),
-                        glGetUniformLocation(ssaopr.id(), "points"), nsamples,
-                        glm::value_ptr(points[0]));
+    ssaopr.setUniform<glm::vec4>("points", points, nsamples);
     gen_points = false;
   }
 
