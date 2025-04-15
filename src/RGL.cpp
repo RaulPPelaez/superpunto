@@ -232,7 +232,7 @@ FBO::FBO(std::shared_ptr<System> sys, glm::int2 resolution)
   shs[0].charload(shaders_quad_vs, GL_VERTEX_SHADER);
   shs[1].charload(shaders_quad_fs, GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
-  pr.setFlag("ctex", ctex.getUnit());
+  pr.setUniform<GLint>("ctex", ctex.getUnit());
   CheckGLError("Error at texture creation");
 }
 
