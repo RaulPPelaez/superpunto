@@ -162,12 +162,12 @@ void VAO::set_attrib(uint attrib, const VBO &vbo) {
     return;
   DataLayout dl = vbo.get_layout();
   this->use();
-  glBindBuffer(GL_ARRAY_BUFFER, vbo.id());
+  vbo.use();
   glEnableVertexAttribArray(attrib);
-  glVertexAttribPointer(attrib, dl.size, dl.type, dl.normalized, dl.stride, reinterpret_cast<void*>(static_cast<uintptr_t>(dl.offset)));
+  glVertexAttribPointer(
+      attrib, dl.size, dl.type, dl.normalized, dl.stride,
+      reinterpret_cast<void *>(static_cast<uintptr_t>(dl.offset)));
   glVertexAttribDivisor(attrib, dl.divisor);
-  this->unbind();
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
   CheckGLError("Error in set_attrib VAO");
 }
 void VAO::use() { glBindVertexArray(vid); }
