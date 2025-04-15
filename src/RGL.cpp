@@ -249,15 +249,13 @@ void FBO::draw() {
   pr.use();
   vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  vao.unbind();
-  pr.unbind();
   CheckGLError("Error at fbo drawing");
 }
 
 void FBO::use() { glBindFramebuffer(tp, fid); }
 void FBO::unbind() { glBindFramebuffer(tp, 0); }
 
-glm::vec4 FBO::getPixel(int x, int y) {
+glm::u8vec4 FBO::getPixel(int x, int y) {
   // Origin equal to the one fiven by SDL mouse pos, not sure wich corner
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   Uint8 p[4];
