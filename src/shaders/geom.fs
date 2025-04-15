@@ -10,29 +10,31 @@ layout(location = 2) out vec3 positionBuffer;
 
 uniform bool picking;
 uniform bool drawing_picked;
-
 uniform float znear;
 uniform float zfar;
+
 void main() {
-  if(picking){
-    //id*2 to gain precision, "only" 255^3/2 differenciable objects
-    int r = (id*2)%256;
-    int g = (id*2)/256%256;
-    int b = (id*2)/(256*256);
-    outColor = vec4(r/256.0f,g/256.0f,b/256.0f, 1.0f);
-  }
-  else if(drawing_picked){
-    outColor = vec4(1.0f-Color, 1.0f);
-  }
-  else{
-    outColor = vec4(Color,1);
-    outColor.w = 1.0f;
-  }
+  outColor = vec4(Color,1);
   float z = 2.0f*gl_FragCoord.z-1.0f;
   positionBuffer = Pos;
-  /*Linearized depth encoded between 0 and 1*/
+  //Linearized depth encoded between 0 and 1
   float linearDepth = 2.0f*znear*zfar/(zfar+znear-z*(zfar-znear));
   normalDepth = vec4(normalize(Normal),
 		     (linearDepth-znear)/(zfar-znear));
+  if(picking){
+    const uint uid = uint(id);
+    const uvec4 bytes = uvec4(
+			      (uid >> 0)  & 0xFF,
+			      (uid >> 8)  & 0xFF,
+			      (uid >> 16) & 0xFF,
+			      (uid >> 24) & 0xFF
+    );
+    outColor = vec4(bytes) / 255.0;
+  }
+  else if(drawing_picked){
+    outColor = vec4(1.0f-Color, 1.0f);
+    //Excludes lines from SSAO effects
+    normalDepth = vec4(0,0,0,1);
+  }
 
 }
