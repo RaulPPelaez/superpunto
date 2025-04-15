@@ -108,34 +108,6 @@ private:
   static GLuint unit_counter;
 };
 
-class RShader {
-public:
-  RShader();
-  ~RShader();
-  bool charload(const GLchar *src, GLenum type);
-  bool load(const char *fileName, GLenum type);
-  GLuint id() const { return this->sid; }
-
-private:
-  GLenum tp;
-  GLuint sid;
-};
-
-class RShaderProgram {
-public:
-  RShaderProgram();
-  ~RShaderProgram();
-  bool init(RShader *shader_list, uint nshaders);
-  GLuint id() const { return this->pid; }
-  void setFlag(const GLchar *flag, int val);
-  operator GLuint() const { return this->pid; }
-  void use();
-  void unbind();
-
-private:
-  uint pid;
-};
-
 class FBO {
 public:
   FBO(std::shared_ptr<System> sys, glm::int2 resolution);
