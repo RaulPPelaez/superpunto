@@ -26,14 +26,14 @@ public:
   glm::int2 getSize() override;
 
 private:
-  bool init_buffers();
-  bool init_sphere();
-  bool init_instance_vbos();
-  bool init_vao();
+  void init_buffers();
+  void init_sphere();
+  void init_instance_vbos();
+  void init_vao();
 
-  bool init_shaders();
+  void init_shaders();
 
-  bool init_uniforms();
+  void init_uniforms();
 
   void geometry_pass();
   void light_pass();

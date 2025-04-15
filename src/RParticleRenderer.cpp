@@ -38,7 +38,7 @@ void RParticleRenderer::handle_resize(uint fw, uint fh) {
   ssaopr.unbind();
   CheckGLError("Error at resize");
 }
-bool RParticleRenderer::init_buffers() {
+void RParticleRenderer::init_buffers() {
   sys->log<System::DEBUG>("[ParticleRenderer]Init buffers...     ");
 
   DataLayout dl;
@@ -49,30 +49,27 @@ bool RParticleRenderer::init_buffers() {
   init_sphere();
   init_instance_vbos();
   init_vao();
-  return true;
 }
-bool RParticleRenderer::init_sphere() { // Config and upload sphere vertices
   DataLayout dl;
   dl.init(3, 3 * sizeof(float), GL_FLOAT, 0);
   sphere_vbos[0].init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
   sphere_vbos[1].init(GL_ELEMENT_ARRAY_BUFFER, GL_MAP_READ_BIT);
   fill_sphere_vbos(sphere_vbos[0], sphere_vbos[1]);
+void RParticleRenderer::init_sphere() {
   CheckGLError("Error in init_sphere");
-  return true;
 }
 
-bool RParticleRenderer::init_vao() { // Configure Vertex Array Objects
   spheres_vao.set_attrib(attribs["in_vertex"], sphere_vbos[0], 0);
   CheckGLError("Error in vertex");
   spheres_vao.set_attrib(attribs["pos"], instances_vbos[0], 1);
   spheres_vao.set_attrib(attribs["color"], instances_vbos[1], 2);
   spheres_vao.set_attrib(attribs["scale"], instances_vbos[2], 3);
   line_vao.set_attrib(0, lines_vbo, 0);
+void RParticleRenderer::init_vao() {
   CheckGLError("Error in init_vao");
-  return true;
 }
 
-bool RParticleRenderer::init_instance_vbos() {
+void RParticleRenderer::init_instance_vbos() {
   DataLayout dl;
   dl.init(3, 3 * sizeof(float), GL_FLOAT, 0, 1);
   instances_vbos[0].init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
@@ -83,10 +80,9 @@ bool RParticleRenderer::init_instance_vbos() {
   instances_vbos[1].initmem(maxN * sizeof(float) * 3, NULL); // colors
   instances_vbos[2].initmem(maxN * sizeof(float) * 1, NULL); // scales
   CheckGLError("Error in init_instance_vbos");
-  return true;
 }
 
-bool RParticleRenderer::init_shaders() {
+void RParticleRenderer::init_shaders() {
   sys->log<System::DEBUG>("[ParticleRenderer] Init shaders...     ");
   RShader shs[2];
   shs[0].charload(shaders_geom_vs, GL_VERTEX_SHADER);
@@ -109,7 +105,6 @@ bool RParticleRenderer::init_shaders() {
   ssaofbo.setFormat(GL_R32F, GL_RED, GL_FLOAT);
   CheckGLError("Error in init_shaders");
 }
-bool RParticleRenderer::init_uniforms() {
   sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");
   pr.use();
   this->uniMVP = glGetUniformLocation(pr.id(), "MVP");
@@ -141,7 +136,6 @@ bool RParticleRenderer::init_uniforms() {
 
   linepr.unbind();
   CheckGLError("Error in init_uniforms");
-  return true;
 }
 
 void RParticleRenderer::upload_instances(ParticleData pdata) {
@@ -163,9 +157,7 @@ void RParticleRenderer::upload_instances(ParticleData pdata) {
                            (const void *)pdata.scales);
   this->particles = pdata;
   float3 L = pdata.L;
-
   box.setSize(glm::vec3(L.x, L.y, L.z));
-  return true;
 }
 
 void RParticleRenderer::update() { RRenderer::update(); }
