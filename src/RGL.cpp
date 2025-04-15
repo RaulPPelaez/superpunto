@@ -224,13 +224,8 @@ FBO::FBO(std::shared_ptr<System> sys, glm::int2 resolution)
   glCreateFramebuffers(1, &fid);
   sys->log<System::DEBUG>("Init FBO with id %d", fid);
   CheckGLError("Error at FBO creation");
-  // Rendering textures/buffers
-  // draw_buffer = new GLenum[2];
   draw_buffer[0] = GL_COLOR_ATTACHMENT0;
-  // Color  texture
-
   ctex.init(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, glm::vec2(fwidth, fheight));
-
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
   glNamedFramebufferDrawBuffers(fid, 1, draw_buffer.data());
   RShader shs[2];
@@ -247,9 +242,7 @@ void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp) {
   CheckGLError("Error at setting format");
 }
 
-FBO::~FBO() {
-  glDeleteFramebuffers(1, &fid);
-}
+FBO::~FBO() { glDeleteFramebuffers(1, &fid); }
 
 void FBO::draw() {
   this->unbind();
