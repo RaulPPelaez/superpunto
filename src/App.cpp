@@ -2,6 +2,7 @@
 #include "RPNG.h"
 #include "RParticleRenderer.h"
 // #include"RArrowRenderer.h"
+#include <algorithm>
 #include <filesystem>
 namespace superpunto {
 
@@ -27,12 +28,32 @@ void App::initOpenGL() {
   cam = std::make_shared<Camera>();
   auto data = file->getCurrentFrameData();
 
-  float3 maxDist = file->getMaxDist();
   float maxScale = file->getMaxScale();
+  // Compute center of mass
+  glm::vec3 center = {0, 0, 0};
+  fori(0, data.N) {
+    center.x += data.pos[3 * i];
+    center.y += data.pos[3 * i + 1];
+    center.z += data.pos[3 * i + 2];
+  }
+  center.x /= data.N;
+  center.y /= data.N;
+  center.z /= data.N;
+  glm::vec3 maxDist = {0, 0, 0};
+  fori(0, data.N) {
+    maxDist.x = std::max(maxDist.x, std::abs(data.pos[3 * i] - center.x));
+    maxDist.y = std::max(maxDist.y, std::abs(data.pos[3 * i + 1] - center.y));
+    maxDist.z = std::max(maxDist.z, std::abs(data.pos[3 * i + 2] - center.z));
+  }
   sys->log<System::DEBUG>("[App] Max radius in frame 0: %g", maxScale);
+  glm::vec3 dir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+  float max_extent = std::max({maxDist.x, maxDist.y, maxDist.z});
   this->initial_camera_position =
-      glm::vec3(0, (maxDist.y + 1.0f) * 6.0f / maxScale, 0);
+      center +
+      dir * (max_extent / maxScale * 4.0f); // adjust multiplier if needed
+  this->initial_camera_center = center;
   cam->warp(initial_camera_position);
+  cam->lookAt(center);
   switch (op.render_type) {
   case RenderType::PARTICLES:
     gl = std::make_shared<RParticleRenderer>(sys, w, cam, 1.0f / maxScale);
