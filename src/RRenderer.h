@@ -64,7 +64,7 @@ namespace superpunto{
     void rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z);
     void reset_model();
 
-    virtual bool upload_instances(ParticleData pdata) = 0;
+    virtual void upload_instances(ParticleData pdata) = 0;
 
     virtual int pick(int x, int y, int pickindex);
 

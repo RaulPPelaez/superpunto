@@ -108,8 +108,6 @@ bool RParticleRenderer::init_shaders() {
 
   ssaofbo.setFormat(GL_R32F, GL_RED, GL_FLOAT);
   CheckGLError("Error in init_shaders");
-
-  return true;
 }
 bool RParticleRenderer::init_uniforms() {
   sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");
@@ -146,7 +144,7 @@ bool RParticleRenderer::init_uniforms() {
   return true;
 }
 
-bool RParticleRenderer::upload_instances(ParticleData pdata) {
+void RParticleRenderer::upload_instances(ParticleData pdata) {
   int N = pdata.N;
   if (N > maxN) {
     sys->log<System::DEBUG>(

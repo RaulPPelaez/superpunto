@@ -11,7 +11,7 @@ public:
                     std::shared_ptr<Camera> cam, float gscale);
   ~RParticleRenderer();
 
-  bool upload_instances(ParticleData pdata) override;
+  void upload_instances(ParticleData pdata) override;
 
   void update() override;
   void SSAOrad(float inc);
