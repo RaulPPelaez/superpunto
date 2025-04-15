@@ -27,18 +27,16 @@ void RRenderer::rotate_model(GLfloat angle, GLfloat x, GLfloat y, GLfloat z) {
   model = glm::rotate(model, angle, glm::vec3(x, y, z));
 }
 
-  void RRenderer::reset_model() {
-    model = glm::mat4();
-    view = cam->lookAt();
-    rotate_model(M_PI / 4.0f, 0.0f, 0.0f, 1.0f);
-    MVP = proj * view * model;
-  }
-
-void RRenderer::update() {
+void RRenderer::reset_model() {
+  model = glm::mat4();
   view = cam->lookAt();
   MVP = proj * view * model;
+}
 
+void RRenderer::update() {
   cam->update();
+  view = cam->lookAt();
+  MVP = proj * view * model;
 }
 
 void RRenderer::handle_event(SDL_Event &e) {}
@@ -70,7 +68,6 @@ Uint8 *RRenderer::getPixels() {
   size_t cdatasize = resolution.x * resolution.y * 4;
   if (cdata.size() != cdatasize)
     cdata.resize(cdatasize);
-
   glReadPixels(0, 0, resolution.x, resolution.y, GL_RGBA, GL_UNSIGNED_BYTE,
                (void *)cdata.data());
   return cdata.data();
@@ -80,8 +77,6 @@ glm::int2 RRenderer::getSize() {
   auto resolution = w->getResolution();
   return glm::int2(resolution.x, resolution.y);
 }
-
-
 
 RAxis::RAxis(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w)
     : sys(sys), w(w), Xtext(sys, w), Ytext(sys, w), Ztext(sys, w) {
