@@ -102,11 +102,6 @@ void RParticleRenderer::init_shaders() {
   ssaofbo.setFormat(GL_R32F, GL_RED, GL_FLOAT);
   CheckGLError("Error in init_shaders");
 }
-  sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");
-  pr.use();
-  this->uniMVP = glGetUniformLocation(pr.id(), "MVP");
-  this->unimodel = glGetUniformLocation(pr.id(), "model");
-  this->uninormalmodel = glGetUniformLocation(pr.id(), "normal_model");
 
 void RParticleRenderer::init_uniforms() {
   sys->log<System::DEBUG>("[ParticleRenderer] Init uniforms...    ");

@@ -51,7 +51,6 @@ private:
   VAO spheres_vao, dummy_vao, line_vao;
   std::map<std::string, uint> attribs;
   RShaderProgram pr, lightpr, ssaopr, linepr;
-  GLuint uniMVP, unimodel, uninormalmodel;
   bool picking = false;
 };
 
