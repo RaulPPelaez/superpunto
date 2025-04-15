@@ -11,7 +11,7 @@
 #define xSPUNTOSTR(s) SPUNTOSTR(s)
 #define SPUNTOSTR(s) #s
 #ifndef USEFONT
-#define USEFONT /usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf
+#define USEFONT UbuntuMono-Regular.ttf
 #endif
 
 namespace superpunto{
