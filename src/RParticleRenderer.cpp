@@ -118,11 +118,15 @@ void RParticleRenderer::init_shaders() {
   glUniform1f(glGetUniformLocation(pr.id(), "zfar"), zfar);
   pr.unbind();
 
-  gBuffer.bindSamplers(lightpr);
-  gBuffer.bindSamplers(ssaopr);
 
   lightpr.setFlag("SSAOtex", ssaofbo.getTexUnit());
 
+  lightpr.setUniform<GLint>("ctex", gBuffer.getColorUnit());
+  lightpr.setUniform<GLint>("ndtex", gBuffer.getNormalDepthUnit());
+  lightpr.setUniform<GLint>("ptex", gBuffer.getPositionUnit());
+  lightpr.setUniform<GLint>("SSAOtex", ssaofbo.getTexUnit());
+  ssaopr.setUniform<GLint>("ndtex", gBuffer.getNormalDepthUnit());
+  ssaopr.setUniform<GLint>("noisetex", gBuffer.getNoiseUnit());
   auto op = sys->getInputOptions();
   ssaopr.use();
   glUniform1f(glGetUniformLocation(ssaopr.id(), "FWIDTH"), (float)op.target_FW);

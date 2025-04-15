@@ -361,13 +361,6 @@ void GBuffer::handle_resize(int new_fwidth, int new_fheight) {
   CheckGLError("Error at GBuffer resize");
 }
 
-void GBuffer::bindSamplers(RShaderProgram &apr) {
-  apr.setFlag("ctex", ctex.getUnit());
-  apr.setFlag("dtex", dtex.getUnit());
-  apr.setFlag("ndtex", normdtex.getUnit());
-  apr.setFlag("ptex", ptex.getUnit());
-  apr.setFlag("noisetex", noisetex.getUnit());
-}
 
 RGLContext::RGLContext(std::shared_ptr<System> sys, SDL_Window *w) : sys(sys) {
   sys->log<System::DEBUG>("[RGLContext] Initialized");

@@ -151,8 +151,11 @@ public:
   ~GBuffer();
   float *getDepthData();
 
-  void bindSamplers(RShaderProgram &apr);
-
+  GLint getDepthUnit() { return dtex.getUnit(); }
+  GLint getPositionUnit() { return ptex.getUnit(); }
+  GLint getNormalDepthUnit() { return normdtex.getUnit(); }
+  GLint getNoiseUnit() { return noisetex.getUnit(); }
+  GLint getColorUnit() { return ctex.getUnit(); }
   void handle_resize(int new_fwidth, int new_fheight);
 
   RShaderProgram pr;
