@@ -118,7 +118,7 @@ public:
   GLuint id() { return this->fid; }
   void draw();
 
-  glm::vec4 getPixel(int x, int y);
+  glm::u8vec4 getPixel(int x, int y);
   Uint8 *getColorData();
 
   void setFormat(GLenum ifmt, GLenum efmt, GLenum dtp);
