@@ -6,11 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_APPIMAGE "Enable AppImage packaging" OFF)
+set(MAXLOGLEVEL 5 CACHE STRING "Set maximum log level")
 
-# Define application-specific compile definitions
-set(MAXLOGLEVEL 5)
 add_compile_definitions(MAXLOGLEVEL=${MAXLOGLEVEL})
-
 add_compile_definitions(USEFONT=UbuntuMono-Regular.ttf)
 include(CMakeRC)
 file(GLOB_RECURSE RESOURCES RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/resources/UbuntuMono-Regular.ttf")
@@ -53,6 +51,7 @@ set(SOURCES
   src/App.cpp
   src/MovieRecorder.cpp
   src/RParticleRenderer.cpp
+  src/LOD.cpp
   src/RWindow.cpp
   src/Camera.cpp
   src/RBox.cpp
@@ -61,6 +60,8 @@ set(SOURCES
   src/RRenderer.cpp
   src/math_helper.cpp
   src/RGL.cpp
+  src/RShaderProgram.cpp
+  src/icosphere.cpp
   src/RTextRenderer.cpp
   src/System.cpp)
 

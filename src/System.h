@@ -6,12 +6,12 @@
 #include<cstdio>
 #include<GL/glew.h>
 #include<SDL2/SDL.h>
-#define SUPERPUNTO_MAJOR 4
+#define SUPERPUNTO_MAJOR 5
 #define SUPERPUNTO_MINOR 0
 #define xSPUNTOSTR(s) SPUNTOSTR(s)
 #define SPUNTOSTR(s) #s
 #ifndef USEFONT
-#define USEFONT /usr/share/fonts/dejavu-sans-mono-fonts/DejaVuSansMono.ttf
+#define USEFONT UbuntuMono-Regular.ttf
 #endif
 
 namespace superpunto{

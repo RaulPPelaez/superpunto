@@ -1,5 +1,5 @@
 #include "RGL.h"
-#include<iostream>
+#include <iostream>
 
 namespace superpunto {
 const char *GetGLErrorStr(GLenum err) {
@@ -51,6 +51,31 @@ VBO::VBO() {
   CheckGLError("Error in init VBO");
 }
 VBO::~VBO() { glDeleteBuffers(1, &vid); }
+VBO::VBO(VBO &&other) noexcept {
+  vid = other.vid;
+  tp = other.tp;
+  flags = other.flags;
+  layout = other.layout;
+  initialized = other.initialized;
+  meminit = other.meminit;
+
+  other.vid = 0; // prevent deletion
+}
+
+VBO &VBO::operator=(VBO &&other) noexcept {
+  if (this != &other) {
+    glDeleteBuffers(1, &vid); // cleanup current
+    vid = other.vid;
+    tp = other.tp;
+    flags = other.flags;
+    layout = other.layout;
+    initialized = other.initialized;
+    meminit = other.meminit;
+    other.vid = 0;
+  }
+  return *this;
+}
+
 void VBO::reset() {
   if (vid)
     glDeleteBuffers(1, &vid);
@@ -92,7 +117,7 @@ bool VBO::initmem(GLsizeiptr size, const void *data) {
   return true;
 }
 bool VBO::upload(GLenum type, GLintptr offset, GLsizeiptr size,
-                 const void *data) {
+                 const void *data) const {
   glBufferSubData(type, offset, size, data);
   return true;
 }
@@ -103,11 +128,11 @@ bool VBO::upload(GLintptr offset, GLsizeiptr size, const void *data) {
   return true;
 }
 
-void *VBO::map(GLenum usage) { return glMapNamedBuffer(vid, usage); }
-void VBO::unmap() { glUnmapNamedBuffer(vid); }
+void *VBO::map(GLenum usage) const{ return glMapNamedBuffer(vid, usage); }
+void VBO::unmap() const { glUnmapNamedBuffer(vid); }
 
-void VBO::use() { glBindBuffer(tp, vid); }
-void VBO::unbind() { glBindBuffer(tp, 0); }
+void VBO::use() const{ glBindBuffer(tp, vid); }
+void VBO::unbind() const { glBindBuffer(tp, 0); }
 
 VAO::VAO() {
   glCreateVertexArrays(1, &vid);
@@ -115,17 +140,34 @@ VAO::VAO() {
 }
 VAO::~VAO() { glDeleteVertexArrays(1, &vid); }
 
-void VAO::set_attrib(uint attrib, const VBO &vbo, GLint binding) {
+// Move constructor
+VAO::VAO(VAO &&other) noexcept {
+  vid = other.vid;
+  other.vid = 0;
+}
+
+// Move assignment
+VAO &VAO::operator=(VAO &&other) noexcept {
+  if (this != &other) {
+    if (vid)
+      glDeleteVertexArrays(1, &vid);
+    vid = other.vid;
+    other.vid = 0;
+  }
+  return *this;
+}
+
+void VAO::set_attrib(uint attrib, const VBO &vbo) {
   if (vbo.type() == GL_ELEMENT_ARRAY_BUFFER)
     return;
   DataLayout dl = vbo.get_layout();
   this->use();
-  glBindBuffer(GL_ARRAY_BUFFER, vbo.id());
+  vbo.use();
   glEnableVertexAttribArray(attrib);
-  glVertexAttribPointer(attrib, dl.size, dl.type, dl.normalized, dl.stride, reinterpret_cast<void*>(static_cast<uintptr_t>(dl.offset)));
+  glVertexAttribPointer(
+      attrib, dl.size, dl.type, dl.normalized, dl.stride,
+      reinterpret_cast<void *>(static_cast<uintptr_t>(dl.offset)));
   glVertexAttribDivisor(attrib, dl.divisor);
-  this->unbind();
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
   CheckGLError("Error in set_attrib VAO");
 }
 void VAO::use() { glBindVertexArray(vid); }
@@ -150,25 +192,26 @@ void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size) {
   glTextureStorage2D(tid, 1, format[0], size.x, size.y); // Immutable size
   glTextureParameteri(tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTextureParameteri(tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  CheckGLError("Error at texture creation");
+  System::log<System::DEBUG>(
+      "[RTex] Texture %d created with size %d x %d", tid, size.x, size.y);
+  CheckGLError("Error at texture initialization");
 }
 
 RTex::~RTex() { glDeleteTextures(1, &tid); }
-void RTex::use() {
-  glBindTexture(tp, tid);
-}
-void RTex::unbind() {
-  glBindTexture(tp, 0);
-}
+void RTex::use() { glBindTexture(tp, tid); }
+void RTex::unbind() { glBindTexture(tp, 0); }
 
 bool RTex::upload(const void *data) {
   glTextureSubImage2D(tid, 0, 0, 0, size.x, size.y, format[1], format[2], data);
   return true;
 }
 void RTex::resize(GLuint wx, GLuint wy) {
-  glDeleteTextures(1, &tid);
+  if (wx == size.x && wy == size.y)
+    return;
+  System::log<System::DEBUG>(
+      "[RTex] Texture %d resized to %d x %d", tid, wx, wy);
   init(format[0], format[1], format[2], glm::int2(wx, wy));
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at texture resize");
 }
 
 GLuint RTex::unit_counter = -1;
@@ -181,47 +224,38 @@ FBO::FBO(std::shared_ptr<System> sys, glm::int2 resolution)
   glCreateFramebuffers(1, &fid);
   sys->log<System::DEBUG>("Init FBO with id %d", fid);
   CheckGLError("Error at FBO creation");
-  // Rendering textures/buffers
-  // draw_buffer = new GLenum[2];
   draw_buffer[0] = GL_COLOR_ATTACHMENT0;
-  // Color  texture
-
   ctex.init(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, glm::vec2(fwidth, fheight));
-
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
   glNamedFramebufferDrawBuffers(fid, 1, draw_buffer.data());
   RShader shs[2];
   shs[0].charload(shaders_quad_vs, GL_VERTEX_SHADER);
   shs[1].charload(shaders_quad_fs, GL_FRAGMENT_SHADER);
   pr.init(shs, 2);
-  pr.setFlag("ctex", ctex.getUnit());
+  pr.setUniform<GLint>("ctex", ctex.getUnit());
   CheckGLError("Error at texture creation");
 }
 
 void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp) {
   ctex.init(ifmt, efmt, dtp, {fwidth, fheight});
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at setting format");
 }
 
-FBO::~FBO() {
-  glDeleteFramebuffers(1, &fid);
-}
+FBO::~FBO() { glDeleteFramebuffers(1, &fid); }
 
 void FBO::draw() {
   this->unbind();
   pr.use();
   vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  vao.unbind();
-  pr.unbind();
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at fbo drawing");
 }
 
 void FBO::use() { glBindFramebuffer(tp, fid); }
 void FBO::unbind() { glBindFramebuffer(tp, 0); }
 
-glm::vec4 FBO::getPixel(int x, int y) {
+glm::u8vec4 FBO::getPixel(int x, int y) {
   // Origin equal to the one fiven by SDL mouse pos, not sure wich corner
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   Uint8 p[4];
@@ -230,28 +264,29 @@ glm::vec4 FBO::getPixel(int x, int y) {
 }
 
 Uint8 *FBO::getColorData() {
+  System::log<System::DEBUG>(
+      "[FBO] Getting color data from FBO %d", fid);
   int cdatasize = ctex.getSize().x * ctex.getSize().y * 4;
   if (cdata.size() != cdatasize)
     cdata.resize(cdatasize);
-
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   glReadPixels(0, 0, fwidth, fheight, GL_RGBA, GL_UNSIGNED_BYTE,
                (void *)cdata.data());
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
+  CheckGLError("Error at color data read");
   return cdata.data();
 }
 
 void FBO::handle_resize(int new_fwidth, int new_fheight) {
+  System::log<System::DEBUG>(
+      "[FBO] Resizing FBO %d to %d x %d", fid, new_fwidth, new_fheight);
   fwidth = new_fwidth;
   fheight = new_fheight;
   ctex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
+  CheckGLError("Error at FBO resize");
 }
 
-void FBO::bindColorTex(RShaderProgram &apr) {
-  apr.setFlag("ctex", ctex.getUnit());
-}
 
 GBuffer::~GBuffer() {}
 GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
@@ -262,12 +297,10 @@ GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
   glTextureParameteri(dtex, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
   glTextureParameteri(dtex, GL_TEXTURE_COMPARE_MODE, GL_NONE);
   glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
-
   // Rendering textures/buffers
   draw_buffer[0] = GL_COLOR_ATTACHMENT0;
   draw_buffer[1] = GL_COLOR_ATTACHMENT1;
   draw_buffer[2] = GL_COLOR_ATTACHMENT2;
-
   // Normal and linear depth encoded as alpha, for SSAO
   normdtex.init(GL_RGBA32F, GL_RGBA, GL_FLOAT, resolution); // Color texture
   glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
@@ -287,12 +320,12 @@ GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
   noisetex.upload((void *)noise);
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at gbuffer creation");
   GLenum status = glCheckNamedFramebufferStatus(fid, GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "[GBuffer] Framebuffer incomplete: 0x" << std::hex << status << std::endl;
+    std::cerr << "[GBuffer] Framebuffer incomplete: 0x" << std::hex << status
+              << std::endl;
   }
-
 }
 
 float *GBuffer::getDepthData() {
@@ -303,10 +336,13 @@ float *GBuffer::getDepthData() {
   glReadPixels(0, 0, fwidth, fheight, GL_DEPTH_COMPONENT, GL_FLOAT,
                (void *)ddata.data());
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  CheckGLError("Error at depth data read");
   return ddata.data();
 }
 
 void GBuffer::handle_resize(int new_fwidth, int new_fheight) {
+  System::log<System::DEBUG>(
+      "[GBuffer] Resizing GBuffer %d to %d x %d", fid, new_fwidth, new_fheight);
   FBO::handle_resize(new_fwidth, new_fheight);
   normdtex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
@@ -314,73 +350,9 @@ void GBuffer::handle_resize(int new_fwidth, int new_fheight) {
   glNamedFramebufferTexture(fid, draw_buffer[2], ptex, 0);
   dtex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
+  CheckGLError("Error at GBuffer resize");
 }
 
-void GBuffer::bindSamplers(RShaderProgram &apr) {
-  apr.setFlag("ctex", ctex.getUnit());
-  apr.setFlag("dtex", dtex.getUnit());
-  apr.setFlag("ndtex", normdtex.getUnit());
-  apr.setFlag("ptex", ptex.getUnit());
-  apr.setFlag("noisetex", noisetex.getUnit());
-}
-
-RShader::RShader() {}
-RShader::~RShader() { glDeleteShader(sid); }
-
-bool RShader::charload(const GLchar *src, GLenum type) {
-  if (!src)
-    return false;
-  tp = type;
-  sid = glCreateShader(type);
-  glShaderSource(sid, 1, &src, NULL);
-  glCompileShader(sid);
-  int iCompilationStatus;
-  glGetShaderiv(sid, GL_COMPILE_STATUS, &iCompilationStatus);
-  if (iCompilationStatus == GL_FALSE) {
-    std::cerr<<"Could not compile shader:"<<std::endl;
-    char buffer[512];
-    glGetShaderInfoLog(sid, 512, NULL, buffer);
-    std::cerr<<buffer<<std::endl;
-    return false;
-  }
-  int bufflen;
-  glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &bufflen);
-  if (bufflen > 1) {
-    std::vector<GLchar> log_string(bufflen + 1);
-    glGetShaderInfoLog(sid, bufflen, 0, log_string.data());
-  }
-
-  return true;
-}
-
-bool RShader::load(const char *fileName, GLenum type) {
-  return charload(read_file(fileName).c_str(), type);
-}
-
-RShaderProgram::RShaderProgram() { pid = glCreateProgram(); }
-RShaderProgram::~RShaderProgram() { glDeleteProgram(pid); }
-
-bool RShaderProgram::init(RShader *shader_list, uint nshaders) {
-  fori(0, nshaders) glAttachShader(pid, shader_list[i].id());
-  glLinkProgram(pid);
-  int isLinked = 0;
-  glGetProgramiv(pid, GL_LINK_STATUS, (int *)&isLinked);
-  if (isLinked == GL_FALSE) {
-    int bl = 0;
-    glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &bl);
-    std::vector<GLchar> infoLog(bl);
-    glGetProgramInfoLog(pid, bl, &bl, &infoLog[0]);
-    printf("%s\n", infoLog.data());
-  }
-  return true;
-}
-
-void RShaderProgram::use() { glUseProgram(pid); }
-void RShaderProgram::unbind() { glUseProgram(0); }
-
-void RShaderProgram::setFlag(const GLchar *flag, int val) {
-  glProgramUniform1i(pid, glGetUniformLocation(pid, flag), val);
-}
 
 RGLContext::RGLContext(std::shared_ptr<System> sys, SDL_Window *w) : sys(sys) {
   sys->log<System::DEBUG>("[RGLContext] Initialized");
@@ -408,7 +380,8 @@ void RGLContext::init(SDL_Window *w) {
   glewExperimental = GL_TRUE;
   GLenum err = glewInit();
   if (err != GLEW_OK) {
-    sys->log<System::ERROR>("Error initializing GLEW: %s", glewGetErrorString(err));
+    sys->log<System::ERROR>("Error initializing GLEW: %s",
+                            glewGetErrorString(err));
     return;
   }
   int major, minor;

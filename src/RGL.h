@@ -1,10 +1,10 @@
 #ifndef RGL_H
 #define RGL_H
-#include "RFile.h"
+#include "RShaderProgram.h"
 #include "System.h"
-#include "defines.h"
 #include "glm/gtx/compatibility.hpp"
 #include <array>
+#include <memory>
 #include <vector>
 
 namespace superpunto {
@@ -28,14 +28,20 @@ class VBO {
 public:
   VBO();
   ~VBO();
+  VBO(VBO &&other) noexcept;
+  VBO &operator=(VBO &&other) noexcept;
+  VBO(const VBO &) = delete;
+  VBO &operator=(const VBO &) = delete;
+
   void init(GLenum type, GLbitfield flags, const DataLayout &dl);
   void init(GLenum type, GLbitfield flags);
-  void *map(GLenum usage = GL_WRITE_ONLY);
-  void unmap();
+  void *map(GLenum usage = GL_WRITE_ONLY) const;
+  void unmap() const;
   bool initmem(GLenum type, GLbitfield flags, GLsizeiptr size,
                const void *data);
   bool initmem(GLsizeiptr size, const void *data);
-  bool upload(GLenum type, GLintptr offset, GLsizeiptr size, const void *data);
+  bool upload(GLenum type, GLintptr offset, GLsizeiptr size,
+              const void *data) const;
   bool upload(GLintptr offset, GLsizeiptr size, const void *data);
 
   uint id() const { return this->vid; }
@@ -43,8 +49,8 @@ public:
   DataLayout get_layout() const { return this->layout; }
   void reset();
 
-  void use();
-  void unbind();
+  void use() const;
+  void unbind() const;
 
 private:
   GLuint vid;
@@ -58,8 +64,17 @@ class VAO {
 public:
   VAO();
   ~VAO();
+
+  // Move support
+  VAO(VAO &&other) noexcept;
+  VAO &operator=(VAO &&other) noexcept;
+
+  // Optional: disable copy
+  VAO(const VAO &) = delete;
+  VAO &operator=(const VAO &) = delete;
+
   uint id() { return this->vid; }
-  void set_attrib(uint attrib, const VBO &vbo, GLint binding);
+  void set_attrib(uint attrib, const VBO &vbo);
   void use();
   void unbind();
 
@@ -94,34 +109,6 @@ private:
   static GLuint unit_counter;
 };
 
-class RShader {
-public:
-  RShader();
-  ~RShader();
-  bool charload(const GLchar *src, GLenum type);
-  bool load(const char *fileName, GLenum type);
-  GLuint id() const { return this->sid; }
-
-private:
-  GLenum tp;
-  GLuint sid;
-};
-
-class RShaderProgram {
-public:
-  RShaderProgram();
-  ~RShaderProgram();
-  bool init(RShader *shader_list, uint nshaders);
-  GLuint id() const { return this->pid; }
-  void setFlag(const GLchar *flag, int val);
-  operator GLuint() const { return this->pid; }
-  void use();
-  void unbind();
-
-private:
-  uint pid;
-};
-
 class FBO {
 public:
   FBO(std::shared_ptr<System> sys, glm::int2 resolution);
@@ -131,13 +118,12 @@ public:
   GLuint id() { return this->fid; }
   void draw();
 
-  glm::vec4 getPixel(int x, int y);
+  glm::u8vec4 getPixel(int x, int y);
   Uint8 *getColorData();
 
   void setFormat(GLenum ifmt, GLenum efmt, GLenum dtp);
 
   inline glm::int2 getSize() { return ctex.getSize(); }
-  void bindColorTex(RShaderProgram &apr);
   GLuint getTexUnit() { return ctex.getUnit(); }
 
   void handle_resize(int new_fwidth, int new_fheight);
@@ -165,8 +151,11 @@ public:
   ~GBuffer();
   float *getDepthData();
 
-  void bindSamplers(RShaderProgram &apr);
-
+  GLint getDepthUnit() { return dtex.getUnit(); }
+  GLint getPositionUnit() { return ptex.getUnit(); }
+  GLint getNormalDepthUnit() { return normdtex.getUnit(); }
+  GLint getNoiseUnit() { return noisetex.getUnit(); }
+  GLint getColorUnit() { return ctex.getUnit(); }
   void handle_resize(int new_fwidth, int new_fheight);
 
   RShaderProgram pr;

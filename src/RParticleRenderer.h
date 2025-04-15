@@ -2,19 +2,25 @@
 #define RPARTICLERENDERER_H
 #include "RRenderer.h"
 #include "shaders.h"
-
+#include "LOD.h"
 #include <map>
 namespace superpunto {
+struct Sphere {
+  Sphere(int lod);
+
+  VBO vertex_vbos[2];    // Vertex, index
+  int number_vertex;
+};
+
 class RParticleRenderer : public RRenderer {
 public:
   RParticleRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w,
                     std::shared_ptr<Camera> cam, float gscale);
   ~RParticleRenderer();
 
-  bool upload_instances(ParticleData pdata) override;
+  void upload_instances(ParticleData pdata) override;
 
   void update() override;
-  void SSAOrad(float inc);
 
   void draw() override;
 
@@ -26,14 +32,14 @@ public:
   glm::int2 getSize() override;
 
 private:
-  bool init_buffers();
-  bool init_sphere();
-  bool init_instance_vbos();
-  bool init_vao();
+  void init_buffers();
+  void init_sphere();
+  void init_instance_vbos();
+  void init_vao();
 
-  bool init_shaders();
+  void init_shaders();
 
-  bool init_uniforms();
+  void init_uniforms();
 
   void geometry_pass();
   void light_pass();
@@ -44,19 +50,16 @@ private:
   FBO fbo, ssaofbo;
   GBuffer gBuffer;
 
-  VBO sphere_vbos[2];    // Vertex, index
-  VBO instances_vbos[3]; // pos, color, radius
-
-  VBO lines_vbo; // lines start/end
+  std::vector<Sphere> sphere_geometries;
+  std::vector<VAO> sphere_vaos;
+  VBO vertex_vbos[2];
+  VBO instances_vbos[2]; // pos+scale, color
   int maxN;
-  VAO spheres_vao, dummy_vao, line_vao;
-  std::map<std::string, uint> attribs;
+  VAO dummy_vao;
   RShaderProgram pr, lightpr, ssaopr, linepr;
-  GLuint uniMVP, unimodel, uninormalmodel;
   bool picking = false;
+  LODProgram lod_program;
 };
-
-void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO);
 
 } // namespace superpunto
 #endif
