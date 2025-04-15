@@ -112,15 +112,14 @@ void App::handle_events() {
       IF_KEY(c, this->screenshot();)
       IF_KEY(l, record_movie = !record_movie; play = !play;
              if (!record_movie) movieStop();)
-
       IF_KEY(4, gl->rotate_model(0.1f, 1, 0, 0);)
       IF_KEY(5, gl->rotate_model(0.1f, 0, 1, 0);)
       IF_KEY(6, gl->rotate_model(0.1f, 0, 0, 1);)
       IF_KEY(1, gl->rotate_model(-0.1f, 1, 0, 0);)
       IF_KEY(2, gl->rotate_model(-0.1f, 0, 1, 0);)
       IF_KEY(3, gl->rotate_model(-0.1f, 0, 0, 1);)
-      IF_KEY(0, cam->reset_camera_view(); gl->reset_model();
-             cam->warp(initial_camera_position);)
+      IF_KEY(0, gl->reset_model(); cam->warp(initial_camera_position);
+             cam->lookAt(initial_camera_center);)
     }
     if (e.type == SDL_WINDOWEVENT) {
       switch (e.window.event) {
@@ -160,6 +159,7 @@ void App::handle_events() {
             sqrt(rij[0] * rij[0] + rij[1] * rij[1] + rij[2] * rij[2]));
       }
     }
+    cam->handle_event(e);
   }
 }
 
