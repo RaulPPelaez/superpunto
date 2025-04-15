@@ -31,11 +31,8 @@ void RParticleRenderer::handle_resize(uint fw, uint fh) {
   fbo.handle_resize(fw, fh);
   ssaofbo.handle_resize(fw, fh);
   gBuffer.handle_resize(fw, fh);
-
-  ssaopr.use();
-  glUniform1f(glGetUniformLocation(ssaopr.id(), "FWIDTH"), (float)fw);
-  glUniform1f(glGetUniformLocation(ssaopr.id(), "FHEIGHT"), (float)fh);
-  ssaopr.unbind();
+  ssaopr.setUniform<float>("FWIDTH", fw);
+  ssaopr.setUniform<float>("FHEIGHT", fh);
   CheckGLError("Error at resize");
 }
 void RParticleRenderer::init_buffers() {
