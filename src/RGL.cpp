@@ -324,64 +324,6 @@ void GBuffer::bindSamplers(RShaderProgram &apr) {
   apr.setFlag("noisetex", noisetex.getUnit());
 }
 
-RShader::RShader() {}
-RShader::~RShader() { glDeleteShader(sid); }
-
-bool RShader::charload(const GLchar *src, GLenum type) {
-  if (!src)
-    return false;
-  tp = type;
-  sid = glCreateShader(type);
-  glShaderSource(sid, 1, &src, NULL);
-  glCompileShader(sid);
-  int iCompilationStatus;
-  glGetShaderiv(sid, GL_COMPILE_STATUS, &iCompilationStatus);
-  if (iCompilationStatus == GL_FALSE) {
-    std::cerr<<"Could not compile shader:"<<std::endl;
-    char buffer[512];
-    glGetShaderInfoLog(sid, 512, NULL, buffer);
-    std::cerr<<buffer<<std::endl;
-    return false;
-  }
-  int bufflen;
-  glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &bufflen);
-  if (bufflen > 1) {
-    std::vector<GLchar> log_string(bufflen + 1);
-    glGetShaderInfoLog(sid, bufflen, 0, log_string.data());
-  }
-
-  return true;
-}
-
-bool RShader::load(const char *fileName, GLenum type) {
-  return charload(read_file(fileName).c_str(), type);
-}
-
-RShaderProgram::RShaderProgram() { pid = glCreateProgram(); }
-RShaderProgram::~RShaderProgram() { glDeleteProgram(pid); }
-
-bool RShaderProgram::init(RShader *shader_list, uint nshaders) {
-  fori(0, nshaders) glAttachShader(pid, shader_list[i].id());
-  glLinkProgram(pid);
-  int isLinked = 0;
-  glGetProgramiv(pid, GL_LINK_STATUS, (int *)&isLinked);
-  if (isLinked == GL_FALSE) {
-    int bl = 0;
-    glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &bl);
-    std::vector<GLchar> infoLog(bl);
-    glGetProgramInfoLog(pid, bl, &bl, &infoLog[0]);
-    printf("%s\n", infoLog.data());
-  }
-  return true;
-}
-
-void RShaderProgram::use() { glUseProgram(pid); }
-void RShaderProgram::unbind() { glUseProgram(0); }
-
-void RShaderProgram::setFlag(const GLchar *flag, int val) {
-  glProgramUniform1i(pid, glGetUniformLocation(pid, flag), val);
-}
-
 RGLContext::RGLContext(std::shared_ptr<System> sys, SDL_Window *w) : sys(sys) {
   sys->log<System::DEBUG>("[RGLContext] Initialized");
   init(w);

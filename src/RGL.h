@@ -1,10 +1,10 @@
 #ifndef RGL_H
 #define RGL_H
-#include "RFile.h"
+#include "RShaderProgram.h"
 #include "System.h"
-#include "defines.h"
 #include "glm/gtx/compatibility.hpp"
 #include <array>
+#include <memory>
 #include <vector>
 
 namespace superpunto {
