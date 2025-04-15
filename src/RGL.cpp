@@ -192,7 +192,9 @@ void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size) {
   glTextureStorage2D(tid, 1, format[0], size.x, size.y); // Immutable size
   glTextureParameteri(tid, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTextureParameteri(tid, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  CheckGLError("Error at texture creation");
+  System::log<System::DEBUG>(
+      "[RTex] Texture %d created with size %d x %d", tid, size.x, size.y);
+  CheckGLError("Error at texture initialization");
 }
 
 RTex::~RTex() { glDeleteTextures(1, &tid); }
@@ -210,7 +212,7 @@ bool RTex::upload(const void *data) {
 void RTex::resize(GLuint wx, GLuint wy) {
   glDeleteTextures(1, &tid);
   init(format[0], format[1], format[2], glm::int2(wx, wy));
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at texture resize");
 }
 
 GLuint RTex::unit_counter = -1;
@@ -243,7 +245,7 @@ FBO::FBO(std::shared_ptr<System> sys, glm::int2 resolution)
 void FBO::setFormat(GLenum ifmt, GLenum efmt, GLenum dtp) {
   ctex.init(ifmt, efmt, dtp, {fwidth, fheight});
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at setting format");
 }
 
 FBO::~FBO() {
@@ -257,7 +259,7 @@ void FBO::draw() {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   vao.unbind();
   pr.unbind();
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at fbo drawing");
 }
 
 void FBO::use() { glBindFramebuffer(tp, fid); }
@@ -272,23 +274,27 @@ glm::vec4 FBO::getPixel(int x, int y) {
 }
 
 Uint8 *FBO::getColorData() {
+  System::log<System::DEBUG>(
+      "[FBO] Getting color data from FBO %d", fid);
   int cdatasize = ctex.getSize().x * ctex.getSize().y * 4;
   if (cdata.size() != cdatasize)
     cdata.resize(cdatasize);
-
   glBindFramebuffer(GL_READ_FRAMEBUFFER, fid);
   glReadPixels(0, 0, fwidth, fheight, GL_RGBA, GL_UNSIGNED_BYTE,
                (void *)cdata.data());
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
+  CheckGLError("Error at color data read");
   return cdata.data();
 }
 
 void FBO::handle_resize(int new_fwidth, int new_fheight) {
+  System::log<System::DEBUG>(
+      "[FBO] Resizing FBO %d to %d x %d", fid, new_fwidth, new_fheight);
   fwidth = new_fwidth;
   fheight = new_fheight;
   ctex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, draw_buffer[0], ctex, 0);
+  CheckGLError("Error at FBO resize");
 }
 
 void FBO::bindColorTex(RShaderProgram &apr) {
@@ -329,10 +335,11 @@ GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)
   noisetex.upload((void *)noise);
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTextureParameteri(noisetex, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  CheckGLError("Error at texture creation");
+  CheckGLError("Error at gbuffer creation");
   GLenum status = glCheckNamedFramebufferStatus(fid, GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
-    std::cerr << "[GBuffer] Framebuffer incomplete: 0x" << std::hex << status << std::endl;
+    std::cerr << "[GBuffer] Framebuffer incomplete: 0x" << std::hex << status
+              << std::endl;
   }
 
 }
@@ -345,10 +352,13 @@ float *GBuffer::getDepthData() {
   glReadPixels(0, 0, fwidth, fheight, GL_DEPTH_COMPONENT, GL_FLOAT,
                (void *)ddata.data());
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  CheckGLError("Error at depth data read");
   return ddata.data();
 }
 
 void GBuffer::handle_resize(int new_fwidth, int new_fheight) {
+  System::log<System::DEBUG>(
+      "[GBuffer] Resizing GBuffer %d to %d x %d", fid, new_fwidth, new_fheight);
   FBO::handle_resize(new_fwidth, new_fheight);
   normdtex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, draw_buffer[1], normdtex, 0);
@@ -356,6 +366,7 @@ void GBuffer::handle_resize(int new_fwidth, int new_fheight) {
   glNamedFramebufferTexture(fid, draw_buffer[2], ptex, 0);
   dtex.resize(fwidth, fheight);
   glNamedFramebufferTexture(fid, GL_DEPTH_ATTACHMENT, dtex, 0);
+  CheckGLError("Error at GBuffer resize");
 }
 
 void GBuffer::bindSamplers(RShaderProgram &apr) {
@@ -392,7 +403,8 @@ void RGLContext::init(SDL_Window *w) {
   glewExperimental = GL_TRUE;
   GLenum err = glewInit();
   if (err != GLEW_OK) {
-    sys->log<System::ERROR>("Error initializing GLEW: %s", glewGetErrorString(err));
+    sys->log<System::ERROR>("Error initializing GLEW: %s",
+                            glewGetErrorString(err));
     return;
   }
   int major, minor;
