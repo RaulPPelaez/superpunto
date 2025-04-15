@@ -29,7 +29,20 @@ void FreeCamera::warp(glm::vec3 np) { this->pos = np; }
 glm::vec3 FreeCamera::get_view() { return pos + front; }
 
 glm::mat4 FreeCamera::lookAt() {
+  // Recompute right and up based on the default world up
   return this->view = glm::lookAt(pos, pos + front, up);
+}
+
+glm::mat4 FreeCamera::lookAt(glm::vec3 target) {
+  // Compute the new front direction toward the target
+  this->front = glm::normalize(target - this->pos);
+  // Use a fixed "world up" vector (Z-up) to compute a new basis
+  glm::vec3 worldUp = glm::vec3(0.0f, 0.0f, 1.0f);
+  // Recompute right and up so that front faces the target
+  this->right = glm::normalize(glm::cross(worldUp, this->front));
+  this->up = glm::normalize(glm::cross(this->front, this->right));
+  yaw = pitch = roll = 0;
+  return this->lookAt();
 }
 
 #define KEYSTATE(KEY) keystate[SDL_SCANCODE_##KEY]
