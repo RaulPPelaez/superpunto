@@ -265,6 +265,7 @@ void RParticleRenderer::draw() {
   geometry_pass();
   SSAO_pass();
   light_pass();
+  glDisable(GL_DEPTH_TEST);
   fbo.draw();
   RRenderer::display();
 }
