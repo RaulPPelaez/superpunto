@@ -211,12 +211,12 @@ void RParticleRenderer::geometry_pass() {
   pr.use();
   pr.setUniform<glm::mat4>("MVP", MVP);
   glm::mat4 normal_model = transpose(inverse(model));
-  glUniformMatrix4fv(uninormalmodel, 1, GL_FALSE, glm::value_ptr(normal_model));
   spheres_vao.use();
   sphere_vbos[1].use(); // indices
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL,
                           particles.N);
   if (!picking)
+  pr.setUniform<glm::mat4>("normal_model", normal_model);
   if (!picking) {
     render_picked();
   }
