@@ -66,7 +66,7 @@ bool RTextRenderer::setText(const char *text, int x, int y, float sf) {
 
   if (tex.id() == 0) {
     tex.init(GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, glm::int2(surf->w, surf->h));
-    pr->setFlag("ctex", tex.getUnit());
+    pr->setUniform<GLint>("ctex", tex.getUnit());
   } else
     tex.resize(surf->w, surf->h);
   this->size = glm::vec2(surf->w / (float)w->getResolution().x,
@@ -99,7 +99,7 @@ bool RTextRenderer::move(int x, int y) {
   return true;
 }
 void RTextRenderer::draw() {
-  pr->setFlag("ctex", tex.getUnit());
+  pr->setUniform<GLint>("ctex", tex.getUnit());
   pr->use();
   glUniform1f(glGetUniformLocation(pr->id(), "fontsize_multiplicator"),
               size_factor);
