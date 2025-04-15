@@ -28,6 +28,11 @@ class VBO {
 public:
   VBO();
   ~VBO();
+  VBO(VBO &&other) noexcept;
+  VBO &operator=(VBO &&other) noexcept;
+  VBO(const VBO &) = delete;
+  VBO &operator=(const VBO &) = delete;
+
   void init(GLenum type, GLbitfield flags, const DataLayout &dl);
   void init(GLenum type, GLbitfield flags);
   void *map(GLenum usage = GL_WRITE_ONLY);
@@ -58,6 +63,15 @@ class VAO {
 public:
   VAO();
   ~VAO();
+
+  // Move support
+  VAO(VAO &&other) noexcept;
+  VAO &operator=(VAO &&other) noexcept;
+
+  // Optional: disable copy
+  VAO(const VAO &) = delete;
+  VAO &operator=(const VAO &) = delete;
+
   uint id() { return this->vid; }
   void set_attrib(uint attrib, const VBO &vbo, GLint binding);
   void use();
