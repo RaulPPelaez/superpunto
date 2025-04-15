@@ -12,8 +12,8 @@ namespace superpunto{
     dl.init(3, 3*sizeof(float), GL_FLOAT, 0);
     vbo.init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
     fill_box_vbo(vbo);
-  
-    vao.set_attrib(0, vbo, 0);//Attrib nº0 is in vbo and binded to 0 in shader
+
+    vao.set_attrib(0, vbo);
 
     RShader shs[2];
     shs[0].charload(shaders_box_vs, GL_VERTEX_SHADER);
@@ -44,7 +44,7 @@ namespace superpunto{
     glLineWidth(3.0f);
     glDrawArrays(GL_LINES, 0, 72);
     glLineWidth(1.0f);
-    vao.unbind();  
+    vao.unbind();
     pr.unbind();
   };
 
@@ -65,7 +65,7 @@ namespace superpunto{
     };
 
     fori(0,72) v[i] -= 0.5f;
-    
+
     boxVBO.initmem(sizeof(v), v);
   }
 }
