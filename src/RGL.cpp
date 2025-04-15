@@ -140,7 +140,6 @@ VAO::VAO() {
 }
 VAO::~VAO() { glDeleteVertexArrays(1, &vid); }
 
-void VAO::set_attrib(uint attrib, const VBO &vbo, GLint binding) {
 // Move constructor
 VAO::VAO(VAO &&other) noexcept {
   vid = other.vid;
@@ -158,6 +157,7 @@ VAO &VAO::operator=(VAO &&other) noexcept {
   return *this;
 }
 
+void VAO::set_attrib(uint attrib, const VBO &vbo) {
   if (vbo.type() == GL_ELEMENT_ARRAY_BUFFER)
     return;
   DataLayout dl = vbo.get_layout();

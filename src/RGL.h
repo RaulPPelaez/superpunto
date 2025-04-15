@@ -73,7 +73,7 @@ public:
   VAO &operator=(const VAO &) = delete;
 
   uint id() { return this->vid; }
-  void set_attrib(uint attrib, const VBO &vbo, GLint binding);
+  void set_attrib(uint attrib, const VBO &vbo);
   void use();
   void unbind();
 
