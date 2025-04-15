@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BUILD_APPIMAGE "Enable AppImage packaging" OFF)
 
 # Define application-specific compile definitions
-set(MAXLOGLEVEL 5)
+option(MAXLOGLEVEL "Set maximum log level" 5)
 add_compile_definitions(MAXLOGLEVEL=${MAXLOGLEVEL})
 
 add_compile_definitions(USEFONT=UbuntuMono-Regular.ttf)
