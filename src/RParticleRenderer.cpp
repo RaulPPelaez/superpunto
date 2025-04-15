@@ -299,12 +299,6 @@ void RParticleRenderer::SSAO_pass() {
   ssaofbo.unbind();
 }
 
-void RParticleRenderer::SSAOrad(float inc) {
-  static float rad = 0.4f;
-  rad += inc;
-  glProgramUniform1f(ssaopr.id(), glGetUniformLocation(ssaopr.id(), "radius"),
-                     rad);
-}
 void RParticleRenderer::draw() {
   geometry_pass();
   SSAO_pass();

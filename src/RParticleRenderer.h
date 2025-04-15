@@ -14,7 +14,6 @@ public:
   void upload_instances(ParticleData pdata) override;
 
   void update() override;
-  void SSAOrad(float inc);
 
   void draw() override;
 
