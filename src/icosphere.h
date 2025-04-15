@@ -2,7 +2,6 @@
 #include <vector>
 #include <tuple>
 #include <glm/glm.hpp>
-#include <GL/glew.h>
 
 namespace superpunto {
 
