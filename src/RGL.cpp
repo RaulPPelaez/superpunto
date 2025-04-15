@@ -287,9 +287,6 @@ void FBO::handle_resize(int new_fwidth, int new_fheight) {
   CheckGLError("Error at FBO resize");
 }
 
-void FBO::bindColorTex(RShaderProgram &apr) {
-  apr.setFlag("ctex", ctex.getUnit());
-}
 
 GBuffer::~GBuffer() {}
 GBuffer::GBuffer(std::shared_ptr<System> sys, glm::int2 resolution)

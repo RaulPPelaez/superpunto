@@ -124,7 +124,6 @@ public:
   void setFormat(GLenum ifmt, GLenum efmt, GLenum dtp);
 
   inline glm::int2 getSize() { return ctex.getSize(); }
-  void bindColorTex(RShaderProgram &apr);
   GLuint getTexUnit() { return ctex.getUnit(); }
 
   void handle_resize(int new_fwidth, int new_fheight);
