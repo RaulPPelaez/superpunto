@@ -198,12 +198,8 @@ void RTex::init(GLenum ifmt, GLenum efmt, GLenum dtp, glm::int2 size) {
 }
 
 RTex::~RTex() { glDeleteTextures(1, &tid); }
-void RTex::use() {
-  glBindTexture(tp, tid);
-}
-void RTex::unbind() {
-  glBindTexture(tp, 0);
-}
+void RTex::use() { glBindTexture(tp, tid); }
+void RTex::unbind() { glBindTexture(tp, 0); }
 
 bool RTex::upload(const void *data) {
   glTextureSubImage2D(tid, 0, 0, 0, size.x, size.y, format[1], format[2], data);
