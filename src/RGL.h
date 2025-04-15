@@ -48,8 +48,8 @@ public:
   DataLayout get_layout() const { return this->layout; }
   void reset();
 
-  void use();
-  void unbind();
+  void use() const;
+  void unbind() const;
 
 private:
   GLuint vid;

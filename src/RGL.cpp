@@ -117,7 +117,7 @@ bool VBO::initmem(GLsizeiptr size, const void *data) {
   return true;
 }
 bool VBO::upload(GLenum type, GLintptr offset, GLsizeiptr size,
-                 const void *data) {
+                 const void *data) const {
   glBufferSubData(type, offset, size, data);
   return true;
 }
@@ -128,11 +128,11 @@ bool VBO::upload(GLintptr offset, GLsizeiptr size, const void *data) {
   return true;
 }
 
-void *VBO::map(GLenum usage) { return glMapNamedBuffer(vid, usage); }
-void VBO::unmap() { glUnmapNamedBuffer(vid); }
+void *VBO::map(GLenum usage) const{ return glMapNamedBuffer(vid, usage); }
+void VBO::unmap() const { glUnmapNamedBuffer(vid); }
 
-void VBO::use() { glBindBuffer(tp, vid); }
-void VBO::unbind() { glBindBuffer(tp, 0); }
+void VBO::use() const{ glBindBuffer(tp, vid); }
+void VBO::unbind() const { glBindBuffer(tp, 0); }
 
 VAO::VAO() {
   glCreateVertexArrays(1, &vid);
