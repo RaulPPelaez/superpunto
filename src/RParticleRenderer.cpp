@@ -1,21 +1,38 @@
 #include "RParticleRenderer.h"
+#include "icosphere.h"
+#include <tuple>
 namespace superpunto {
-// Vertex per sphere in fill_vbos
-#define NVERTEX 240
 
+auto create_sphere_vbos(int lod) {
+  VBO posVBO, idxVBO;
+  int number_vertex = 0;
+  DataLayout dl;
+  dl.init(3, 3 * sizeof(float), GL_FLOAT, 0);
+  posVBO.init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
+  idxVBO.init(GL_ELEMENT_ARRAY_BUFFER, GL_MAP_READ_BIT);
+  auto [vertices, indices] = generate_icosphere(lod);
+  posVBO.initmem(3 * vertices.size() * sizeof(GLfloat),
+                 reinterpret_cast<GLfloat *>(vertices.data()));
+  idxVBO.initmem(3 * indices.size() * sizeof(GLuint),
+                 reinterpret_cast<GLuint *>(indices.data()));
+  number_vertex = indices.size() * 3;
+  return std::make_tuple(number_vertex, std::move(posVBO), std::move(idxVBO));
+}
+
+Sphere::Sphere(int lod) {
+  std::tie(number_vertex, vertex_vbos[0], vertex_vbos[1]) =
+      create_sphere_vbos(lod);
+  System::log<System::DEBUG>("[Sphere] Sphere with %d vertices and %d indices",
+                             number_vertex, number_vertex * 3);
+}
+static constexpr int NLODS = 6;
 RParticleRenderer::RParticleRenderer(std::shared_ptr<System> sys,
                                      std::shared_ptr<RWindow> w,
                                      std::shared_ptr<Camera> cam, float gscale)
     : RRenderer(sys, w, cam, gscale), maxN(1), fbo(sys, w->getResolution()),
-      ssaofbo(sys, w->getResolution()), gBuffer(sys, w->getResolution()) {
-
+      ssaofbo(sys, w->getResolution()), gBuffer(sys, w->getResolution()),
+      lod_program(NLODS, 4, 800, gscale) {
   sys->log<System::DEBUG>("[ParticleRenderer]Initializing OpenGL...");
-
-  attribs["in_vertex"] = 0;
-  attribs["pos"] = 1;
-  attribs["color"] = 2;
-  attribs["scale"] = 3;
-
   init_buffers();
   init_shaders();
   init_uniforms();
@@ -36,45 +53,35 @@ void RParticleRenderer::handle_resize(uint fw, uint fh) {
 }
 void RParticleRenderer::init_buffers() {
   sys->log<System::DEBUG>("[ParticleRenderer]Init buffers...     ");
-
-  DataLayout dl;
-  dl.init(3, 3 * sizeof(float), GL_FLOAT, 0);
-  lines_vbo.init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
-  lines_vbo.initmem(2 * sizeof(float) * 3, NULL);
-
   init_sphere();
   init_instance_vbos();
   init_vao();
 }
-  DataLayout dl;
-  dl.init(3, 3 * sizeof(float), GL_FLOAT, 0);
-  sphere_vbos[0].init(GL_ARRAY_BUFFER, GL_MAP_READ_BIT, dl);
-  sphere_vbos[1].init(GL_ELEMENT_ARRAY_BUFFER, GL_MAP_READ_BIT);
-  fill_sphere_vbos(sphere_vbos[0], sphere_vbos[1]);
 void RParticleRenderer::init_sphere() {
+  for (int lod = 0; lod < NLODS; ++lod) {
+    sphere_geometries.emplace_back(Sphere(lod));
+  }
   CheckGLError("Error in init_sphere");
 }
 
-  spheres_vao.set_attrib(attribs["in_vertex"], sphere_vbos[0], 0);
-  CheckGLError("Error in vertex");
-  spheres_vao.set_attrib(attribs["pos"], instances_vbos[0], 1);
-  spheres_vao.set_attrib(attribs["color"], instances_vbos[1], 2);
-  spheres_vao.set_attrib(attribs["scale"], instances_vbos[2], 3);
-  line_vao.set_attrib(0, lines_vbo, 0);
 void RParticleRenderer::init_vao() {
+  System::log<System::DEBUG>("[ParticleRenderer]Init VAOs...     ");
+  sphere_vaos.resize(sphere_geometries.size());
+  for (int i = 0; i < sphere_geometries.size(); ++i) {
+    sphere_vaos[i].set_attrib(0, sphere_geometries[i].vertex_vbos[0]);
+  }
   CheckGLError("Error in init_vao");
 }
 
 void RParticleRenderer::init_instance_vbos() {
+  System::log<System::DEBUG>("[ParticleRenderer]Init instance vbos...     ");
   DataLayout dl;
-  dl.init(3, 3 * sizeof(float), GL_FLOAT, 0, 1);
-  instances_vbos[0].init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
+  dl.init(4, 4 * sizeof(float), GL_FLOAT, 0, 1);
+  instances_vbos[0].init(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
   instances_vbos[1].init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
   dl.init(1, sizeof(float), GL_FLOAT, 0, 1);
-  instances_vbos[2].init(GL_ARRAY_BUFFER, GL_DYNAMIC_STORAGE_BIT, dl);
-  instances_vbos[0].initmem(maxN * sizeof(float) * 3, NULL); // pos
-  instances_vbos[1].initmem(maxN * sizeof(float) * 3, NULL); // colors
-  instances_vbos[2].initmem(maxN * sizeof(float) * 1, NULL); // scales
+  instances_vbos[0].initmem(maxN * sizeof(float) * 4, NULL); // pos
+  instances_vbos[1].initmem(maxN * sizeof(float) * 4, NULL); // colors
   CheckGLError("Error in init_instance_vbos");
 }
 
@@ -131,15 +138,27 @@ void RParticleRenderer::upload_instances(ParticleData pdata) {
     maxN = N;
     instances_vbos[0].reset();
     instances_vbos[1].reset();
-    instances_vbos[2].reset();
     init_instance_vbos();
     init_vao();
   }
-  instances_vbos[0].upload(0, 3 * N * sizeof(float), (const void *)pdata.pos);
-  instances_vbos[1].upload(0, 3 * N * sizeof(float),
-                           (const void *)pdata.colors);
-  instances_vbos[2].upload(0, 1 * N * sizeof(float),
-                           (const void *)pdata.scales);
+  static std::vector<glm::vec4> buffer(N);
+  buffer.resize(N);
+  // Copy positions+scale
+  fori(0, N) {
+    buffer[i].x = pdata.pos[3 * i];
+    buffer[i].y = pdata.pos[3 * i + 1];
+    buffer[i].z = pdata.pos[3 * i + 2];
+    buffer[i].w = pdata.scales[i];
+  }
+  instances_vbos[0].upload(0, 4 * N * sizeof(float), buffer.data());
+  // Copy colors
+  fori(0, N) {
+    buffer[i].x = pdata.colors[3 * i];
+    buffer[i].y = pdata.colors[3 * i + 1];
+    buffer[i].z = pdata.colors[3 * i + 2];
+    buffer[i].w = 1.0f;
+  }
+  instances_vbos[1].upload(0, 4 * N * sizeof(float), buffer.data());
   this->particles = pdata;
   float3 L = pdata.L;
   box.setSize(glm::vec3(L.x, L.y, L.z));
@@ -148,7 +167,6 @@ void RParticleRenderer::upload_instances(ParticleData pdata) {
 void RParticleRenderer::update() { RRenderer::update(); }
 
 int RParticleRenderer::pick(int x, int y, int pickindex) {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   pr.use();
   pr.setUniform<GLint>("picking", 1);
   this->picking = true;
@@ -167,16 +185,36 @@ int RParticleRenderer::pick(int x, int y, int pickindex) {
 void RParticleRenderer::render_picked() {
   if (picked[0] < 0 && picked[1] < 0)
     return;
-
-  glLineWidth(1.3f);
-  if (picked[0] >= 0)
-    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX, GL_UNSIGNED_INT,
+  pr.use();
+  glLineWidth(5.3f);
   pr.setUniform<GLint>("drawing_picked", 1);
   pr.setUniform<GLfloat>("pickscale", 1.3f);
+  int pickedlod = 1;
+  auto nvertex = sphere_geometries[pickedlod].number_vertex;
+  if (picked[0] >= 0) {
+    pr.setUniform<GLint>("pick_id", picked[0]);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1,
+                     instances_vbos[0].id()); // vec4 pos
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2,
+                     instances_vbos[1].id()); // vec4 color
+    sphere_vaos[pickedlod].use();
+    sphere_geometries[pickedlod].vertex_vbos[0].use(); // vertices
+    sphere_geometries[pickedlod].vertex_vbos[1].use(); // indices
+    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, nvertex, GL_UNSIGNED_INT,
                                         NULL, 1, picked[0]);
-  if (picked[1] >= 0)
-    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, NVERTEX, GL_UNSIGNED_INT,
+  }
+  if (picked[1] >= 0) {
+    pr.setUniform<GLint>("pick_id", picked[1]);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1,
+                     instances_vbos[0].id()); // vec4 pos
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2,
+                     instances_vbos[1].id()); // vec4 color
+    sphere_vaos[pickedlod].use();
+    sphere_geometries[pickedlod].vertex_vbos[0].use(); // vertices
+    sphere_geometries[pickedlod].vertex_vbos[1].use(); // indices
+    glDrawElementsInstancedBaseInstance(GL_LINE_STRIP, nvertex, GL_UNSIGNED_INT,
                                         NULL, 1, picked[1]);
+  }
   if (picked[1] >= 0 && picked[0] >= 0) {
     glm::vec3 pointA, pointB;
     for (int i = 0; i < 3; ++i) {
@@ -197,6 +235,9 @@ void RParticleRenderer::render_picked() {
 }
 
 void RParticleRenderer::geometry_pass() {
+  auto resolution = w->getResolution();
+  lod_program.sort(particles.N, cam->pos, cam->lookAt(), model, proj,
+                   resolution, instances_vbos[0]);
   auto cfg = sys->getInputOptions();
   gBuffer.use();
   glEnable(GL_DEPTH_TEST);
@@ -205,12 +246,33 @@ void RParticleRenderer::geometry_pass() {
   pr.use();
   pr.setUniform<glm::mat4>("MVP", MVP);
   glm::mat4 normal_model = transpose(inverse(model));
-  spheres_vao.use();
-  sphere_vbos[1].use(); // indices
-  glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL,
-                          particles.N);
-  if (!picking)
   pr.setUniform<glm::mat4>("normal_model", normal_model);
+  const auto &lod_counts = lod_program.get_counts();
+  const GLuint lod_stride = lod_program.get_lod_stride();
+  const VBO &index_buffer = lod_program.get_index_buffer();
+  // vec4 pos
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, instances_vbos[0].id());
+  // vec4 color
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, instances_vbos[1].id());
+  // uint indices
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, index_buffer.id());
+  System::log<System::DEBUG6>("[RParticleRenderer] Camera position: %f %f %f",
+                              cam->pos.x, cam->pos.y, cam->pos.z);
+  for (int lod = 0; lod < sphere_geometries.size(); ++lod) {
+    GLuint count = lod_counts[lod];
+    if (count == 0)
+      continue;
+    GLuint base = lod * lod_stride;
+    sphere_vaos[lod].use();
+    sphere_geometries[lod].vertex_vbos[0].use(); // vertices
+    sphere_geometries[lod].vertex_vbos[1].use(); // indices
+    pr.setUniform<GLint>("lod_base", base);
+    System::log<System::DEBUG6>(
+        "[RParticleRenderer] Drawing %d instances of LOD %d", count, lod);
+    glDrawElementsInstancedBaseInstance(GL_TRIANGLES,
+                                        sphere_geometries[lod].number_vertex,
+                                        GL_UNSIGNED_INT, NULL, count, base);
+  }
   if (!picking) {
     render_picked();
   }
@@ -267,42 +329,4 @@ void RParticleRenderer::draw() {
 Uint8 *RParticleRenderer::getPixels() { return fbo.getColorData(); }
 
 glm::int2 RParticleRenderer::getSize() { return fbo.getSize(); }
-
-void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO) {
-
-  float v[] = {
-      0.0000,  -1.0000, 0.0000,  0.4253,  -0.8507, 0.3090,  -0.1625, -0.8507,
-      0.5000,  0.7236,  -0.4472, 0.5257,  0.8506,  -0.5257, 0.0000,  -0.5257,
-      -0.8507, 0.0000,  -0.1625, -0.8507, -0.5000, 0.4253,  -0.8507, -0.3090,
-      0.9511,  0.0000,  0.3090,  -0.2764, -0.4472, 0.8506,  0.2629,  -0.5257,
-      0.8090,  0.0000,  0.0000,  1.0000,  -0.8944, -0.4472, 0.0000,  -0.6882,
-      -0.5257, 0.5000,  -0.9511, 0.0000,  0.3090,  -0.2764, -0.4472, -0.8506,
-      -0.6882, -0.5257, -0.5000, -0.5878, 0.0000,  -0.8090, 0.7236,  -0.4472,
-      -0.5257, 0.2629,  -0.5257, -0.8090, 0.5878,  0.0000,  -0.8090, 0.5878,
-      0.0000,  0.8090,  -0.5878, 0.0000,  0.8090,  -0.9511, 0.0000,  -0.3090,
-      0.0000,  0.0000,  -1.0000, 0.9511,  0.0000,  -0.3090, 0.2764,  0.4472,
-      0.8506,  0.6882,  0.5257,  0.5000,  0.1625,  0.8507,  0.5000,  -0.7236,
-      0.4472,  0.5257,  -0.2629, 0.5257,  0.8090,  -0.4253, 0.8507,  0.3090,
-      -0.7236, 0.4472,  -0.5257, -0.8506, 0.5257,  0.0000,  -0.4253, 0.8507,
-      -0.3090, 0.2764,  0.4472,  -0.8506, -0.2629, 0.5257,  -0.8090, 0.1625,
-      0.8507,  -0.5000, 0.8944,  0.4472,  0.0000,  0.6882,  0.5257,  -0.5000,
-      0.5257,  0.8507,  0.0000,  0.0000,  1.0000,  0.0000};
-  GLuint index[] = {
-      0,  1,  2,  3,  1,  4,  0,  2,  5,  0,  5,  6,  0,  6,  7,  3,  4,  8,
-      9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 3,  8,  21, 9,  11, 22,
-      12, 14, 23, 15, 17, 24, 18, 20, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
-      35, 36, 37, 38, 39, 40, 2,  10, 9,  2,  1,  10, 1,  3,  10, 4,  7,  18,
-      4,  1,  7,  1,  0,  7,  5,  13, 12, 5,  2,  13, 2,  9,  13, 6,  16, 15,
-      6,  5,  16, 5,  12, 16, 7,  19, 18, 7,  6,  19, 6,  15, 19, 8,  25, 38,
-      8,  4,  25, 4,  18, 25, 11, 21, 26, 11, 10, 21, 10, 3,  21, 14, 22, 29,
-      14, 13, 22, 13, 9,  22, 17, 23, 32, 17, 16, 23, 16, 12, 23, 20, 24, 35,
-      20, 19, 24, 19, 15, 24, 21, 27, 26, 21, 8,  27, 8,  38, 27, 22, 30, 29,
-      22, 11, 30, 11, 26, 30, 23, 33, 32, 23, 14, 33, 14, 29, 33, 24, 36, 35,
-      24, 17, 36, 17, 32, 36, 25, 39, 38, 25, 20, 39, 20, 35, 39, 28, 40, 41,
-      28, 27, 40, 27, 38, 40, 31, 28, 41, 31, 30, 28, 30, 26, 28, 34, 31, 41,
-      34, 33, 31, 33, 29, 31, 37, 34, 41, 37, 36, 34, 36, 32, 34, 40, 37, 41,
-      40, 39, 37, 39, 35, 37};
-  posVBO.initmem(sizeof(v), v);
-  indicesVBO.initmem(sizeof(index), index);
-}
 } // namespace superpunto

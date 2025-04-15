@@ -2,9 +2,16 @@
 #define RPARTICLERENDERER_H
 #include "RRenderer.h"
 #include "shaders.h"
-
+#include "LOD.h"
 #include <map>
 namespace superpunto {
+struct Sphere {
+  Sphere(int lod);
+
+  VBO vertex_vbos[2];    // Vertex, index
+  int number_vertex;
+};
+
 class RParticleRenderer : public RRenderer {
 public:
   RParticleRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> w,
@@ -43,18 +50,16 @@ private:
   FBO fbo, ssaofbo;
   GBuffer gBuffer;
 
-  VBO sphere_vbos[2];    // Vertex, index
-  VBO instances_vbos[3]; // pos, color, radius
-
-  VBO lines_vbo; // lines start/end
+  std::vector<Sphere> sphere_geometries;
+  std::vector<VAO> sphere_vaos;
+  VBO vertex_vbos[2];
+  VBO instances_vbos[2]; // pos+scale, color
   int maxN;
-  VAO spheres_vao, dummy_vao, line_vao;
-  std::map<std::string, uint> attribs;
+  VAO dummy_vao;
   RShaderProgram pr, lightpr, ssaopr, linepr;
   bool picking = false;
+  LODProgram lod_program;
 };
-
-void fill_sphere_vbos(VBO &posVBO, VBO &indicesVBO);
 
 } // namespace superpunto
 #endif
