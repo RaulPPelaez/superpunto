@@ -161,10 +161,8 @@ int RParticleRenderer::pick(int x, int y, int pickindex) {
   pr.use();
   pr.setUniform<GLint>("picking", 1);
   this->picking = true;
-  pr.unbind();
   geometry_pass();
   pr.use();
-  pr.unbind();
   glm::vec4 pixel = gBuffer.getPixel(x, y);
 
   this->picked[pickindex] =
@@ -209,6 +207,7 @@ void RParticleRenderer::render_picked() {
   }
   pr.setUniform<GLfloat>("pickscale", 1.0f);
   pr.setUniform<GLint>("drawing_picked", 0);
+  pr.unbind();
 }
 
 void RParticleRenderer::geometry_pass() {
@@ -230,11 +229,6 @@ void RParticleRenderer::geometry_pass() {
 
   if (!cfg.nobox)
     box.draw();
-
-  sphere_vbos[1].unbind(); // indices
-  spheres_vao.unbind();
-  pr.unbind();
-  gBuffer.unbind();
 }
 
 void RParticleRenderer::light_pass() {
@@ -244,10 +238,6 @@ void RParticleRenderer::light_pass() {
   lightpr.setUniform<glm::vec3>("viewPos", cam->pos);
   dummy_vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  dummy_vao.unbind();
-
-  lightpr.unbind();
-  fbo.unbind();
 }
 
 GLfloat lerp(GLfloat a, GLfloat b, GLfloat f) { return a + f * (b - a); }
@@ -278,10 +268,6 @@ void RParticleRenderer::SSAO_pass() {
 
   dummy_vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  dummy_vao.unbind();
-
-  ssaopr.unbind();
-  ssaofbo.unbind();
 }
 
 void RParticleRenderer::draw() {
