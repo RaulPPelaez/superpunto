@@ -1,5 +1,4 @@
 #include "RParticleRenderer.h"
-
 namespace superpunto {
 // Vertex per sphere in fill_vbos
 #define NVERTEX 240
@@ -169,6 +168,7 @@ int RParticleRenderer::pick(int x, int y, int pickindex) {
   this->picking = false;
   return picked[pickindex];
 }
+
 void RParticleRenderer::render_picked() {
   if (picked[0] < 0 && picked[1] < 0)
     return;
@@ -217,10 +217,12 @@ void RParticleRenderer::geometry_pass() {
   glDrawElementsInstanced(GL_TRIANGLES, NVERTEX, GL_UNSIGNED_INT, NULL,
                           particles.N);
   if (!picking)
+  if (!picking) {
     render_picked();
-
-  if (!cfg.nobox)
+  }
+  if (!cfg.nobox){
     box.draw();
+  }
 }
 
 void RParticleRenderer::light_pass() {
@@ -237,15 +239,14 @@ void RParticleRenderer::SSAO_pass() {
   static const int nsamples = 129;
   static glm::vec4 points[nsamples];
   static bool gen_points = true;
-
   if (gen_points) {
     fori(0, nsamples) {
-      /*We will sample depths in a semisphere*/
+      // We will sample depths in a semisphere
       auto randEsp = []() { return rand() / (float)RAND_MAX; };
       glm::vec4 sample = glm::normalize(glm::vec4(
           randEsp() * 2.0 - 1.0, randEsp() * 2.0 - 1.0, randEsp(), 0));
       float scale = float(i) / nsamples;
-      /*We want the samples to be preferently close*/
+      // We want the samples to be preferently close
       scale = lerp(0.1f, 1.0f, scale * scale);
       sample *= scale;
       points[i] = sample;
@@ -253,11 +254,9 @@ void RParticleRenderer::SSAO_pass() {
     ssaopr.setUniform<glm::vec4>("points", points, nsamples);
     gen_points = false;
   }
-
   ssaofbo.use();
   glDisable(GL_DEPTH_TEST);
   ssaopr.use();
-
   dummy_vao.use();
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -266,7 +265,6 @@ void RParticleRenderer::draw() {
   geometry_pass();
   SSAO_pass();
   light_pass();
-
   fbo.draw();
   RRenderer::display();
 }
