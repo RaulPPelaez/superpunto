@@ -29,7 +29,7 @@ namespace superpunto{
     bool binary_read_mode = false;
     bool noaxis = false, nobox = false;
     int target_FW = 800, target_FH = 600; //input Resolution
-    uint palette_id = 923302100;
+    std::string palette = "superpunto";
     float fov = 0.7854; //45º
   };
 
