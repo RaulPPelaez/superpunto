@@ -161,15 +161,13 @@ If some of the columns are missing, this is the behavior according to the number
 The column color can be treated in two ways:
 
 **Default** or using --palette X
-
-	The colors are selected using C++ rand(), setting the initial seed to a constant given by --palette (or 923302100 by default), this constant defines a color palette with colors randomly distributed between 0 (black) and 255^3(white). The generated color palette contains 1000 colors.
-
-	The exceptions are id=0 -> red, id=1 ->green, id=2 -> blue
-
+	
+The default palette is "superpunto", which understands colors as an integer number between 0 an 1000. The palette is random inside that range.  
+Additionally, any palette from [matplotlib](https://matplotlib.org/stable/tutorials/colors/colormaps.html) can be passed to `--palette`, in which case the color column will be treated as a float between 0 and 1.
 
 **RGB** by using --RGB
 
-	The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
+The colors will be treated as an BGR hexadecimal color, i.e. being 255 = 0xFF = red and 16711680 = 0xFF0000 = blue.
 
 
 ## Selecting spheres
