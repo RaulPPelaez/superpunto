@@ -25,8 +25,15 @@ uniform float gscale;           // Global scale of the positions
 
 // Compute pixel diameter of a sphere projected onto the screen
 float compute_pixel_diameter(vec3 world_pos, float radius) {
-    const vec4 view_center = modelview * vec4(world_pos, 1.0);
-    const vec4 view_edge   = modelview * vec4(world_pos + vec3(radius, 0.0, 0.0), 1.0);
+    // Extract camera right vector from modelview matrix
+    vec3 right = normalize(vec3(modelview[0][0], modelview[1][0], modelview[2][0]));
+    // Offset in screen-space X direction (in world coordinates)
+    vec3 world_offset = world_pos + radius * right;
+    // Transform both points to clip space
+    vec4 view_center = modelview * vec4(world_pos, 1.0);
+    vec4 view_edge   = modelview * vec4(world_offset, 1.0);
+    // const vec4 view_center = modelview * vec4(world_pos, 1.0);
+    // const vec4 view_edge   = modelview * vec4(world_pos + vec3(radius, 0.0, 0.0), 1.0);
     const vec4 clip_center = projection * view_center;
     const vec4 clip_edge   = projection * view_edge;
     const vec2 ndc_center = clip_center.xy / clip_center.w;
