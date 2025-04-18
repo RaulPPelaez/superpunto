@@ -15,9 +15,8 @@ void System::parseArguments() {
       continue;
     if (strcmp(m_argv[i], "--record") == 0)
       options.record_movie = true;
-
     if (strcmp(m_argv[i], "--palette") == 0)
-      options.palette_id = atoi(m_argv[i + 1]);
+      options.palette = std::string(m_argv[i + 1]);
     if (strcmp(m_argv[i], "--frames-between-screenshots") == 0)
       options.frames_between_screenshots = atoi(m_argv[i + 1]);
     if (strcmp(m_argv[i], "--RGB") == 0)
@@ -76,7 +75,7 @@ void System::printHelp() {
       "screenshots when recording (default = 2)");
   log<System::MESSAGE>(
       "\t  --background R G B : Background color in RGB, default R=G=B=0.0");
-  log<System::MESSAGE>("\t  --palette X : Change the color palette");
+  log<System::MESSAGE>("\t  --palette X : Change the color palette. Default is superpunto, all matplotlib palettes are available.\n When a matplotlib palette is selected, the color must be a number between 0 and 1.");
   log<System::MESSAGE>("\t  --RGB : Read colors as hex values in BGR (as "
                        "integers) (0xFF=red=255). Overrides palette");
   // log<System::MESSAGE>("\t  --renderer [render=arrows,particles]: Rendering

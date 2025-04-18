@@ -1,39 +1,69 @@
 #include "RFile.h"
 #include "math_helper.h"
+#include "palettes.h"
+#include "superIO.h"
+#include <fstream>
+#include <sstream>
+
 namespace superpunto {
 
-ColorParser::ColorParser(ColorParserType tp, uint pid)
-    : palette_id(pid), tp(tp) {
+ColorParser::ColorParser(ColorParserType tp, std::string palette)
+    : palette(palette), tp(tp) {
   switch (tp) {
   case ColorParserType::PALETTE:
-    srand(palette_id);
-    palette.resize(1000, 0);
-    fori(0, (int)palette.size()) palette[i] = rand() % 0xffFFff;
-
-    palette[0] = 0xC0C0C0;
-    palette[1] = 0xFF00;
-    palette[2] = 0xFF00;
-    palette[3] = 0xFF;
+    if (palette == "superpunto") {
+      srand(palette_id);
+      palette_hex.resize(1000, 0);
+      for (auto &c : palette_hex)
+        c = rand() % 0xFFFFFF;
+      palette_hex[0] = 0xC0C0C0;
+      palette_hex[1] = 0x00FF00;
+      palette_hex[2] = 0x00FF00;
+      palette_hex[3] = 0xFF0000;
+    } else {
+      const auto palette_hex_el = superpunto::palettes::colormaps.find(palette);
+      if (palette_hex_el != superpunto::palettes::colormaps.end()) {
+        for (auto c : palette_hex_el->second) {
+          palette_hex.push_back(c);
+        }
+      } else {
+        System::log<System::CRITICAL>("[File] Color palette %s not found",
+                                      palette.c_str());
+        throw std::invalid_argument(
+            "[File] Color palette not found, using default");
+      }
+    }
     break;
   default:
     break;
   }
 }
 
-RColor ColorParser::getColor(uint id) {
+RColor ColorParser::getColor(float c) {
+  int id;
   switch (tp) {
   case ColorParserType::PALETTE:
-    return id2BGR(palette[(id) % palette.size()]);
+    if(palette == "superpunto") {
+      id = uint(c);
+    }
+    else{
+      id = fabs(c) * palette_hex.size();
+    }
+    return id2BGR(palette_hex[id % palette_hex.size()]);
     break;
   case ColorParserType::HEXBGR:
-    return id2BGR(id);
+    return id2BGR(uint(c));
     break;
   }
+  return id2BGR(0xC0C0C0); // Default color
 }
 
 RColor ColorParser::id2BGR(uint id) {
-  return {(id & 0xFF) / 255.0f, ((id & 0xFF00) >> 8) / 255.0f,
-          ((id & 0xFF0000) >> 16) / 255.0f};
+  RColor color;
+  color.r = ((id >> 16) & 0xFF) / 255.0f;
+  color.g = ((id >> 8) & 0xFF) / 255.0f;
+  color.b = (id & 0xFF) / 255.0f;
+  return color;
 }
 
 void RFile::setFrame(int frame) {
@@ -130,9 +160,8 @@ bool RFile::readNextFrame() {
   Lbox.push_back(current_lbox);
 
   const auto readColorMode = sys->getInputOptions().read_color_mode;
-  const auto palette_id = sys->getInputOptions().palette_id;
-
-  ColorParser cparser(readColorMode, palette_id);
+  const auto palette = sys->getInputOptions().palette;
+  ColorParser cparser(readColorMode, palette);
 
   std::vector<float> current_pos, current_vel, current_scales, current_colors;
   if (storedFrames > 0) {

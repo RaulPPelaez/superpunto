@@ -21,15 +21,16 @@ struct RColor {
 
 class ColorParser {
 public:
-  ColorParser(ColorParserType tp, uint pid = 923302100);
+  ColorParser(ColorParserType tp, std::string palette);
 
-  RColor getColor(uint id);
+  RColor getColor(float id);
 
 private:
   RColor id2BGR(uint id);
   ColorParserType tp;
-  std::vector<uint> palette;
-  uint palette_id;
+  std::string palette;
+  std::vector<uint32_t> palette_hex;
+  uint palette_id = 923302100;
 };
 
 struct ParticleData {
