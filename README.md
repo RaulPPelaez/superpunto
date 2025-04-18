@@ -12,20 +12,23 @@ Superpunto was born as a SDL2/OpenGL4.5 clone of mrevenga's SDL punto ( http://p
 
 ## Installation
 
-There are several ways to install and run the project, depending on your operating system and preferences. Below are the instructions for each platform.
+**Superpunto is available in conda** as a [conda-forge](https://conda-forge.org/) package. You can install it using the following command:
+
+```bash
+conda install -c conda-forge superpunto
+```
 
 ### Linux or Windows under WSL (AppImage)
 
-**One-line install**  
-You can copy paste this command in your terminal, after which the command "spunto" will be available.
+The Github release page offers prebuilt binaries for Linux in the form of AppImages. These are self-contained executables that include all the necessary libraries and dependencies to run the application.  
+You can copy paste this command in your terminal to download and place into your PATH the latest one, after which the command "spunto" will be available.
 ```bash
 mkdir -p ~/.local/bin && curl -L https://github.com/RaulPPelaez/superpunto/releases/latest/download/spunto-x86_64.AppImage -o ~/.local/bin/spunto && chmod +x ~/.local/bin/spunto
 ```
-This command will download the latest AppImage, make it executable and store it under `~/.local/bin/`, a folder that is included in the PATH for most distros.
 
-Prebuilt AppImages are generated automatically for each release. You can download the latest version from the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
+Prebuilt AppImages are generated automatically for each release. You can see them in the [Releases](https://github.com/RaulPPelaez/superpunto/releases) page.
 
-To run:
+To run the AppImage:
 
 ```bash
 chmod +x spunto-x86_64.AppImage
