@@ -393,9 +393,6 @@ void RGLContext::init(SDL_Window *w) {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glDisable(GL_FRAMEBUFFER_SRGB);
-  glEnable(GL_MULTISAMPLE);
-  glEnable(GL_LINE_SMOOTH);
-  glEnable(GL_POLYGON_SMOOTH);
   glDisable(GL_STENCIL_TEST);
   glDisable(GL_SCISSOR_TEST);
   // Check for errors
