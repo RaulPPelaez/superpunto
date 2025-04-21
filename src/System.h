@@ -7,7 +7,7 @@
 #include<GL/glew.h>
 #include<SDL2/SDL.h>
 #define SUPERPUNTO_MAJOR 5
-#define SUPERPUNTO_MINOR 0
+#define SUPERPUNTO_MINOR 1
 #define xSPUNTOSTR(s) SPUNTOSTR(s)
 #define SPUNTOSTR(s) #s
 #ifndef USEFONT
