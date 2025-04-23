@@ -49,7 +49,7 @@ bool savePNG(const char *fileName, const unsigned char *pixels, int width,
   png_set_IHDR(png_ptr, info_ptr, width, height, 8, colorType,
                PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
-
+  png_set_compression_level(png_ptr, 1);
   png_write_info(png_ptr, info_ptr);
   png_set_packing(png_ptr);
 
