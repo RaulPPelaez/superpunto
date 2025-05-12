@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - cmake>=3.20
+  - make
   - gxx
   - gcc
   - sdl2

@@ -9,6 +9,7 @@
 #include "defines.h"
 #include <memory>
 #include "MovieRecorder.h"
+#include <unordered_map>
 namespace superpunto {
 class App {
 public:
@@ -41,6 +42,9 @@ private:
   std::shared_ptr<RFile> file;
   std::shared_ptr<System> sys;
   std::unique_ptr<MovieRecorder> movie;
+  std::unordered_map<SDL_Keycode, Uint32> last_key_time;
+  Uint32 repeatDelay = 50;    // milliseconds
+  Uint32 repeatInterval = 50;
   int current_frame = -1;
   bool visible;
   bool play = false;
