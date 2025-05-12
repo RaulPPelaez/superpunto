@@ -94,6 +94,16 @@ void App::run() {
   }
 }
 
+#define KEY_REPEAT_DELAY_MS(KEY, DELAY_MS, ACTION)                             \
+  if (e.key.keysym.sym == SDLK_##KEY) {                                        \
+    Uint32 now = SDL_GetTicks();                                               \
+    Uint32 &last = last_key_time[e.key.keysym.sym];                            \
+    if (e.key.repeat == 0 || now - last >= DELAY_MS) {                         \
+      last = now;                                                              \
+      ACTION                                                                   \
+    }                                                                          \
+  }
+
 void App::handle_events() {
   SDL_Event e;
   while (SDL_PollEvent(&e) != 0) {
@@ -101,17 +111,9 @@ void App::handle_events() {
     if (e.type == SDL_QUIT)
       w->close();
     if (e.type == SDL_KEYDOWN) {
-      IF_KEY(ESCAPE, w->close();)
-      IF_KEY(LALT, cam->set_origin();)
-      IF_KEY(SPACE, setNextFrame();)
-      IF_KEY(r, setPreviousFrame();)
-      IF_KEY(b, setFrame(0);)
-      IF_KEY(t, setFrame(-1);)
-      IF_KEY(m, play = !play;)
-      IF_KEY(h, sys->printHelp();)
-      IF_KEY(c, this->screenshot();)
-      IF_KEY(l, record_movie = !record_movie; play = !play;
-             if (!record_movie) movieStop();)
+      if (last_key_time.find(e.key.keysym.sym) == last_key_time.end())
+        last_key_time[e.key.keysym.sym] = SDL_GetTicks();
+      KEY_REPEAT_DELAY_MS(SPACE, 50, setNextFrame();)
       IF_KEY(4, gl->rotate_model(0.1f, 1, 0, 0);)
       IF_KEY(5, gl->rotate_model(0.1f, 0, 1, 0);)
       IF_KEY(6, gl->rotate_model(0.1f, 0, 0, 1);)
@@ -120,6 +122,19 @@ void App::handle_events() {
       IF_KEY(3, gl->rotate_model(-0.1f, 0, 0, 1);)
       IF_KEY(0, gl->reset_model(); cam->warp(initial_camera_position);
              cam->lookAt(initial_camera_center);)
+      IF_KEY(LALT, cam->set_origin();)
+    }
+    if (e.type == SDL_KEYUP) {
+      last_key_time.erase(e.key.keysym.sym);
+      IF_KEY(ESCAPE, w->close();)
+      IF_KEY(r, setPreviousFrame();)
+      IF_KEY(b, setFrame(0);)
+      IF_KEY(t, setFrame(-1);)
+      IF_KEY(m, play = !play;)
+      IF_KEY(h, sys->printHelp();)
+      IF_KEY(c, this->screenshot();)
+      IF_KEY(l, record_movie = !record_movie; play = !play;
+             if (!record_movie) movieStop();)
     }
     if (e.type == SDL_WINDOWEVENT) {
       switch (e.window.event) {
