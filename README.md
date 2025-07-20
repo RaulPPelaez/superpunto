@@ -1,5 +1,10 @@
 # Superpunto
 
+
+[![DOI](https://zenodo.org/badge/38313532.svg)](https://doi.org/10.5281/zenodo.16206803)
+
+
+
 Superpunto is a fast sphere visualizer with superb light effects. Via a simple format (similar to the XYZ format) one can visualize the trajectories of a large number of spherical particles in an interactive way.
 
 
