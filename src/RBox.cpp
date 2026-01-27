@@ -32,7 +32,7 @@ namespace superpunto{
 
     this->size = L;
     pr.use();
-    glUniform3f(glGetUniformLocation(pr.id(), "boxSize"), 2*size.x, 2*size.y, 2*size.z);
+    glUniform3f(glGetUniformLocation(pr.id(), "boxSize"), size.x, size.y, size.z);
     pr.unbind();
   }
 

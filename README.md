@@ -161,6 +161,8 @@ If some of the columns are missing, this is the behavior according to the number
 	3: XYZ ->r=1, c=0
 	4: XYZC -> r=1
 
+The simulation box is centered at (0,0,0) and goes from (-Lx/2, -Ly/2, -Lz/2) to (Lx/2, Ly/2, Lz/2).
+
 ### About colors
 
 The column color can be treated in two ways:
