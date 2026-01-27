@@ -3,7 +3,7 @@
 #include"shaders.h"
 
 namespace superpunto{
-  RBox::RBox(float gscale, glm::mat4 *MVP, glm::vec3 size):
+  RBox::RBox(float gscale, glm::mat4 *MVP, glm::vec3 size, glm::vec3 color):
     gscale(gscale),
     MVP(MVP),
     size(size)
@@ -22,11 +22,17 @@ namespace superpunto{
 
     pr.use();
     glUniform1f(glGetUniformLocation(pr.id(), "gscale"), this->gscale);
-    glUniform3f(glGetUniformLocation(pr.id(), "color"), 0,0,1);
+    glUniform3f(glGetUniformLocation(pr.id(), "color"), color.x, color.y, color.z);
     pr.unbind();
 
 
   };
+
+  void RBox::setColor(glm::vec3 color){
+    pr.use();
+    glUniform3f(glGetUniformLocation(pr.id(), "color"), color.x, color.y, color.z);
+    pr.unbind();
+  }
 
   void RBox::setSize(glm::vec3 L){
 
