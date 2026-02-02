@@ -9,6 +9,7 @@ RRenderer::RRenderer(std::shared_ptr<System> sys, std::shared_ptr<RWindow> in_w,
   picked[0] = picked[1] = -1;
   auto op = sys->getInputOptions();
   textRenderer.setFont(op.fontName.c_str(), int(op.target_FH / 10));
+  box.setColor(glm::vec3(op.box_color[0], op.box_color[1], op.box_color[2]));
   auto resolution = w->getResolution();
   proj =
       glm::perspective(op.fov, resolution.x / (float)resolution.y, znear, zfar);

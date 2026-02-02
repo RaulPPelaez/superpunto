@@ -32,6 +32,11 @@ void System::parseArguments() {
       options.bcolor[1] = std::stod(m_argv[i + 2]);
       options.bcolor[2] = std::stod(m_argv[i + 3]);
     }
+    if (strcmp(m_argv[i], "--boxcolor") == 0) {
+      options.box_color[0] = std::stod(m_argv[i+1]);
+      options.box_color[1] = std::stod(m_argv[i+2]);
+      options.box_color[2] = std::stod(m_argv[i+3]);
+    }
     if (strcmp(m_argv[i], "--resolution") == 0) {
       options.target_FW = std::atoi(m_argv[i + 1]);
       options.target_FH = std::atoi(m_argv[i + 2]);
@@ -80,6 +85,8 @@ void System::printHelp() {
                        "integers) (0xFF=red=255). Overrides palette");
   // log<System::MESSAGE>("\t  --renderer [render=arrows,particles]: Rendering
   // mode.");
+  log<System::MESSAGE>(
+      "\t  --boxcolor R G B : Color of the bounding box in RGB, default is 0 0 1");
   log<System::MESSAGE>("\t  --nobox : Do not render the bounding box.");
   log<System::MESSAGE>("\t  --noaxis : Do not render axis labels.");
   // log<System::MESSAGE>("\t  --binary : Read the file in binary SuperIO

@@ -21,7 +21,8 @@ namespace superpunto{
   struct Options{
     bool record_movie = false;
     int frames_between_screenshots = 2;
-    float bcolor[3] = {0,0,0};
+    float bcolor[3] = {0,0,0}; // background color
+    float box_color[3] = {0,0,1};
     std::string fontName = xSPUNTOSTR(USEFONT);
     std::string readFile = std::string("/dev/stdin");
     RenderType render_type = RenderType::PARTICLES;
