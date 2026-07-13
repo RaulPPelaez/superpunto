@@ -179,9 +179,10 @@ bool RFile::readNextFrame() {
   float3 current_maxDist = {0, 0, 0};
   // Read up to the next comment or file end
   while (!in.eof() and in.good()) {
-    numberChars = in.getNextLine(line);
+    numberChars = in.peekLine(line);
     if (numberChars <= 0 or in.iscomment(line, numberChars, '#'))
       break;
+    numberChars = in.getNextLine(line);
     // Count number of columns from first row
     if (numberParticles == 0) {
       std::stringstream is(line);
