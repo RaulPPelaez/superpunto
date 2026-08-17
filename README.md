@@ -119,7 +119,7 @@ sudo make install
 If using conda, you must instruct CMake to use the conda paths:
 
 ```bash
-cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..
+cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX ..
 ```
 
 #### Additional Compilation Options
